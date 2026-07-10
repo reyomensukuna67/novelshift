@@ -15,111 +15,24 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- login / terms overlay, covers whole page on load -->
-<div id="role-gate">
+<!-- Terms gate — shown once per browser, no login involved -->
+<div id="terms-gate">
   <div class="gate-card">
     <div class="gate-logo">Novel<span>shift</span></div>
     <div class="gate-sub">Fiction that shifts you.</div>
-
-    <div id="gate-terms">
-      <div class="gate-label">Terms of Service</div>
-      <div style="max-height:180px;overflow-y:auto;font-size:0.78rem;line-height:1.6;color:var(--brown);background:var(--panel);border:1px solid var(--peach-line);border-radius:10px;padding:0.9rem 1.1rem;margin-bottom:1rem;text-align:left">
-        <p style="margin-bottom:0.6rem"><strong style="color:var(--espresso)">1. The book.</strong> Novelshift sells one physical/paperback book at a time, currently <em>The Midnight Library</em> by Matt Haig, at the price shown on this page.</p>
-        <p style="margin-bottom:0.6rem"><strong style="color:var(--espresso)">2. Payment — Cash on Delivery only.</strong> Novelshift does not accept online payment of any kind. Every order is Cash on Delivery (COD): you pay in cash when the book is handed to you. To place a booking you must provide your name and your class.</p>
-        <p style="margin-bottom:0.6rem"><strong style="color:var(--espresso)">3. Bookings are final.</strong> Once you book a copy, that booking is locked in and cannot be cancelled for any reason. By booking you are committing to collect the book and pay for it in cash on delivery.</p>
-        <p style="margin-bottom:0.6rem"><strong style="color:var(--espresso)">4. Damaged or wrong items.</strong> If a book arrives damaged or we hand over the wrong title, contact us and we'll sort that out.</p>
-        <p style="margin-bottom:0.6rem"><strong style="color:var(--espresso)">5. Reviews.</strong> By posting a review you confirm it reflects your own honest opinion. Reviews that are abusive, spam, or unrelated to the book may be removed by a moderator.</p>
-        <p><strong style="color:var(--espresso)">6. Accounts.</strong> Accounts are signed in by email link. Don't share your sign-in link with anyone else — whoever clicks it gets access to your account.</p>
-      </div>
-      <label style="display:flex;align-items:flex-start;gap:0.6rem;font-size:0.82rem;color:var(--brown);margin-bottom:1rem;cursor:pointer;text-align:left">
-        <input type="checkbox" id="terms-checkbox" style="margin-top:0.2rem">
-        <span>I've read and agree to the Terms of Service, including the Cash on Delivery and no-cancellation policy above.</span>
-      </label>
-      <button class="gate-pw-confirm" id="terms-continue" style="width:100%;opacity:0.5;cursor:not-allowed" disabled>Continue</button>
+    <div class="gate-label">Terms of Service</div>
+    <div style="max-height:180px;overflow-y:auto;font-size:0.78rem;line-height:1.6;color:var(--brown);background:var(--panel);border:1px solid var(--peach-line);border-radius:10px;padding:0.9rem 1.1rem;margin-bottom:1rem;text-align:left">
+      <p style="margin-bottom:0.6rem"><strong style="color:var(--espresso)">1. The book.</strong> Novelshift sells one physical/paperback book at a time, currently <em>The Midnight Library</em> by Matt Haig, at the price shown on this page.</p>
+      <p style="margin-bottom:0.6rem"><strong style="color:var(--espresso)">2. Payment — Cash on Delivery only.</strong> Novelshift does not accept online payment of any kind. Every order is Cash on Delivery (COD): you pay in cash when the book is handed to you. To place a booking you provide your name and your class.</p>
+      <p style="margin-bottom:0.6rem"><strong style="color:var(--espresso)">3. Bookings are final.</strong> Once you book a copy, that booking is locked in and cannot be cancelled for any reason.</p>
+      <p style="margin-bottom:0.6rem"><strong style="color:var(--espresso)">4. Damaged or wrong items.</strong> If a book arrives damaged or we hand over the wrong title, contact us and we'll sort that out.</p>
+      <p><strong style="color:var(--espresso)">5. Reviews.</strong> By posting a review you confirm it reflects your own honest opinion. Reviews that are abusive, spam, or unrelated to the book may be removed.</p>
     </div>
-
-    <div id="gate-role-list" style="display:none">
-      <div class="gate-label">Who are you?</div>
-      <div class="role-option" id="role-buyer">
-        <span class="role-icon">👁️</span>
-        <div>
-          <div class="role-name">Buyer / Viewer</div>
-          <div class="role-desc">Sign in with email to browse and write reviews.</div>
-        </div>
-      </div>
-      <div class="role-option" id="role-mod">
-        <span class="role-icon">🛡️</span>
-        <div>
-          <div class="role-name">Moderator</div>
-          <div class="role-desc">Sign in with email to manage reviews and site content.</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="gate-pw-box" id="gate-email-box">
-      <div class="gate-label" id="gate-email-label">Sign in</div>
-
-      <div class="gate-auth-tabs" id="gate-auth-tabs">
-        <button class="gate-auth-tab active" id="tab-magic" type="button" data-tab="magic">Magic link</button>
-        <button class="gate-auth-tab" id="tab-password" type="button" data-tab="password">Email &amp; password</button>
-      </div>
-
-      <div id="gate-magic-panel">
-        <div class="gate-pw-err" id="gate-email-err">This email does not have admin privileges.</div>
-        <div class="gate-email-sent" id="gate-email-sent" style="display:none;color:var(--brown);font-size:0.85rem;margin-bottom:0.8rem;text-align:left">📧 Magic link sent — check that inbox and click the link to finish signing in.</div>
-        <input type="email" id="gate-email-input" placeholder="you@example.com" autocomplete="off">
-
-        <input type="password" id="gate-mod-pw-input" placeholder="Moderator password" autocomplete="off" style="display:none;margin-top:0.6rem">
-        <div class="gate-pw-err" id="gate-mod-pw-err" style="display:none">Incorrect password for moderator.</div>
-
-        <div class="gate-rate-note" id="gate-rate-note">⚠️ This may not work because the email login limit is 2 emails per 30 minutes. If it doesn't arrive, switch to "Email &amp; password" above instead.</div>
-        <div class="gate-pw-row">
-          <button class="gate-pw-back" id="gate-email-back" type="button">Back</button>
-          <button class="gate-pw-confirm" id="gate-email-confirm" type="button">Send magic link</button>
-        </div>
-      </div>
-
-      <div id="gate-password-panel" style="display:none">
-        <div class="gate-pw-err" id="gate-pwauth-err"></div>
-        <div class="gate-email-sent" id="gate-pwauth-confirm-note" style="display:none;color:var(--brown);font-size:0.85rem;margin-bottom:0.8rem;text-align:left">📧 Account created — check that inbox to confirm it, then come back and sign in here.</div>
-        <input type="email" id="gate-pwauth-email" placeholder="you@example.com" autocomplete="off">
-        <input type="text" id="gate-pwauth-username" placeholder="Username" autocomplete="off" style="display:none;margin-top:0.6rem">
-        <input type="password" id="gate-pwauth-password" placeholder="Password" autocomplete="off" style="margin-top:0.6rem">
-
-        <div class="gate-pw-tip" id="gate-pwauth-tip">💡 Tip: save your email, username, and password somewhere safe — you'll need all three to sign back in.</div>
-        <div class="gate-pwauth-switch" id="gate-pwauth-switch-link">New here? Create an account instead</div>
-        <div class="gate-pw-row">
-          <button class="gate-pw-back" id="gate-pwauth-back" type="button">Back</button>
-          <button class="gate-pw-confirm" id="gate-pwauth-confirm" type="button">Sign in</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- debug console button -->
-<button id="debug-fab" title="Debug console">🐞</button>
-<div id="debug-console">
-  <div class="debug-header">
-    <span>Debug console</span>
-    <div>
-      <button class="debug-btn-sm" id="debug-clear-btn">Clear</button>
-      <button class="debug-btn-sm" id="debug-close-btn">Close</button>
-    </div>
-  </div>
-  <div id="debug-log"></div>
-</div>
-
-<div id="debug-pass-gate" class="modal-overlay">
-  <div class="modal-box">
-    <div style="font-size:1.6rem;margin-bottom:0.6rem">🐞🔒</div>
-    <div style="color:var(--espresso);font-weight:700;margin-bottom:1rem">Debug console locked</div>
-    <input id="debug-pass-input" type="password" placeholder="Enter password">
-    <div id="debug-pass-error" style="color:var(--red);font-size:0.78rem;min-height:1.1rem;margin-bottom:0.6rem"></div>
-    <div style="display:flex;gap:0.6rem;justify-content:center">
-      <button class="btn-accent" id="debug-pass-submit">Unlock</button>
-      <button class="btn-ghost" id="debug-pass-cancel">Cancel</button>
-    </div>
+    <label style="display:flex;align-items:flex-start;gap:0.6rem;font-size:0.82rem;color:var(--brown);margin-bottom:1rem;cursor:pointer;text-align:left">
+      <input type="checkbox" id="terms-checkbox" style="margin-top:0.2rem">
+      <span>I've read and agree to the Terms of Service, including the Cash on Delivery and no-cancellation policy above.</span>
+    </label>
+    <button class="gate-pw-confirm" id="terms-continue" style="width:100%;opacity:0.5;cursor:not-allowed" disabled>Continue to Novelshift</button>
   </div>
 </div>
 
@@ -130,9 +43,9 @@
     <div style="color:var(--brown);font-size:0.8rem;margin-bottom:1.2rem">No online payment. Pay in cash when the book is delivered.</div>
     <div style="text-align:left">
       <label style="display:block;font-size:0.75rem;color:var(--brown);margin-bottom:0.3rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px">Your name</label>
-      <input id="cod-name-input" type="text" placeholder="Full name">
+      <input id="cod-name-input" type="text" placeholder="Full name" maxlength="60">
       <label style="display:block;font-size:0.75rem;color:var(--brown);margin-bottom:0.3rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px">Your class</label>
-      <input id="cod-class-input" type="text" placeholder="e.g. 10th B" style="margin-bottom:0.4rem">
+      <input id="cod-class-input" type="text" placeholder="e.g. 10th B" maxlength="30" style="margin-bottom:0.4rem">
     </div>
     <label style="display:flex;align-items:flex-start;gap:0.5rem;font-size:0.76rem;color:var(--brown);margin:0.8rem 0;cursor:pointer;text-align:left">
       <input type="checkbox" id="cod-confirm-checkbox" style="margin-top:0.2rem">
@@ -154,8 +67,8 @@
     <li><a href="#book">Shop</a></li>
     <li><a href="#reviews">Reviews</a></li>
   </ul>
-  <div class="nav-r" id="nav-auth" style="position:relative">
-    <button class="btn-sm" id="nav-cart-btn">🛒 Cart (0)</button>
+  <div class="nav-r" style="position:relative">
+    <button class="btn-sm" id="nav-cart-btn">🛒 Bookings (0)</button>
     <div id="cart-panel" style="display:none;position:absolute;top:calc(100% + 0.6rem);right:0;width:280px;background:var(--white);border:1px solid var(--peach-line);border-radius:12px;padding:1rem;box-shadow:0 12px 30px var(--shadow);z-index:50">
       <div id="cart-items" style="font-size:0.85rem;color:var(--brown);max-height:220px;overflow-y:auto"></div>
       <div id="cart-empty" style="font-size:0.85rem;color:var(--brown-soft);text-align:center;padding:0.5rem 0">Your cart is empty.</div>
@@ -174,7 +87,7 @@
   </div>
 </div>
 
-<!-- WHY NOVELSHIFT (home page feature strip) -->
+<!-- WHY NOVELSHIFT -->
 <div class="section" id="home">
   <div class="section-label">Why Novelshift</div>
   <div class="section-title">A cafe corner for readers</div>
@@ -205,10 +118,10 @@
     <div class="book-cover-wrap">
       <div class="book-cover" id="book-cover">
         <img id="book-cover-img" src="" alt="" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit">
-        <div class="cover-lines" id="cover-fallback-lines"></div>
+        <div class="cover-lines"></div>
         <div class="cover-genre" id="cover-fallback-genre">Fiction</div>
         <div class="cover-title" id="cover-title">The Midnight Library</div>
-        <div class="cover-deco" id="cover-fallback-deco"></div>
+        <div class="cover-deco"></div>
         <div class="cover-author" id="cover-fallback-author">Matt Haig</div>
       </div>
       <div class="cover-badge">New arrival</div>
@@ -238,56 +151,6 @@
         <button class="btn-wish" id="add-to-wishlist-btn">Add to wishlist</button>
       </div>
       <div style="font-size:0.78rem;color:var(--brown-soft);margin-top:0.6rem">No online payment. Pay cash when the book is delivered. Bookings can't be cancelled once placed.</div>
-
-      <div id="book-edit-panel" style="display:none;margin-top:1.5rem;background:rgba(193,80,59,0.06);border:1px solid rgba(193,80,59,0.25);border-radius:12px;padding:1.3rem">
-        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.9rem;font-size:0.78rem;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:1px">🛡️ Edit book (Moderator only)</div>
-        <label style="display:block;font-size:0.78rem;color:var(--brown);margin-bottom:0.3rem">Title</label>
-        <input type="text" id="edit-book-title" style="width:100%;padding:0.6rem 0.8rem;border:1px solid var(--peach-line);border-radius:8px;background:var(--white);color:var(--espresso);font-size:0.85rem;outline:none;margin-bottom:0.8rem">
-        <label style="display:block;font-size:0.78rem;color:var(--brown);margin-bottom:0.3rem">Author</label>
-        <input type="text" id="edit-book-author" style="width:100%;padding:0.6rem 0.8rem;border:1px solid var(--peach-line);border-radius:8px;background:var(--white);color:var(--espresso);font-size:0.85rem;outline:none;margin-bottom:0.8rem">
-        <label style="display:block;font-size:0.78rem;color:var(--brown);margin-bottom:0.3rem">Description</label>
-        <textarea id="edit-book-desc" rows="4" style="width:100%;padding:0.6rem 0.8rem;border:1px solid var(--peach-line);border-radius:8px;background:var(--white);color:var(--espresso);font-size:0.85rem;outline:none;margin-bottom:0.8rem;resize:vertical"></textarea>
-        <label style="display:block;font-size:0.78rem;color:var(--brown);margin-bottom:0.3rem">Cover image URL (leave empty for the default drawn cover)</label>
-        <input type="url" id="edit-book-cover" placeholder="https://..." style="width:100%;padding:0.6rem 0.8rem;border:1px solid var(--peach-line);border-radius:8px;background:var(--white);color:var(--espresso);font-size:0.85rem;outline:none;margin-bottom:0.8rem">
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:0.8rem">
-          <div>
-            <label style="display:block;font-size:0.78rem;color:var(--brown);margin-bottom:0.3rem">Price (₹)</label>
-            <input type="number" id="edit-book-price" min="0" step="1" style="width:100%;padding:0.6rem 0.8rem;border:1px solid var(--peach-line);border-radius:8px;background:var(--white);color:var(--espresso);font-size:0.85rem;outline:none">
-          </div>
-          <div>
-            <label style="display:block;font-size:0.78rem;color:var(--brown);margin-bottom:0.3rem">Original price (₹, before discount)</label>
-            <input type="number" id="edit-book-price-old" min="0" step="1" style="width:100%;padding:0.6rem 0.8rem;border:1px solid var(--peach-line);border-radius:8px;background:var(--white);color:var(--espresso);font-size:0.85rem;outline:none">
-          </div>
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:0.8rem">
-          <div>
-            <label style="display:block;font-size:0.78rem;color:var(--brown);margin-bottom:0.3rem">Genre tag</label>
-            <input type="text" id="edit-book-genre" style="width:100%;padding:0.6rem 0.8rem;border:1px solid var(--peach-line);border-radius:8px;background:var(--white);color:var(--espresso);font-size:0.85rem;outline:none">
-          </div>
-          <div>
-            <label style="display:block;font-size:0.78rem;color:var(--brown);margin-bottom:0.3rem">Pages</label>
-            <input type="number" id="edit-book-pages" min="1" step="1" style="width:100%;padding:0.6rem 0.8rem;border:1px solid var(--peach-line);border-radius:8px;background:var(--white);color:var(--espresso);font-size:0.85rem;outline:none">
-          </div>
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:0.9rem">
-          <div>
-            <label style="display:block;font-size:0.78rem;color:var(--brown);margin-bottom:0.3rem">Format</label>
-            <input type="text" id="edit-book-format" placeholder="Paperback" style="width:100%;padding:0.6rem 0.8rem;border:1px solid var(--peach-line);border-radius:8px;background:var(--white);color:var(--espresso);font-size:0.85rem;outline:none">
-          </div>
-          <div>
-            <label style="display:block;font-size:0.78rem;color:var(--brown);margin-bottom:0.3rem">Language</label>
-            <input type="text" id="edit-book-language" placeholder="English" style="width:100%;padding:0.6rem 0.8rem;border:1px solid var(--peach-line);border-radius:8px;background:var(--white);color:var(--espresso);font-size:0.85rem;outline:none">
-          </div>
-        </div>
-        <label style="display:block;font-size:0.78rem;color:var(--brown);margin-bottom:0.3rem">ISBN</label>
-        <input type="text" id="edit-book-isbn" placeholder="978-0525559474" style="width:100%;padding:0.6rem 0.8rem;border:1px solid var(--peach-line);border-radius:8px;background:var(--white);color:var(--espresso);font-size:0.85rem;outline:none;margin-bottom:0.9rem">
-
-        <div style="font-size:0.76rem;color:var(--brown-soft);margin-bottom:0.9rem" id="book-edit-status"></div>
-        <button id="save-book-btn" style="padding:0.65rem 1.4rem;border-radius:8px;border:none;background:var(--red);color:white;font-size:0.85rem;font-weight:700;cursor:pointer">Save changes</button>
-      </div>
     </div>
   </div>
 </div>
@@ -304,13 +167,8 @@
     <span class="stars-disp" id="avg-stars-2">☆☆☆☆☆</span>
   </div>
 
-  <div class="review-form" id="review-form">
+  <div class="review-form" id="review-form" style="display:block">
     <div class="form-title">Write a review</div>
-    <div class="form-user-info">
-      <div class="form-user-dot"></div>
-      <span id="form-user-email">Posting as Buyer / Viewer</span>
-      <span style="margin-left:auto;font-size:0.75rem;cursor:pointer;color:var(--brown-soft)" id="signout-link">Switch role</span>
-    </div>
     <div class="form-row">
       <label>Your rating</label>
       <div class="star-picker" id="star-picker">
@@ -368,26 +226,17 @@
 </footer>
 
 <script>
-
-// supabase config
+// ============ SUPABASE ============
 const SUPABASE_URL = 'https://yreawkggymjmcuukknup.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlyZWF3a2dneW1qbWN1dWtrbnVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MTgwMDYsImV4cCI6MjA5ODI5NDAwNn0.kAlUW4XJ_8ERgruKyx5G_NKVSKtsyUJGptte1rHt73E';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-
-// loads book info from supabase (falls back to hardcoded defaults)
+// ============ BOOK DATA (read-only on public site) ============
 async function loadBookData() {
   try {
     const { data, error } = await sb.from('book_settings').select('*').eq('id', 1).single();
-    if (!error && data) {
-      applyBookData(data);
-      return;
-    }
-  } catch (e) { /* table likely doesn't exist yet — fall through */ }
-  try {
-    const local = JSON.parse(localStorage.getItem('novelshift-book') || 'null');
-    if (local) applyBookData(local);
-  } catch (e) { /* ignore */ }
+    if (!error && data) applyBookData(data);
+  } catch (e) { /* table may not exist yet */ }
 }
 
 function applyBookData(data) {
@@ -399,9 +248,7 @@ function applyBookData(data) {
     document.getElementById('book-author-main').textContent = data.author;
     document.getElementById('cover-fallback-author').textContent = data.author;
   }
-  if (data.description) {
-    document.getElementById('book-desc').textContent = data.description;
-  }
+  if (data.description) document.getElementById('book-desc').textContent = data.description;
   const img = document.getElementById('book-cover-img');
   if (data.cover_image_url) {
     img.src = data.cover_image_url;
@@ -418,104 +265,17 @@ function applyBookData(data) {
   if (data.format) document.getElementById('meta-format').textContent = data.format;
   if (data.language) document.getElementById('meta-language').textContent = data.language;
   if (data.isbn) document.getElementById('meta-isbn').textContent = `ISBN: ${data.isbn}`;
-
   if (data.price != null) document.getElementById('price-current').textContent = `₹${data.price}`;
   if (data.price_old != null) document.getElementById('price-old').textContent = `₹${data.price_old}`;
   if (data.price != null && data.price_old != null && data.price_old > 0) {
     const pct = Math.round((1 - data.price / data.price_old) * 100);
     const saveEl = document.getElementById('price-save');
-    if (pct > 0) {
-      saveEl.textContent = `Save ${pct}%`;
-      saveEl.style.display = '';
-    } else {
-      saveEl.style.display = 'none';
-    }
+    if (pct > 0) { saveEl.textContent = `Save ${pct}%`; saveEl.style.display = ''; }
+    else saveEl.style.display = 'none';
   }
 }
 
-function populateBookEditForm() {
-  document.getElementById('edit-book-title').value = document.getElementById('book-title-main').textContent;
-  document.getElementById('edit-book-author').value = document.getElementById('book-author-main').textContent;
-  document.getElementById('edit-book-desc').value = document.getElementById('book-desc').textContent;
-  document.getElementById('edit-book-cover').value = document.getElementById('book-cover-img').src && document.getElementById('book-cover-img').style.display !== 'none'
-    ? document.getElementById('book-cover-img').src : '';
-  document.getElementById('edit-book-price').value = (document.getElementById('price-current').textContent || '').replace(/[^\d]/g, '');
-  document.getElementById('edit-book-price-old').value = (document.getElementById('price-old').textContent || '').replace(/[^\d]/g, '');
-  document.getElementById('edit-book-genre').value = document.getElementById('meta-genre').textContent;
-  document.getElementById('edit-book-pages').value = (document.getElementById('meta-pages').textContent || '').replace(/[^\d]/g, '');
-  document.getElementById('edit-book-format').value = document.getElementById('meta-format').textContent;
-  document.getElementById('edit-book-language').value = document.getElementById('meta-language').textContent;
-  document.getElementById('edit-book-isbn').value = (document.getElementById('meta-isbn').textContent || '').replace(/^ISBN:\s*/, '');
-}
-
-async function saveBookData() {
-  const statusEl = document.getElementById('book-edit-status');
-  const btn = document.getElementById('save-book-btn');
-  const payload = {
-    id: 1,
-    title: document.getElementById('edit-book-title').value.trim(),
-    author: document.getElementById('edit-book-author').value.trim(),
-    description: document.getElementById('edit-book-desc').value.trim(),
-    cover_image_url: document.getElementById('edit-book-cover').value.trim(),
-    price: Number(document.getElementById('edit-book-price').value) || 0,
-    price_old: Number(document.getElementById('edit-book-price-old').value) || 0,
-    genre: document.getElementById('edit-book-genre').value.trim(),
-    pages: Number(document.getElementById('edit-book-pages').value) || 0,
-    format: document.getElementById('edit-book-format').value.trim(),
-    language: document.getElementById('edit-book-language').value.trim(),
-    isbn: document.getElementById('edit-book-isbn').value.trim()
-  };
-  btn.disabled = true;
-  btn.textContent = 'Saving...';
-  applyBookData(payload);
-  localStorage.setItem('novelshift-book', JSON.stringify(payload));
-  try {
-    const { error } = await sb.from('book_settings').upsert(payload);
-    if (error) throw error;
-    statusEl.textContent = '✓ Saved — visible to everyone.';
-    dlog('success', 'Book details saved to Supabase.');
-  } catch (e) {
-    statusEl.textContent = '⚠ Saved on this device only — set up the book_settings table in Supabase so it shows for everyone (see code comments).';
-    dlog('error', `Book save to Supabase failed: ${e.message || e}`);
-  }
-  btn.disabled = false;
-  btn.textContent = 'Save changes';
-}
-
-
-// only these emails get mod access
-const MODERATOR_EMAILS = ['offcialshadeygamer@gmail.com', 'virajteaches@gmail.com'];
-let currentRole = null;
-
-
-const debugEntries = [];
-function dlog(type, msg) {
-  const time = new Date().toLocaleTimeString();
-  debugEntries.push({type, msg, time});
-  const el = document.getElementById('debug-log');
-  if (el) {
-    const row = document.createElement('div');
-    row.className = 'dlog-row dlog-' + type;
-    row.innerHTML = `<span class="dlog-time">${time}</span>${escHtml(String(msg))}`;
-    el.appendChild(row);
-    el.scrollTop = el.scrollHeight;
-  }
-}
-
-window.addEventListener('error', e => {
-  dlog('error', `Uncaught error: ${e.message} (${e.filename}:${e.lineno})`);
-});
-window.addEventListener('unhandledrejection', e => {
-  dlog('error', `Unhandled promise rejection: ${e.reason}`);
-});
-
-
-const glow = document.getElementById('glow');
-document.addEventListener('mousemove', e => {
-  glow.style.left = e.clientX + 'px';
-  glow.style.top = e.clientY + 'px';
-});
-
+// ============ HELPERS ============
 function showToast(msg, type='') {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -524,8 +284,10 @@ function showToast(msg, type='') {
   t._t = setTimeout(() => t.className = 'toast', 3200);
 }
 
+// Escapes HTML special characters before inserting user text into innerHTML.
+// This is the XSS guard: review names/text always pass through here first.
 function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function renderStars(n, f='★', e='☆') {
@@ -545,7 +307,7 @@ function updateAvgUI(reviews) {
     ? `${reviews.length} review${reviews.length>1?'s':''}` : '0 reviews';
 }
 
-
+// ============ REVIEWS (public: read + insert only, no delete) ============
 function renderReviews(reviews) {
   const list = document.getElementById('reviews-list');
   const empty = document.getElementById('empty-state');
@@ -556,74 +318,32 @@ function renderReviews(reviews) {
     const displayName = r.name && r.name.trim() ? r.name.trim() : 'Reader';
     const initials = displayName.split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2);
     const date = new Date(r.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
-    const modActions = currentRole === 'moderator'
-      ? `<div class="rev-mod-actions"><button class="btn-del-review" data-id="${r.id}">Delete review</button></div>`
-      : '';
-    return `<div class="review-card" data-review-id="${r.id}">
+    return `<div class="review-card">
       <div class="rev-top">
         <div class="rev-author-row">
-          <div class="rev-avatar">${initials}</div>
+          <div class="rev-avatar">${escHtml(initials)}</div>
           <div>
             <div class="rev-name">${escHtml(displayName)}</div>
-            <div class="rev-date">${date}</div>
+            <div class="rev-date">${escHtml(date)}</div>
           </div>
         </div>
         <div class="rev-stars">${renderStars(r.rating)}</div>
       </div>
       <div class="rev-text">"${escHtml(r.review_text)}"</div>
       <div class="rev-verified">✓ Verified reader</div>
-      ${modActions}
     </div>`;
   }).join('');
-
-  if (currentRole === 'moderator') {
-    list.querySelectorAll('.btn-del-review').forEach(btn => {
-      btn.addEventListener('click', () => deleteReview(btn.dataset.id, btn));
-    });
-  }
 }
 
-
-// pulls reviews from supabase and renders them
 async function loadReviews() {
-  dlog('info', 'Loading reviews from Supabase...');
   const { data, error } = await sb.from('reviews').select('*').order('created_at',{ascending:false});
   if (error) {
-    document.getElementById('loading-reviews').textContent='Could not load reviews.';
-    dlog('error', `loadReviews failed: ${error.message}`);
+    document.getElementById('loading-reviews').textContent = 'Could not load reviews.';
     return;
   }
-  dlog('success', `Loaded ${data.length} review(s).`);
   updateAvgUI(data);
   renderReviews(data);
 }
-
-
-async function deleteReview(id, btn) {
-  if (!confirm('Delete this review? This cannot be undone.')) return;
-  btn.disabled = true;
-  btn.textContent = 'Deleting...';
-  dlog('info', `Attempting to delete review id=${id}...`);
-  const { error, data } = await sb.from('reviews').delete().eq('id', id).select();
-  if (error) {
-    dlog('error', `Delete failed for id=${id}: ${error.message}`);
-    showToast('Could not delete review: ' + error.message, 'error');
-    btn.disabled = false;
-    btn.textContent = 'Delete review';
-    return;
-  }
-  if (!data || !data.length) {
-    dlog('error', `Delete for id=${id} returned no rows. Likely blocked by a Supabase Row Level Security (RLS) policy — the anon key may not have delete permission on "reviews".`);
-    showToast('Delete blocked by server permissions (RLS).', 'error');
-    btn.disabled = false;
-    btn.textContent = 'Delete review';
-    return;
-  }
-  dlog('success', `Deleted review id=${id}.`);
-  showToast('Review deleted.', 'success');
-  loadReviews();
-}
-
 
 let selectedRating = 0;
 const starBtns = document.querySelectorAll('.star-btn');
@@ -641,7 +361,6 @@ starBtns.forEach(btn => {
   });
 });
 
-
 document.getElementById('submit-btn').addEventListener('click', async () => {
   const name = document.getElementById('rev-name').value.trim();
   const text = document.getElementById('rev-text').value.trim();
@@ -649,21 +368,16 @@ document.getElementById('submit-btn').addEventListener('click', async () => {
   errEl.style.display = 'none';
   if (!selectedRating) { errEl.textContent='Pick a star rating.'; errEl.style.display=''; return; }
   if (text.length < 10) { errEl.textContent='Write at least a sentence (10+ chars).'; errEl.style.display=''; return; }
+  if (text.length > 600) { errEl.textContent='Keep it under 600 characters.'; errEl.style.display=''; return; }
   const btn = document.getElementById('submit-btn');
   btn.disabled=true; btn.textContent='Posting...';
-  dlog('info', 'Submitting new review...');
   const { error } = await sb.from('reviews').insert([{
-    name: name || null,
+    name: name ? name.slice(0,50) : null,
     rating: selectedRating,
     review_text: text
   }]);
   btn.disabled=false; btn.textContent='Post review';
-  if (error) {
-    dlog('error', `Post review failed: ${error.message}`);
-    showToast('Something went wrong. Try again.', 'error');
-    return;
-  }
-  dlog('success', 'Review posted.');
+  if (error) { showToast('Something went wrong. Try again.', 'error'); return; }
   document.getElementById('rev-name').value='';
   document.getElementById('rev-text').value='';
   selectedRating=0;
@@ -672,399 +386,23 @@ document.getElementById('submit-btn').addEventListener('click', async () => {
   loadReviews();
 });
 
+// ============ BOOKINGS (COD, saved to Supabase so the owner can see them) ============
+let cartItems = JSON.parse(localStorage.getItem('novelshift-cart') || '[]');
+function saveCart() { localStorage.setItem('novelshift-cart', JSON.stringify(cartItems)); }
 
-function enterAsBuyer() {
-  currentRole = 'buyer';
-  localStorage.setItem('novelshift_role', 'buyer');
-  dlog('info', 'Entered as Buyer / Viewer.');
-  finishGate();
-}
-
-function enterAsModerator() {
-  currentRole = 'moderator';
-  localStorage.setItem('novelshift_role', 'moderator');
-  dlog('success', 'Signed in as Moderator.');
-  finishGate();
-}
-
-// hides the gate, sets up the page for the chosen role
-function finishGate() {
-  document.getElementById('role-gate').style.display = 'none';
-  document.getElementById('review-form').style.display = 'block';
-  const label = currentRole === 'moderator'
-    ? '<span class="mod-badge">🛡️ Moderator mode</span>'
-    : 'Posting as Buyer / Viewer';
-  document.getElementById('form-user-email').innerHTML = label;
-  document.getElementById('book-edit-panel').style.display = currentRole === 'moderator' ? 'block' : 'none';
-  if (currentRole === 'moderator') populateBookEditForm();
-  loadReviews();
-}
-
-// signs out + brings back the login screen
-async function showRoleGate() {
-  // out of Supabase Auth either way.
-  if (currentRole) {
-    await sb.auth.signOut();
-  }
-  currentRole = null;
-  localStorage.removeItem('novelshift_role');
-  document.getElementById('review-form').style.display = 'none';
-  document.getElementById('book-edit-panel').style.display = 'none';
-  document.getElementById('gate-role-list').style.display = '';
-  document.getElementById('gate-email-box').style.display = 'none';
-  document.getElementById('gate-email-input').value = '';
-  document.getElementById('gate-email-err').style.display = 'none';
-  document.getElementById('gate-email-sent').style.display = 'none';
-  document.getElementById('gate-pwauth-email').value = '';
-  document.getElementById('gate-pwauth-username').value = '';
-  document.getElementById('gate-pwauth-password').value = '';
-  document.getElementById('gate-pwauth-err').style.display = 'none';
-  document.getElementById('gate-pwauth-confirm-note').style.display = 'none';
-  document.getElementById('role-gate').style.display = 'flex';
-}
-
-document.getElementById('terms-checkbox').addEventListener('change', (e) => {
-  const btn = document.getElementById('terms-continue');
-  btn.disabled = !e.target.checked;
-  btn.style.opacity = e.target.checked ? '1' : '0.5';
-  btn.style.cursor = e.target.checked ? 'pointer' : 'not-allowed';
-});
-document.getElementById('terms-continue').addEventListener('click', () => {
-  document.getElementById('gate-terms').style.display = 'none';
-  document.getElementById('gate-role-list').style.display = '';
-});
-
-document.getElementById('role-buyer').addEventListener('click', () => {
-  document.getElementById('gate-email-label').textContent = 'Buyer / Viewer sign-in';
-  document.getElementById('gate-role-list').style.display = 'none';
-  document.getElementById('gate-email-box').style.display = 'block';
-  document.getElementById('gate-email-box').dataset.intent = 'buyer';
-  document.getElementById('gate-mod-pw-input').style.display = 'none';
-  document.getElementById('gate-mod-pw-err').style.display = 'none';
-  resetAuthTabs('buyer');
-  document.getElementById('gate-email-input').focus();
-});
-
-document.getElementById('role-mod').addEventListener('click', () => {
-  document.getElementById('gate-email-label').textContent = 'Moderator sign-in';
-  document.getElementById('gate-role-list').style.display = 'none';
-  document.getElementById('gate-email-box').style.display = 'block';
-  document.getElementById('gate-email-box').dataset.intent = 'moderator';
-  document.getElementById('gate-mod-pw-input').style.display = 'block';
-  resetAuthTabs('moderator');
-  document.getElementById('gate-email-input').focus();
-});
-
-document.getElementById('gate-email-back').addEventListener('click', () => {
-  document.getElementById('gate-email-box').style.display = 'none';
-  document.getElementById('gate-role-list').style.display = '';
-  document.getElementById('gate-email-input').value = '';
-  document.getElementById('gate-mod-pw-input').value = '';
-  document.getElementById('gate-mod-pw-input').style.display = 'none';
-  document.getElementById('gate-mod-pw-err').style.display = 'none';
-  document.getElementById('gate-email-err').style.display = 'none';
-  document.getElementById('gate-email-sent').style.display = 'none';
-});
-
-
-let pwAuthMode = 'signin';
-
-function resetAuthTabs(intent) {
-  document.getElementById('tab-magic').classList.add('active');
-  document.getElementById('tab-password').classList.remove('active');
-  document.getElementById('gate-magic-panel').style.display = '';
-  document.getElementById('gate-password-panel').style.display = 'none';
-  document.getElementById('gate-pwauth-email').value = '';
-  document.getElementById('gate-pwauth-username').value = '';
-  document.getElementById('gate-pwauth-password').value = '';
-  document.getElementById('gate-pwauth-err').style.display = 'none';
-  document.getElementById('gate-pwauth-confirm-note').style.display = 'none';
-  setPwAuthMode('signin');
-  document.getElementById('gate-pwauth-switch-link').style.display = intent === 'moderator' ? 'none' : '';
-}
-
-document.getElementById('tab-magic').addEventListener('click', () => {
-  document.getElementById('tab-magic').classList.add('active');
-  document.getElementById('tab-password').classList.remove('active');
-  document.getElementById('gate-magic-panel').style.display = '';
-  document.getElementById('gate-password-panel').style.display = 'none';
-});
-document.getElementById('tab-password').addEventListener('click', () => {
-  document.getElementById('tab-password').classList.add('active');
-  document.getElementById('tab-magic').classList.remove('active');
-  document.getElementById('gate-password-panel').style.display = '';
-  document.getElementById('gate-magic-panel').style.display = 'none';
-});
-
-function setPwAuthMode(mode) {
-  pwAuthMode = mode;
-  const usernameInput = document.getElementById('gate-pwauth-username');
-  const switchLink = document.getElementById('gate-pwauth-switch-link');
-  const confirmBtn = document.getElementById('gate-pwauth-confirm');
-  if (mode === 'signup') {
-    usernameInput.style.display = 'block';
-    switchLink.textContent = 'Already have an account? Sign in instead';
-    confirmBtn.textContent = 'Create account';
-  } else {
-    usernameInput.style.display = 'none';
-    switchLink.textContent = 'New here? Create an account instead';
-    confirmBtn.textContent = 'Sign in';
-  }
-}
-document.getElementById('gate-pwauth-switch-link').addEventListener('click', () => {
-  setPwAuthMode(pwAuthMode === 'signin' ? 'signup' : 'signin');
-});
-
-document.getElementById('gate-pwauth-back').addEventListener('click', () => {
-  document.getElementById('gate-email-box').style.display = 'none';
-  document.getElementById('gate-role-list').style.display = '';
-});
-
-// creates a new buyer account
-async function signUpWithPassword(email, username, password) {
-  const errEl = document.getElementById('gate-pwauth-err');
-  const noteEl = document.getElementById('gate-pwauth-confirm-note');
-  errEl.style.display = 'none';
-  if (MODERATOR_EMAILS.map(m => m.toLowerCase()).includes(email.toLowerCase())) {
-    dlog('error', `Blocked signup attempt on reserved moderator email: ${email}`);
-    errEl.textContent = 'This email is reserved for a moderator account. Contact the site owner for access.';
-    errEl.style.display = 'block';
-    return;
-  }
-  if (!username) {
-    errEl.textContent = 'Pick a username.';
-    errEl.style.display = 'block';
-    return;
-  }
-  if (password.length < 6) {
-    errEl.textContent = 'Password needs to be at least 6 characters.';
-    errEl.style.display = 'block';
-    return;
-  }
-  const intent = document.getElementById('gate-email-box').dataset.intent || 'buyer';
-  localStorage.setItem('novelshift_login_intent', intent);
-  dlog('info', `Creating account for ${email}...`);
-  const { data, error } = await sb.auth.signUp({
-    email, password,
-    options: { data: { username } }
-  });
-  if (error) {
-    dlog('error', `Sign up failed: ${error.message}`);
-    errEl.textContent = error.message;
-    errEl.style.display = 'block';
-    return;
-  }
-  if (data.session) {
-    dlog('success', `Account created and signed in as ${email}.`);
-  } else {
-    dlog('info', `Account created for ${email}, awaiting email confirmation.`);
-    noteEl.style.display = 'block';
-  }
-}
-
-// signs into existing account
-async function signInWithPassword(email, password) {
-  const errEl = document.getElementById('gate-pwauth-err');
-  errEl.style.display = 'none';
-  const intent = document.getElementById('gate-email-box').dataset.intent || 'buyer';
-  localStorage.setItem('novelshift_login_intent', intent);
-  dlog('info', `Signing in as ${email}...`);
-  const { error } = await sb.auth.signInWithPassword({ email, password });
-  if (error) {
-    dlog('error', `Sign in failed: ${error.message}`);
-    errEl.textContent = 'Incorrect email or password.';
-    errEl.style.display = 'block';
-    return;
-  }
-  // the same buyer/moderator check used by the magic link.
-}
-
-document.getElementById('gate-pwauth-confirm').addEventListener('click', async () => {
-  const email = document.getElementById('gate-pwauth-email').value.trim();
-  const username = document.getElementById('gate-pwauth-username').value.trim();
-  const password = document.getElementById('gate-pwauth-password').value;
-  const errEl = document.getElementById('gate-pwauth-err');
-  errEl.style.display = 'none';
-  if (!email || !email.includes('@')) {
-    errEl.textContent = 'Enter a valid email address.';
-    errEl.style.display = 'block';
-    return;
-  }
-  if (!password) {
-    errEl.textContent = 'Enter a password.';
-    errEl.style.display = 'block';
-    return;
-  }
-  const btn = document.getElementById('gate-pwauth-confirm');
-  btn.disabled = true;
-  if (pwAuthMode === 'signup') {
-    btn.textContent = 'Creating account...';
-    await signUpWithPassword(email, username, password);
-  } else {
-    btn.textContent = 'Signing in...';
-    await signInWithPassword(email, password);
-  }
-  btn.disabled = false;
-  btn.textContent = pwAuthMode === 'signup' ? 'Create account' : 'Sign in';
-});
-document.getElementById('gate-pwauth-password').addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('gate-pwauth-confirm').click();
-});
-
-async function sendMagicLink() {
-  const email = document.getElementById('gate-email-input').value.trim();
-  const btn = document.getElementById('gate-email-confirm');
-  const errEl = document.getElementById('gate-email-err');
-  const sentEl = document.getElementById('gate-email-sent');
-  const modPwErrEl = document.getElementById('gate-mod-pw-err');
-  errEl.style.display = 'none';
-  modPwErrEl.style.display = 'none';
-  if (!email || !email.includes('@')) {
-    errEl.textContent = 'Enter a valid email address.';
-    errEl.style.display = 'block';
-    return;
-  }
-  const intent = document.getElementById('gate-email-box').dataset.intent || 'buyer';
-
-  if (intent === 'moderator') {
-    const password = document.getElementById('gate-mod-pw-input').value;
-    if (!password) {
-      modPwErrEl.textContent = 'Enter the moderator password.';
-      modPwErrEl.style.display = 'block';
-      return;
-    }
-    btn.disabled = true;
-    btn.textContent = 'Checking password...';
-    let passwordOk = false;
-    try {
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/verify-mod-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${SUPABASE_KEY}`
-        },
-        body: JSON.stringify({ password })
-      });
-      passwordOk = res.ok;
-    } catch (e) {
-      dlog('error', `Moderator password check request failed: ${e.message || e}`);
-    }
-    btn.disabled = false;
-    btn.textContent = 'Send magic link';
-    if (!passwordOk) {
-      dlog('error', 'Moderator password check failed.');
-      modPwErrEl.textContent = 'Incorrect password for moderator.';
-      modPwErrEl.style.display = 'block';
-      return;
-    }
-    dlog('success', 'Moderator password verified server-side.');
-  }
-
-  localStorage.setItem('novelshift_login_intent', intent);
-  btn.disabled = true;
-  btn.textContent = 'Sending...';
-  const { error } = await sb.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: window.location.href }
-  });
-  btn.disabled = false;
-  btn.textContent = 'Send magic link';
-  if (error) {
-    dlog('error', `Magic link request failed: ${error.message}`);
-    errEl.textContent = 'That didn\'t work — check the address and try again.';
-    errEl.style.display = 'block';
-    return;
-  }
-  dlog('info', `Magic link sent to ${email}.`);
-  sentEl.style.display = 'block';
-}
-document.getElementById('gate-email-confirm').addEventListener('click', sendMagicLink);
-document.getElementById('gate-email-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') sendMagicLink();
-});
-document.getElementById('gate-mod-pw-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') sendMagicLink();
-});
-
-async function handleAuthSession(session) {
-  if (!session || !session.user || !session.user.email) return;
-  const email = session.user.email.toLowerCase();
-  const intent = localStorage.getItem('novelshift_login_intent') || localStorage.getItem('novelshift_role');
-
-  if (intent === 'buyer') {
-    localStorage.removeItem('novelshift_login_intent');
-    dlog('info', `Signed in as Buyer/Viewer (${email}).`);
-    enterAsBuyer();
-    return;
-  }
-
-  // browser tab.
-  if (MODERATOR_EMAILS.map(m => m.toLowerCase()).includes(email)) {
-    localStorage.removeItem('novelshift_login_intent');
-    enterAsModerator();
-  } else {
-    localStorage.removeItem('novelshift_login_intent');
-    localStorage.removeItem('novelshift_role');
-    dlog('error', `Sign-in succeeded but ${email} is not an authorized moderator email.`);
-    await sb.auth.signOut();
-    const errEl = document.getElementById('gate-email-err');
-    if (errEl) {
-      errEl.textContent = 'This email does not have admin privileges.';
-      errEl.style.display = 'block';
-    }
-  }
-}
-sb.auth.onAuthStateChange((event, session) => {
-  if (event === 'SIGNED_IN') handleAuthSession(session);
-});
-sb.auth.getSession().then(({ data }) => {
-  if (data.session) handleAuthSession(data.session);
-});
-
-
-function flashBtnConfirm(btn, confirmText) {
-  if (btn.dataset.busy === '1') return; // ignore rapid double-clicks
-  btn.dataset.busy = '1';
-  const original = btn.textContent;
-  btn.textContent = confirmText;
-  btn.disabled = true;
-  setTimeout(() => {
-    btn.textContent = original;
-    btn.disabled = false;
-    btn.dataset.busy = '0';
-  }, 1400);
-}
-
-let cartItems = [];
-try {
-  cartItems = JSON.parse(localStorage.getItem('novelshift-cart') || '[]');
-} catch (e) {
-  cartItems = [];
-}
-function saveCart() {
-  localStorage.setItem('novelshift-cart', JSON.stringify(cartItems));
-}
-
-// updates cart dropdown + count badge
-// note: bookings are COD and final per the Terms of Service, so there is
-// deliberately no "remove" control here once a booking has been confirmed.
 function renderCart() {
   document.getElementById('nav-cart-btn').textContent = `🛒 Bookings (${cartItems.length})`;
   const list = document.getElementById('cart-items');
   const empty = document.getElementById('cart-empty');
-  if (cartItems.length === 0) {
-    list.innerHTML = '';
-    empty.style.display = 'block';
-    return;
-  }
+  if (cartItems.length === 0) { list.innerHTML = ''; empty.style.display = 'block'; return; }
   empty.style.display = 'none';
   list.innerHTML = cartItems.map((item) => `
-    <div style="padding:0.5rem 0;border-bottom:1px solid var(--border)">
+    <div style="padding:0.5rem 0;border-bottom:1px solid var(--peach-line)">
       <div style="display:flex;justify-content:space-between;align-items:baseline">
-        <div style="color:var(--text)">${escHtml(item.title)}</div>
-        <div style="color:var(--text3)">${escHtml(item.price)}</div>
+        <div style="color:var(--espresso)">${escHtml(item.title)}</div>
+        <div style="color:var(--brown-soft)">${escHtml(item.price)}</div>
       </div>
-      <div style="color:var(--text3);font-size:0.78rem;margin-top:0.15rem">${escHtml(item.name)} · Class ${escHtml(item.className)} · COD</div>
+      <div style="color:var(--brown-soft);font-size:0.78rem;margin-top:0.15rem">${escHtml(item.name)} · Class ${escHtml(item.className)} · COD</div>
     </div>
   `).join('');
 }
@@ -1076,38 +414,48 @@ function openBookingModal() {
   document.getElementById('cod-error').textContent = '';
   document.getElementById('book-cod-gate').style.display = 'flex';
 }
-function closeBookingModal() {
-  document.getElementById('book-cod-gate').style.display = 'none';
-}
+function closeBookingModal() { document.getElementById('book-cod-gate').style.display = 'none'; }
 
 document.getElementById('add-to-cart-btn').addEventListener('click', openBookingModal);
-
 document.getElementById('cod-cancel-btn').addEventListener('click', closeBookingModal);
 
-document.getElementById('cod-confirm-btn').addEventListener('click', () => {
+document.getElementById('cod-confirm-btn').addEventListener('click', async () => {
   const name = document.getElementById('cod-name-input').value.trim();
   const className = document.getElementById('cod-class-input').value.trim();
   const agreed = document.getElementById('cod-confirm-checkbox').checked;
   const errEl = document.getElementById('cod-error');
 
-  if (!name || !className) {
-    errEl.textContent = 'Please enter both your name and your class.';
-    return;
-  }
-  if (!agreed) {
-    errEl.textContent = 'Please confirm you understand the booking is final and COD.';
-    return;
-  }
+  if (!name || !className) { errEl.textContent = 'Please enter both your name and your class.'; return; }
+  if (!agreed) { errEl.textContent = 'Please confirm you understand the booking is final and COD.'; return; }
 
-  cartItems.push({ title: 'The Midnight Library', price: '₹399', name, className });
+  const btn = document.getElementById('cod-confirm-btn');
+  btn.disabled = true; btn.textContent = 'Booking...';
+
+  const bookTitle = document.getElementById('book-title-main').textContent;
+  const bookPrice = document.getElementById('price-current').textContent;
+
+  // Save to Supabase so the site owner can actually see bookings.
+  // Falls back gracefully if the orders table doesn't exist yet.
+  try {
+    await sb.from('orders').insert([{
+      buyer_name: name.slice(0,60),
+      buyer_class: className.slice(0,30),
+      book_title: bookTitle,
+      price: bookPrice,
+      status: 'pending'
+    }]);
+  } catch (e) { /* orders table may not exist yet — booking still saved locally below */ }
+
+  cartItems.push({ title: bookTitle, price: bookPrice, name, className });
   saveCart();
   renderCart();
   closeBookingModal();
-  flashBtnConfirm(document.getElementById('add-to-cart-btn'), '✓ Booked (COD)');
+  btn.disabled = false; btn.textContent = 'Confirm booking';
+  showToast('Booked! Pay cash on delivery.', 'success');
 });
 
 document.getElementById('add-to-wishlist-btn').addEventListener('click', () => {
-  flashBtnConfirm(document.getElementById('add-to-wishlist-btn'), '✓ Saved');
+  showToast('Saved to wishlist.', 'success');
 });
 
 document.getElementById('nav-cart-btn').addEventListener('click', (e) => {
@@ -1121,49 +469,24 @@ document.addEventListener('click', (e) => {
     panel.style.display = 'none';
   }
 });
-renderCart();
 
-document.getElementById('signout-link').addEventListener('click', showRoleGate);
-
-
-const DEBUG_PASSWORD = 'viraj123';
-document.getElementById('debug-fab').addEventListener('click', () => {
-  const gate = document.getElementById('debug-pass-gate');
-  const input = document.getElementById('debug-pass-input');
-  document.getElementById('debug-pass-error').textContent = '';
-  input.value = '';
-  gate.style.display = 'flex';
-  input.focus();
+// ============ TERMS GATE (one-time, no login) ============
+document.getElementById('terms-checkbox').addEventListener('change', (e) => {
+  const btn = document.getElementById('terms-continue');
+  btn.disabled = !e.target.checked;
+  btn.style.opacity = e.target.checked ? '1' : '0.5';
+  btn.style.cursor = e.target.checked ? 'pointer' : 'not-allowed';
 });
-function tryDebugUnlock(){
-  const input = document.getElementById('debug-pass-input');
-  const errEl = document.getElementById('debug-pass-error');
-  if(input.value === DEBUG_PASSWORD){
-    document.getElementById('debug-pass-gate').style.display = 'none';
-    document.getElementById('debug-console').style.display = 'flex';
-    dlog('info', 'Debug console opened.');
-  } else {
-    errEl.textContent = 'Incorrect password.';
-  }
+document.getElementById('terms-continue').addEventListener('click', () => {
+  localStorage.setItem('novelshift_terms_accepted', 'true');
+  document.getElementById('terms-gate').style.display = 'none';
+});
+if (localStorage.getItem('novelshift_terms_accepted') === 'true') {
+  document.getElementById('terms-gate').style.display = 'none';
 }
-document.getElementById('debug-pass-submit').addEventListener('click', tryDebugUnlock);
-document.getElementById('debug-pass-input').addEventListener('keydown', (e) => {
-  if(e.key === 'Enter') tryDebugUnlock();
-});
-document.getElementById('debug-pass-cancel').addEventListener('click', () => {
-  document.getElementById('debug-pass-gate').style.display = 'none';
-});
-document.getElementById('debug-close-btn').addEventListener('click', () => {
-  document.getElementById('debug-console').style.display = 'none';
-});
-document.getElementById('debug-clear-btn').addEventListener('click', () => {
-  document.getElementById('debug-log').innerHTML = '';
-  debugEntries.length = 0;
-});
 
-
-document.getElementById('save-book-btn').addEventListener('click', saveBookData);
-dlog('info', 'Page loaded. Waiting for role selection.');
+// ============ INIT ============
+renderCart();
 loadReviews();
 loadBookData();
 </script>

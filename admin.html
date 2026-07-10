@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Novelshift — Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  body{padding:2rem 1.5rem 4rem}
+  .admin-wrap{max-width:760px;margin:0 auto;display:none}
+  .admin-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem}
+  .admin-title{font-family:'Fraunces',Georgia,serif;font-size:1.6rem;color:var(--espresso);font-weight:600}
+  .admin-panel{background:var(--white);border:1px solid var(--peach-line);border-radius:16px;padding:1.8rem;margin-bottom:1.8rem}
+  .admin-panel h3{font-family:'Fraunces',Georgia,serif;font-size:1.05rem;color:var(--espresso);margin-bottom:1.2rem;font-weight:600}
+  .admin-row{margin-bottom:0.9rem}
+  .admin-row label{display:block;font-size:0.75rem;color:var(--brown);margin-bottom:0.3rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px}
+  .admin-row input,.admin-row textarea{width:100%;padding:0.65rem 0.85rem;border:1px solid var(--peach-line);border-radius:8px;background:var(--cream);color:var(--espresso);font-size:0.87rem;outline:none;font-family:'Inter',Arial,sans-serif}
+  .admin-row input:focus,.admin-row textarea:focus{border-color:var(--peach-deep)}
+  .admin-grid2{display:grid;grid-template-columns:1fr 1fr;gap:0.9rem}
+  .admin-save-btn{background:var(--peach-deep);color:white;border:none;padding:0.7rem 1.6rem;border-radius:8px;font-size:0.87rem;font-weight:700;cursor:pointer;margin-top:0.4rem}
+  .admin-save-btn:hover{background:#B56A4E}
+  .admin-status{font-size:0.78rem;color:var(--brown-soft);margin-top:0.7rem;min-height:1.1rem}
+  .order-card,.review-admin-card{border:1px solid var(--peach-line);border-radius:10px;padding:1rem 1.2rem;margin-bottom:0.7rem;background:var(--cream)}
+  .order-top{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap}
+  .order-name{font-weight:700;color:var(--espresso);font-size:0.92rem}
+  .order-meta{font-size:0.78rem;color:var(--brown-soft);margin-top:0.15rem}
+  .order-status{font-size:0.72rem;font-weight:700;padding:0.25rem 0.7rem;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px}
+  .status-pending{background:rgba(217,138,44,0.12);color:#B5750F}
+  .status-approved{background:rgba(63,133,86,0.12);color:#2E6B42}
+  .status-rejected{background:rgba(193,80,59,0.12);color:#A8412C}
+  .order-actions{margin-top:0.7rem;display:flex;gap:0.5rem}
+  .order-actions button{font-size:0.76rem;padding:0.35rem 0.85rem;border-radius:6px;border:1px solid var(--peach-line);background:var(--white);color:var(--brown);cursor:pointer}
+  .order-actions button:hover{border-color:var(--peach-deep);color:var(--peach-deep)}
+  .btn-del-review-admin{background:transparent;color:var(--red);border:1px solid rgba(193,80,59,0.4);padding:0.35rem 0.85rem;border-radius:6px;font-size:0.76rem;cursor:pointer}
+  .btn-del-review-admin:hover{background:rgba(193,80,59,0.1)}
+  .empty-note{font-size:0.85rem;color:var(--brown-soft);text-align:center;padding:1.5rem}
+  .signout-btn{background:transparent;color:var(--brown);border:1px solid var(--peach-line);padding:0.5rem 1.1rem;border-radius:8px;font-size:0.82rem;cursor:pointer}
+  .signout-btn:hover{color:var(--red);border-color:var(--red)}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- password gate -->
+<div id="admin-gate" style="min-height:80vh;display:flex;align-items:center;justify-content:center;padding:1.5rem">
+  <div class="gate-card" style="max-width:380px">
+    <div class="gate-logo">Novel<span>shift</span></div>
+    <div class="gate-sub">Admin access</div>
+    <div class="gate-label" style="text-align:left">Moderator password</div>
+    <input id="admin-pw-input" type="password" placeholder="Enter password" style="width:100%;padding:0.8rem 1rem;border:1px solid var(--peach-line);border-radius:10px;background:var(--white);color:var(--espresso);font-size:0.9rem;outline:none;margin-bottom:0.6rem;font-family:'Inter',Arial,sans-serif">
+    <div id="admin-pw-err" style="font-size:0.8rem;color:var(--red);margin-bottom:0.6rem;min-height:1.1rem;text-align:left"></div>
+    <button class="gate-pw-confirm" id="admin-pw-submit" style="width:100%">Unlock</button>
+  </div>
+</div>
+
+<!-- admin panel -->
+<div class="admin-wrap" id="admin-wrap">
+  <div class="admin-header">
+    <div class="admin-title">Novelshift — Admin</div>
+    <button class="signout-btn" id="signout-btn">Sign out</button>
+  </div>
+
+  <div class="admin-panel">
+    <h3>📖 Edit book listing</h3>
+    <div class="admin-row"><label>Title</label><input type="text" id="edit-title"></div>
+    <div class="admin-row"><label>Author</label><input type="text" id="edit-author"></div>
+    <div class="admin-row"><label>Description</label><textarea id="edit-desc" rows="4"></textarea></div>
+    <div class="admin-row"><label>Cover image URL (blank = default drawn cover)</label><input type="url" id="edit-cover" placeholder="https://..."></div>
+    <div class="admin-grid2">
+      <div class="admin-row"><label>Price (₹)</label><input type="number" id="edit-price" min="0"></div>
+      <div class="admin-row"><label>Original price (₹)</label><input type="number" id="edit-price-old" min="0"></div>
+    </div>
+    <div class="admin-grid2">
+      <div class="admin-row"><label>Genre</label><input type="text" id="edit-genre"></div>
+      <div class="admin-row"><label>Pages</label><input type="number" id="edit-pages" min="1"></div>
+    </div>
+    <div class="admin-grid2">
+      <div class="admin-row"><label>Format</label><input type="text" id="edit-format" placeholder="Paperback"></div>
+      <div class="admin-row"><label>Language</label><input type="text" id="edit-language" placeholder="English"></div>
+    </div>
+    <div class="admin-row"><label>ISBN</label><input type="text" id="edit-isbn"></div>
+    <button class="admin-save-btn" id="save-book-btn">Save changes</button>
+    <div class="admin-status" id="book-status"></div>
+  </div>
+
+  <div class="admin-panel">
+    <h3>📦 Bookings</h3>
+    <div id="orders-list"><div class="empty-note">Loading bookings...</div></div>
+  </div>
+
+  <div class="admin-panel">
+    <h3>💬 Reviews — moderate</h3>
+    <div id="admin-reviews-list"><div class="empty-note">Loading reviews...</div></div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://yreawkggymjmcuukknup.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlyZWF3a2dneW1qbWN1dWtrbnVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MTgwMDYsImV4cCI6MjA5ODI5NDAwNn0.kAlUW4XJ_8ERgruKyx5G_NKVSKtsyUJGptte1rHt73E';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.className = 'toast', 3200);
+}
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ============ PASSWORD GATE ============
+// Verified server-side via the verify-mod-password edge function — the
+// password itself never lives in this file, so reading the source doesn't
+// reveal it. A short-lived session flag keeps you signed in in this tab.
+async function tryUnlock() {
+  const input = document.getElementById('admin-pw-input');
+  const errEl = document.getElementById('admin-pw-err');
+  const btn = document.getElementById('admin-pw-submit');
+  const password = input.value;
+  errEl.textContent = '';
+  if (!password) { errEl.textContent = 'Enter the password.'; return; }
+  btn.disabled = true; btn.textContent = 'Checking...';
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/verify-mod-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}` },
+      body: JSON.stringify({ password })
+    });
+    if (res.ok) {
+      sessionStorage.setItem('novelshift_admin_ok', 'true');
+      showAdmin();
+    } else {
+      errEl.textContent = 'Incorrect password.';
+    }
+  } catch (e) {
+    errEl.textContent = 'Could not verify password. Check your connection.';
+  }
+  btn.disabled = false; btn.textContent = 'Unlock';
+}
+document.getElementById('admin-pw-submit').addEventListener('click', tryUnlock);
+document.getElementById('admin-pw-input').addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(); });
+
+document.getElementById('signout-btn').addEventListener('click', () => {
+  sessionStorage.removeItem('novelshift_admin_ok');
+  document.getElementById('admin-wrap').style.display = 'none';
+  document.getElementById('admin-gate').style.display = 'flex';
+  document.getElementById('admin-pw-input').value = '';
+});
+
+function showAdmin() {
+  document.getElementById('admin-gate').style.display = 'none';
+  document.getElementById('admin-wrap').style.display = 'block';
+  loadBookIntoForm();
+  loadOrders();
+  loadReviewsForAdmin();
+}
+// sessionStorage clears when the tab closes — you have to re-enter the
+// password each new session, which is what we want for something this sensitive.
+if (sessionStorage.getItem('novelshift_admin_ok') === 'true') showAdmin();
+
+// ============ BOOK EDIT ============
+async function loadBookIntoForm() {
+  const { data, error } = await sb.from('book_settings').select('*').eq('id', 1).single();
+  if (error || !data) return;
+  document.getElementById('edit-title').value = data.title || '';
+  document.getElementById('edit-author').value = data.author || '';
+  document.getElementById('edit-desc').value = data.description || '';
+  document.getElementById('edit-cover').value = data.cover_image_url || '';
+  document.getElementById('edit-price').value = data.price ?? '';
+  document.getElementById('edit-price-old').value = data.price_old ?? '';
+  document.getElementById('edit-genre').value = data.genre || '';
+  document.getElementById('edit-pages').value = data.pages ?? '';
+  document.getElementById('edit-format').value = data.format || '';
+  document.getElementById('edit-language').value = data.language || '';
+  document.getElementById('edit-isbn').value = data.isbn || '';
+}
+
+document.getElementById('save-book-btn').addEventListener('click', async () => {
+  const statusEl = document.getElementById('book-status');
+  const btn = document.getElementById('save-book-btn');
+  const payload = {
+    id: 1,
+    title: document.getElementById('edit-title').value.trim(),
+    author: document.getElementById('edit-author').value.trim(),
+    description: document.getElementById('edit-desc').value.trim(),
+    cover_image_url: document.getElementById('edit-cover').value.trim(),
+    price: Number(document.getElementById('edit-price').value) || 0,
+    price_old: Number(document.getElementById('edit-price-old').value) || 0,
+    genre: document.getElementById('edit-genre').value.trim(),
+    pages: Number(document.getElementById('edit-pages').value) || 0,
+    format: document.getElementById('edit-format').value.trim(),
+    language: document.getElementById('edit-language').value.trim(),
+    isbn: document.getElementById('edit-isbn').value.trim()
+  };
+  btn.disabled = true; btn.textContent = 'Saving...';
+  const { error } = await sb.from('book_settings').upsert(payload);
+  btn.disabled = false; btn.textContent = 'Save changes';
+  if (error) {
+    statusEl.textContent = '⚠ Save failed: ' + error.message;
+    statusEl.style.color = 'var(--red)';
+  } else {
+    statusEl.textContent = '✓ Saved — visible to everyone on the site.';
+    statusEl.style.color = 'var(--green)';
+    showToast('Book updated.', 'success');
+  }
+});
+
+// ============ ORDERS / BOOKINGS ============
+async function loadOrders() {
+  const list = document.getElementById('orders-list');
+  const { data, error } = await sb.from('orders').select('*').order('created_at', { ascending: false });
+  if (error) {
+    list.innerHTML = `<div class="empty-note">No bookings table found yet, or it's empty. (${escHtml(error.message)})</div>`;
+    return;
+  }
+  if (!data || !data.length) { list.innerHTML = '<div class="empty-note">No bookings yet.</div>'; return; }
+  list.innerHTML = data.map(o => {
+    const date = new Date(o.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+    const status = o.status || 'pending';
+    return `<div class="order-card" data-id="${o.id}">
+      <div class="order-top">
+        <div>
+          <div class="order-name">${escHtml(o.buyer_name)} · Class ${escHtml(o.buyer_class)}</div>
+          <div class="order-meta">${escHtml(o.book_title)} · ${escHtml(o.price)} · ${escHtml(date)}</div>
+        </div>
+        <span class="order-status status-${escHtml(status)}">${escHtml(status)}</span>
+      </div>
+      <div class="order-actions">
+        <button data-action="approved" data-id="${o.id}">Mark approved</button>
+        <button data-action="rejected" data-id="${o.id}">Mark rejected</button>
+      </div>
+    </div>`;
+  }).join('');
+  list.querySelectorAll('button[data-action]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const { error } = await sb.from('orders').update({ status: btn.dataset.action }).eq('id', btn.dataset.id);
+      if (error) { showToast('Update failed: ' + error.message, 'error'); return; }
+      showToast('Booking updated.', 'success');
+      loadOrders();
+    });
+  });
+}
+
+// ============ REVIEW MODERATION ============
+async function loadReviewsForAdmin() {
+  const list = document.getElementById('admin-reviews-list');
+  const { data, error } = await sb.from('reviews').select('*').order('created_at', { ascending: false });
+  if (error) { list.innerHTML = `<div class="empty-note">Could not load reviews.</div>`; return; }
+  if (!data || !data.length) { list.innerHTML = '<div class="empty-note">No reviews yet.</div>'; return; }
+  list.innerHTML = data.map(r => {
+    const displayName = r.name && r.name.trim() ? r.name.trim() : 'Reader';
+    const date = new Date(r.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+    return `<div class="review-admin-card" data-id="${r.id}">
+      <div class="order-top">
+        <div>
+          <div class="order-name">${escHtml(displayName)} · ${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
+          <div class="order-meta">${escHtml(date)}</div>
+        </div>
+      </div>
+      <div style="font-size:0.87rem;color:var(--brown);margin-top:0.6rem;font-style:italic">"${escHtml(r.review_text)}"</div>
+      <div class="order-actions">
+        <button class="btn-del-review-admin" data-id="${r.id}">Delete review</button>
+      </div>
+    </div>`;
+  }).join('');
+  list.querySelectorAll('.btn-del-review-admin').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('Delete this review? This cannot be undone.')) return;
+      btn.disabled = true; btn.textContent = 'Deleting...';
+      const { error, data: delData } = await sb.from('reviews').delete().eq('id', btn.dataset.id).select();
+      if (error || !delData || !delData.length) {
+        showToast('Delete blocked — check RLS policy allows moderator delete.', 'error');
+        btn.disabled = false; btn.textContent = 'Delete review';
+        return;
+      }
+      showToast('Review deleted.', 'success');
+      loadReviewsForAdmin();
+    });
+  });
+}
+</script>
+</body>
+</html>
