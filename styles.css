@@ -257,3 +257,18 @@ footer{background:var(--cream);border-top:1px solid var(--peach-line);color:var(
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(74,52,40,0.55);backdrop-filter:blur(4px);z-index:10003;align-items:center;justify-content:center;flex-direction:column}
 .modal-box{background:var(--cream);border:1px solid var(--peach-line);border-radius:16px;padding:2.1rem;width:min(360px,90vw);text-align:center;box-shadow:0 20px 50px rgba(74,52,40,0.3)}
 .modal-box input{width:100%;padding:0.65rem 0.85rem;border-radius:8px;border:1px solid var(--peach-line);background:var(--white);color:var(--espresso);margin-bottom:0.8rem;font-family:'Inter',Arial,sans-serif}
+
+/* ============ BOOKING STATUS CHECK (index.html) ============ */
+.status-check-box{background:var(--white);border:1px solid var(--peach-line);border-radius:16px;padding:2rem;max-width:480px}
+.admin-row{margin-bottom:0.9rem}
+.admin-row label{display:block;font-size:0.75rem;color:var(--brown);margin-bottom:0.3rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px}
+.admin-row input{width:100%;padding:0.65rem 0.85rem;border:1px solid var(--peach-line);border-radius:8px;background:var(--cream);color:var(--espresso);font-size:0.87rem;outline:none;font-family:'Inter',Arial,sans-serif}
+.admin-row input:focus{border-color:var(--peach-deep)}
+.status-card{border:1px solid var(--peach-line);border-radius:10px;padding:1rem 1.2rem;margin-bottom:0.7rem;background:var(--cream)}
+.order-top{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap}
+.order-name{font-weight:700;color:var(--espresso);font-size:0.92rem}
+.order-meta{font-size:0.78rem;color:var(--brown-soft);margin-top:0.15rem}
+.order-status{font-size:0.72rem;font-weight:700;padding:0.25rem 0.7rem;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap}
+.status-pending{background:rgba(217,138,44,0.12);color:#B5750F}
+.status-approved{background:rgba(63,133,86,0.12);color:#2E6B42}
+.status-rejected{background:rgba(193,80,59,0.12);color:#A8412C}

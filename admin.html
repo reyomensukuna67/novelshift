@@ -10,13 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
-
-<!-- Vercel Web Analytics -->
-<script>
-  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-</script>
-<script defer src="/_vercel/insights/script.js"></script>
-
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <style>
   body{padding:2rem 1.5rem 4rem}
   .admin-wrap{max-width:760px;margin:0 auto;display:none}
@@ -111,6 +105,13 @@
 const SUPABASE_URL = 'https://yreawkggymjmcuukknup.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlyZWF3a2dneW1qbWN1dWtrbnVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MTgwMDYsImV4cCI6MjA5ODI5NDAwNn0.kAlUW4XJ_8ERgruKyx5G_NKVSKtsyUJGptte1rHt73E';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
+
+// Kept in memory only (never localStorage/sessionStorage) so it clears
+// automatically when the tab closes or reloads. Needed because orders
+// SELECT/UPDATE now happen through password-gated edge functions instead
+// of the anon key, since the anon key no longer has direct access.
+let adminPassword = null;
 
 function showToast(msg, type='') {
   const t = document.getElementById('toast');
@@ -143,6 +144,7 @@ async function tryUnlock() {
     });
     if (res.ok) {
       sessionStorage.setItem('novelshift_admin_ok', 'true');
+      adminPassword = password;
       showAdmin();
     } else {
       errEl.textContent = 'Incorrect password.';
@@ -157,6 +159,7 @@ document.getElementById('admin-pw-input').addEventListener('keydown', e => { if 
 
 document.getElementById('signout-btn').addEventListener('click', () => {
   sessionStorage.removeItem('novelshift_admin_ok');
+  adminPassword = null;
   document.getElementById('admin-wrap').style.display = 'none';
   document.getElementById('admin-gate').style.display = 'flex';
   document.getElementById('admin-pw-input').value = '';
@@ -169,9 +172,10 @@ function showAdmin() {
   loadOrders();
   loadReviewsForAdmin();
 }
-// sessionStorage clears when the tab closes — you have to re-enter the
-// password each new session, which is what we want for something this sensitive.
-if (sessionStorage.getItem('novelshift_admin_ok') === 'true') showAdmin();
+// Note: orders now load via a password-gated edge function, and that
+// password is kept in memory only (never persisted) — so unlike before,
+// a page refresh requires re-entering the password. This is intentional:
+// it means the moderator password is never sitting in sessionStorage.
 
 // ============ BOOK EDIT ============
 async function loadBookIntoForm() {
@@ -221,13 +225,33 @@ document.getElementById('save-book-btn').addEventListener('click', async () => {
 });
 
 // ============ ORDERS / BOOKINGS ============
+// Orders no longer come from a direct table read — the anon key has no
+// SELECT access to `orders` anymore (locked down via RLS). Instead this
+// calls the get-orders edge function, which checks the moderator password
+// server-side and reads with the service_role key.
 async function loadOrders() {
   const list = document.getElementById('orders-list');
-  const { data, error } = await sb.from('orders').select('*').order('created_at', { ascending: false });
-  if (error) {
-    list.innerHTML = `<div class="empty-note">No bookings table found yet, or it's empty. (${escHtml(error.message)})</div>`;
+  if (!adminPassword) { list.innerHTML = '<div class="empty-note">Session expired — please sign out and sign back in.</div>'; return; }
+  list.innerHTML = '<div class="empty-note">Loading bookings...</div>';
+
+  let result;
+  try {
+    const res = await fetch(`${FUNCTIONS_URL}/get-orders`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}`, 'apikey': SUPABASE_KEY },
+      body: JSON.stringify({ password: adminPassword })
+    });
+    result = await res.json();
+  } catch (e) {
+    list.innerHTML = '<div class="empty-note">Network error loading bookings.</div>';
     return;
   }
+
+  if (!result.ok) {
+    list.innerHTML = `<div class="empty-note">Could not load bookings. (${escHtml(result.error || 'unknown error')})</div>`;
+    return;
+  }
+  const data = result.orders;
   if (!data || !data.length) { list.innerHTML = '<div class="empty-note">No bookings yet.</div>'; return; }
   list.innerHTML = data.map(o => {
     const date = new Date(o.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
@@ -236,11 +260,12 @@ async function loadOrders() {
       <div class="order-top">
         <div>
           <div class="order-name">${escHtml(o.buyer_name)} · Class ${escHtml(o.buyer_class)}</div>
-          <div class="order-meta">${escHtml(o.book_title)} · ${escHtml(o.price)} · ${escHtml(date)}</div>
+          <div class="order-meta">${escHtml(o.book_title || '')} · ${escHtml(o.price || '')} · ${escHtml(o.email || 'no email')} · ${escHtml(date)}</div>
         </div>
         <span class="order-status status-${escHtml(status)}">${escHtml(status)}</span>
       </div>
       <div class="order-actions">
+        <button data-action="pending" data-id="${o.id}">Mark pending</button>
         <button data-action="approved" data-id="${o.id}">Mark approved</button>
         <button data-action="rejected" data-id="${o.id}">Mark rejected</button>
       </div>
@@ -248,8 +273,21 @@ async function loadOrders() {
   }).join('');
   list.querySelectorAll('button[data-action]').forEach(btn => {
     btn.addEventListener('click', async () => {
-      const { error } = await sb.from('orders').update({ status: btn.dataset.action }).eq('id', btn.dataset.id);
-      if (error) { showToast('Update failed: ' + error.message, 'error'); return; }
+      if (!adminPassword) { showToast('Session expired — sign in again.', 'error'); return; }
+      btn.disabled = true;
+      try {
+        const res = await fetch(`${FUNCTIONS_URL}/update-order-status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}`, 'apikey': SUPABASE_KEY },
+          body: JSON.stringify({ password: adminPassword, order_id: btn.dataset.id, status: btn.dataset.action })
+        });
+        const result = await res.json();
+        if (!result.ok) { showToast('Update failed: ' + (result.error || 'unknown error'), 'error'); btn.disabled = false; return; }
+      } catch (e) {
+        showToast('Network error updating booking.', 'error');
+        btn.disabled = false;
+        return;
+      }
       showToast('Booking updated.', 'success');
       loadOrders();
     });
