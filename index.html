@@ -81,6 +81,7 @@
     <div id="cart-panel" style="display:none;position:absolute;top:calc(100% + 0.6rem);right:0;width:280px;background:var(--white);border:1px solid var(--peach-line);border-radius:12px;padding:1rem;box-shadow:0 12px 30px var(--shadow);z-index:50">
       <div id="cart-items" style="font-size:0.85rem;color:var(--brown);max-height:220px;overflow-y:auto"></div>
       <div id="cart-empty" style="font-size:0.85rem;color:var(--brown-soft);text-align:center;padding:0.5rem 0">Your cart is empty.</div>
+      <button id="cart-clear-btn" style="width:100%;margin-top:0.6rem;background:none;border:1px solid var(--peach-line);border-radius:8px;padding:0.35rem 0;font-size:0.75rem;color:var(--brown-soft);cursor:pointer">Clear local list</button>
     </div>
   </div>
 </nav>
@@ -415,6 +416,37 @@ document.getElementById('submit-btn').addEventListener('click', async () => {
 let cartItems = JSON.parse(localStorage.getItem('novelshift-cart') || '[]');
 function saveCart() { localStorage.setItem('novelshift-cart', JSON.stringify(cartItems)); }
 
+// Keeps the local "Bookings" cart in sync with the real database — the
+// cart is just a local receipt list, so if a booking is deleted or its
+// status changes via the admin panel, this is what reflects that here.
+async function syncCartWithServer() {
+  const ids = cartItems.map(i => i.id).filter(id => id !== undefined && id !== null);
+  if (ids.length === 0) return;
+  try {
+    const res = await fetch(`${FUNCTIONS_URL}/check-cart-status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}`, 'apikey': SUPABASE_KEY },
+      body: JSON.stringify({ order_ids: ids })
+    });
+    const result = await res.json();
+    if (!result.ok) return;
+    const existingMap = new Map(result.existing.map(o => [String(o.id), o.status]));
+    const before = cartItems.length;
+    cartItems = cartItems
+      .filter(item => item.id === undefined || item.id === null || existingMap.has(String(item.id)))
+      .map(item => {
+        if (item.id !== undefined && existingMap.has(String(item.id))) {
+          return { ...item, status: existingMap.get(String(item.id)) };
+        }
+        return item;
+      });
+    if (cartItems.length !== before) saveCart();
+    renderCart();
+  } catch (e) {
+    // Silent — if the sync call fails, keep showing the last known local state.
+  }
+}
+
 function renderCart() {
   document.getElementById('nav-cart-btn').textContent = `🛒 Bookings (${cartItems.length})`;
   const list = document.getElementById('cart-items');
@@ -427,7 +459,7 @@ function renderCart() {
         <div style="color:var(--espresso)">${escHtml(item.title)}</div>
         <div style="color:var(--brown-soft)">${escHtml(item.price)}</div>
       </div>
-      <div style="color:var(--brown-soft);font-size:0.78rem;margin-top:0.15rem">${escHtml(item.name)} · Class ${escHtml(item.className)} · COD</div>
+      <div style="color:var(--brown-soft);font-size:0.78rem;margin-top:0.15rem">${escHtml(item.name)} · Class ${escHtml(item.className)} · COD${item.status ? ' · ' + escHtml(item.status) : ''}</div>
     </div>
   `).join('');
 }
@@ -495,7 +527,7 @@ document.getElementById('cod-confirm-btn').addEventListener('click', async () =>
     return;
   }
 
-  cartItems.push({ title: bookTitle, price: bookPrice, name, className });
+  cartItems.push({ id: result.order?.id, title: bookTitle, price: bookPrice, name, className, status: result.order?.status });
   saveCart();
   renderCart();
   closeBookingModal();
@@ -559,7 +591,21 @@ document.getElementById('add-to-wishlist-btn').addEventListener('click', () => {
 document.getElementById('nav-cart-btn').addEventListener('click', (e) => {
   e.stopPropagation();
   const panel = document.getElementById('cart-panel');
-  panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+  const opening = panel.style.display !== 'block';
+  panel.style.display = opening ? 'block' : 'none';
+  if (opening) syncCartWithServer();
+});
+
+// Keep it fresh even without opening the panel — refresh every 60s and
+// on page load, so the "Bookings (n)" count itself stays accurate.
+syncCartWithServer();
+setInterval(syncCartWithServer, 60000);
+
+document.getElementById('cart-clear-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  cartItems = [];
+  saveCart();
+  renderCart();
 });
 document.addEventListener('click', (e) => {
   const panel = document.getElementById('cart-panel');
