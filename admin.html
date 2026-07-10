@@ -268,6 +268,7 @@ async function loadOrders() {
         <button data-action="pending" data-id="${o.id}">Mark pending</button>
         <button data-action="approved" data-id="${o.id}">Mark approved</button>
         <button data-action="rejected" data-id="${o.id}">Mark rejected</button>
+        <button data-delete-id="${o.id}" style="color:var(--red);border-color:var(--red)">Delete</button>
       </div>
     </div>`;
   }).join('');
@@ -289,6 +290,28 @@ async function loadOrders() {
         return;
       }
       showToast('Booking updated.', 'success');
+      loadOrders();
+    });
+  });
+  list.querySelectorAll('button[data-delete-id]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!adminPassword) { showToast('Session expired — sign in again.', 'error'); return; }
+      if (!confirm('Delete this booking permanently? This cannot be undone.')) return;
+      btn.disabled = true;
+      try {
+        const res = await fetch(`${FUNCTIONS_URL}/delete-order`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}`, 'apikey': SUPABASE_KEY },
+          body: JSON.stringify({ password: adminPassword, order_id: btn.dataset.deleteId })
+        });
+        const result = await res.json();
+        if (!result.ok) { showToast('Delete failed: ' + (result.error || 'unknown error'), 'error'); btn.disabled = false; return; }
+      } catch (e) {
+        showToast('Network error deleting booking.', 'error');
+        btn.disabled = false;
+        return;
+      }
+      showToast('Booking deleted.', 'success');
       loadOrders();
     });
   });
