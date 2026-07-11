@@ -186,8 +186,8 @@ footer{background:var(--cream);border-top:1px solid var(--peach-line);color:var(
   .section,.reviews-section{padding:2.8rem 1.2rem}
 }
 
-/* ============ ROLE GATE MODAL ============ */
-#role-gate{position:fixed;inset:0;background:rgba(74,52,40,0.55);backdrop-filter:blur(4px);z-index:10000;display:flex;align-items:center;justify-content:center;padding:1.5rem}
+/* ============ TERMS GATE MODAL ============ */
+#terms-gate{position:fixed;inset:0;background:rgba(74,52,40,0.55);backdrop-filter:blur(4px);z-index:10000;display:flex;align-items:center;justify-content:center;padding:1.5rem}
 .gate-card{background:var(--cream);border:1px solid var(--peach-line);border-radius:20px;padding:2.6rem;max-width:480px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(74,52,40,0.35)}
 .gate-logo{font-family:'Fraunces',Georgia,serif;font-size:1.8rem;font-weight:600;color:var(--espresso);margin-bottom:0.3rem}
 .gate-logo span{color:var(--peach-deep);font-style:italic}
