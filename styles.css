@@ -257,6 +257,7 @@ footer{background:var(--cream);border-top:1px solid var(--peach-line);color:var(
 .cod-input-tight{margin-bottom:0.4rem}
 .cod-save-hint{font-size:0.74rem;color:var(--brown-soft);line-height:1.55;margin-bottom:0.2rem}
 .cod-agree-row{display:flex;align-items:flex-start;gap:0.65rem;font-size:0.82rem;line-height:1.55;color:var(--brown);margin:1.2rem 0 0.6rem;cursor:pointer;text-align:left}
+.cod-agree-row span{flex:1;min-width:0}
 .cod-checkbox{margin-top:0.2rem;width:16px;height:16px;flex-shrink:0;accent-color:var(--peach-deep);cursor:pointer}
 .cod-link{color:var(--peach-deep);text-decoration:underline;font-weight:600}
 .cod-error{color:var(--red);font-size:0.78rem;min-height:1.1rem;margin-bottom:0.6rem;text-align:left;line-height:1.4}
