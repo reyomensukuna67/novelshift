@@ -30,8 +30,8 @@ nav{
 .logo{font-family:'Fraunces',Georgia,serif;font-size:1.5rem;font-weight:600;color:var(--espresso);letter-spacing:-0.3px;text-decoration:none}
 .logo span{color:var(--peach-deep);font-style:italic}
 .nav-links{display:flex;gap:2.1rem;list-style:none}
-.nav-links a{text-decoration:none;color:var(--brown);font-size:0.9rem;transition:color 0.2s;padding-bottom:0.2rem;border-bottom:2px solid transparent}
-.nav-links a:hover,.nav-links a.active{color:var(--espresso);border-bottom-color:var(--peach-deep)}
+.nav-links a{text-decoration:none;color:var(--brown);font-size:0.9rem;transition:color 0.2s;padding-bottom:0.2rem}
+.nav-links a:hover,.nav-links a.active{color:var(--espresso)}
 .nav-r{display:flex;gap:0.8rem;align-items:center}
 .user-pill{display:flex;align-items:center;gap:0.6rem;background:var(--panel);border:1px solid var(--peach-line);padding:0.35rem 0.9rem;border-radius:20px;font-size:0.8rem;color:var(--brown)}
 .user-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0}
@@ -317,11 +317,15 @@ footer{background:var(--cream);border-top:1px solid var(--peach-line);color:var(
 /* Scroll progress bar */
 #scroll-progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--peach),var(--peach-deep));z-index:200;width:0%;transition:width 0.1s linear}
 
-/* Cursor-follow glow on hero */
-.hero{position:relative;overflow:hidden}
-.hero-glow{position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(232,168,124,0.25),transparent 70%);pointer-events:none;transform:translate(-50%,-50%);opacity:0;transition:opacity 0.4s ease;z-index:0}
-.hero:hover .hero-glow{opacity:1}
-.hero > *{position:relative;z-index:1}
+/* Cursor-follow glow, site-wide */
+#cursor-glow{
+  position:fixed;top:0;left:0;width:420px;height:420px;border-radius:50%;
+  background:radial-gradient(circle,rgba(232,168,124,0.22),transparent 70%);
+  pointer-events:none;transform:translate(-50%,-50%);opacity:0;
+  transition:opacity 0.4s ease;z-index:2;will-change:transform
+}
+#cursor-glow.is-active{opacity:1}
+@media (hover:none){ #cursor-glow{display:none} }
 
 @media (prefers-reduced-motion: reduce){
   .reveal,.reveal-stagger > *,#book-cover,.btn-wish,.star-picker span,.toast{transition:none !important;animation:none !important}

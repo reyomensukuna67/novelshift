@@ -750,6 +750,7 @@ loadBookData();
     a.addEventListener('mouseenter', () => moveTo(a));
   });
   navLinks.addEventListener('mouseleave', () => moveTo(navLinks.querySelector('a.active') || active));
+  window.addEventListener('resize', () => moveTo(navLinks.querySelector('a.active') || active));
 })();
 
 // Cart panel open animation
@@ -766,17 +767,21 @@ loadBookData();
   });
 })();
 
-// Hero cursor-follow glow
+// Site-wide cursor-follow glow
 (function(){
-  const hero = document.querySelector('.hero');
-  if (!hero) return;
+  if (window.matchMedia('(hover: none)').matches) return; // skip on touch devices
   const glow = document.createElement('div');
-  glow.className = 'hero-glow';
-  hero.appendChild(glow);
-  hero.addEventListener('mousemove', (e) => {
-    const r = hero.getBoundingClientRect();
-    glow.style.left = (e.clientX - r.left) + 'px';
-    glow.style.top = (e.clientY - r.top) + 'px';
+  glow.id = 'cursor-glow';
+  document.body.appendChild(glow);
+
+  let active = false;
+  document.addEventListener('mousemove', (e) => {
+    glow.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%, -50%)`;
+    if (!active) { glow.classList.add('is-active'); active = true; }
+  });
+  document.addEventListener('mouseleave', () => {
+    glow.classList.remove('is-active');
+    active = false;
   });
 })();
 </script>
