@@ -87,4 +87,5 @@ document's URL changes.
 
 ## License
 
-MIT — see [LICENSE](LICENSE). Free to use, modify, and share.
+All Rights Reserved — see [LICENSE](LICENSE). This code is not licensed for
+reuse, copying, or redistribution.
