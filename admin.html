@@ -99,6 +99,11 @@
     <h3>💬 Reviews — moderate</h3>
     <div id="admin-reviews-list"><div class="empty-note">Loading reviews...</div></div>
   </div>
+
+  <div class="admin-panel">
+    <h3>💌 Wish List — price negotiation requests</h3>
+    <div id="admin-wishlist-list"><div class="empty-note">Loading wish list...</div></div>
+  </div>
 </div>
 
 <script>
@@ -171,6 +176,7 @@ function showAdmin() {
   loadBookIntoForm();
   loadOrders();
   loadReviewsForAdmin();
+  loadWishlistForAdmin();
 }
 // Note: orders now load via a password-gated edge function, and that
 // password is kept in memory only (never persisted) — so unlike before,
@@ -351,6 +357,49 @@ async function loadReviewsForAdmin() {
       }
       showToast('Review deleted.', 'success');
       loadReviewsForAdmin();
+    });
+  });
+}
+
+// ============ WISH LIST — price negotiation requests ============
+async function loadWishlistForAdmin() {
+  const list = document.getElementById('admin-wishlist-list');
+  const { data, error } = await sb.from('wishlist').select('*').order('created_at', { ascending: false });
+  if (error) { list.innerHTML = `<div class="empty-note">Could not load the wish list.</div>`; return; }
+  if (!data || !data.length) { list.innerHTML = '<div class="empty-note">No wish list requests yet.</div>'; return; }
+  list.innerHTML = data.map(w => {
+    const date = new Date(w.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+    const waLink = 'https://wa.me/' + w.phone.replace(/[^0-9]/g, '');
+    return `<div class="review-admin-card" data-id="${w.id}">
+      <div class="order-top">
+        <div>
+          <div class="order-name">${escHtml(w.name)}</div>
+          <div class="order-meta">${escHtml(date)}${w.book_title ? ' · ' + escHtml(w.book_title) : ''}</div>
+        </div>
+        <div class="order-status status-pending">Offered ${escHtml(w.offer_price)}</div>
+      </div>
+      <div style="font-size:0.85rem;color:var(--brown);margin-top:0.6rem">
+        📧 <a href="mailto:${escHtml(w.email)}" style="color:var(--peach-deep)">${escHtml(w.email)}</a><br>
+        📱 <a href="${waLink}" target="_blank" rel="noopener" style="color:var(--peach-deep)">${escHtml(w.phone)}</a>
+      </div>
+      ${w.note ? `<div style="font-size:0.85rem;color:var(--brown);margin-top:0.5rem;font-style:italic">"${escHtml(w.note)}"</div>` : ''}
+      <div class="order-actions">
+        <button class="btn-del-review-admin" data-id="${w.id}">Remove</button>
+      </div>
+    </div>`;
+  }).join('');
+  list.querySelectorAll('.btn-del-review-admin').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('Remove this wish list entry?')) return;
+      btn.disabled = true; btn.textContent = 'Removing...';
+      const { error, data: delData } = await sb.from('wishlist').delete().eq('id', btn.dataset.id).select();
+      if (error || !delData || !delData.length) {
+        showToast('Delete blocked — check RLS policy allows delete.', 'error');
+        btn.disabled = false; btn.textContent = 'Remove';
+        return;
+      }
+      showToast('Removed.', 'success');
+      loadWishlistForAdmin();
     });
   });
 }
