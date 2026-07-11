@@ -76,6 +76,7 @@
     <li><a href="#" class="active">Home</a></li>
     <li><a href="#book">Shop</a></li>
     <li><a href="#reviews">Reviews</a></li>
+    <li><a href="#wishlist">Wish List</a></li>
     <li><a href="#check-status">My Booking</a></li>
   </ul>
   <div class="nav-r" style="position:relative">
@@ -160,7 +161,7 @@
       </div>
       <div class="buy-btns">
         <button class="btn-buy" id="add-to-cart-btn">Book now — Cash on Delivery</button>
-        <button class="btn-wish" id="add-to-wishlist-btn">Add to wishlist</button>
+        <a class="btn-wish" href="#wishlist" id="goto-wishlist-btn" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none">Suggest a book →</a>
       </div>
       <div style="font-size:0.78rem;color:var(--brown-soft);margin-top:0.6rem">No online payment. Pay cash when the book is delivered. Bookings can't be cancelled once placed.</div>
     </div>
@@ -222,6 +223,50 @@
   </div>
 
   <div class="reviews-list" id="reviews-list"></div>
+</div>
+
+<hr class="divider">
+
+<!-- WISH LIST -->
+<div class="section" id="wishlist">
+  <div class="section-label">What should we sell next?</div>
+  <div class="section-title">Wish List</div>
+  <p style="color:var(--brown);font-size:0.9rem;margin-bottom:1.8rem;max-width:520px">Suggest a book you'd want Novelshift to sell next, or upvote one already on the list. The most-wanted picks are what we look at first.</p>
+
+  <div class="wl-form">
+    <div class="form-row">
+      <label>Book title</label>
+      <input type="text" id="wl-title" placeholder="e.g. Atomic Habits" maxlength="150">
+    </div>
+    <div class="form-row">
+      <label>Author (optional)</label>
+      <input type="text" id="wl-author" placeholder="e.g. James Clear" maxlength="100">
+    </div>
+    <div class="form-row">
+      <label>Note (optional)</label>
+      <input type="text" id="wl-note" placeholder="Why this one?" maxlength="300">
+    </div>
+    <div class="form-error" id="wl-error"></div>
+    <button class="submit-btn" id="wl-submit-btn">Add to Wish List</button>
+  </div>
+
+  <div id="wl-empty-state" class="empty-state" style="display:none">
+    <div class="empty-icon empty-state-icon">✨</div>
+    <div class="empty-title">Wish list is empty</div>
+    <div class="empty-sub">Be the first to suggest a book.</div>
+  </div>
+  <div class="loading-reviews" id="wl-loading">
+    <div class="skeleton-card">
+      <div class="skeleton skeleton-line short"></div>
+      <div class="skeleton skeleton-line" style="width:70%"></div>
+    </div>
+    <div class="skeleton-card">
+      <div class="skeleton skeleton-line short"></div>
+      <div class="skeleton skeleton-line" style="width:50%"></div>
+    </div>
+  </div>
+
+  <div class="wl-list" id="wl-list"></div>
 </div>
 
 <hr class="divider">
@@ -428,6 +473,89 @@ document.getElementById('submit-btn').addEventListener('click', async () => {
   starBtns.forEach(s=>s.classList.remove('on'));
   showToast('Review posted! Thank you.', 'success');
   loadReviews();
+});
+
+// ============ WISH LIST ============
+function getVotedWishlistIds() {
+  return JSON.parse(localStorage.getItem('novelshift-wl-voted') || '[]');
+}
+function markWishlistVoted(id) {
+  const voted = getVotedWishlistIds();
+  if (!voted.includes(id)) {
+    voted.push(id);
+    localStorage.setItem('novelshift-wl-voted', JSON.stringify(voted));
+  }
+}
+
+function renderWishlist(items) {
+  const list = document.getElementById('wl-list');
+  const empty = document.getElementById('wl-empty-state');
+  document.getElementById('wl-loading').style.display = 'none';
+  if (!items.length) { empty.style.display = ''; list.innerHTML = ''; return; }
+  empty.style.display = 'none';
+  const voted = getVotedWishlistIds();
+  list.innerHTML = items.map(item => {
+    const hasVoted = voted.includes(item.id);
+    return `<div class="wl-card">
+      <div class="wl-info">
+        <div class="wl-title">${escHtml(item.title)}</div>
+        ${item.author ? `<div class="wl-author">by ${escHtml(item.author)}</div>` : ''}
+        ${item.note ? `<div class="wl-note">"${escHtml(item.note)}"</div>` : ''}
+      </div>
+      <button class="wl-vote-btn${hasVoted ? ' voted' : ''}" data-id="${item.id}" data-votes="${item.votes}">
+        <span class="wl-vote-count">${hasVoted ? '✓' : '▲'} ${item.votes}</span>
+        <span class="wl-vote-label">${hasVoted ? 'Voted' : 'Want this'}</span>
+      </button>
+    </div>`;
+  }).join('');
+}
+
+async function loadWishlist() {
+  const { data, error } = await sb.from('wishlist').select('*').order('votes', { ascending: false }).order('created_at', { ascending: false });
+  if (error) {
+    document.getElementById('wl-loading').innerHTML = '<div style="text-align:center;color:var(--brown-soft);font-size:0.85rem;padding:1rem 0">Could not load the wish list.</div>';
+    return;
+  }
+  renderWishlist(data);
+}
+
+document.getElementById('wl-submit-btn').addEventListener('click', async () => {
+  const title = document.getElementById('wl-title').value.trim();
+  const author = document.getElementById('wl-author').value.trim();
+  const note = document.getElementById('wl-note').value.trim();
+  const errEl = document.getElementById('wl-error');
+  errEl.style.display = 'none';
+  if (!title) { errEl.textContent = 'Enter a book title.'; errEl.style.display = ''; return; }
+  if (title.length > 150) { errEl.textContent = 'Title is too long.'; errEl.style.display = ''; return; }
+
+  const btn = document.getElementById('wl-submit-btn');
+  btn.disabled = true; btn.textContent = 'Adding...'; btn.classList.add('btn-loading');
+  const { error } = await sb.from('wishlist').insert([{
+    title: title.slice(0,150),
+    author: author ? author.slice(0,100) : null,
+    note: note ? note.slice(0,300) : null
+  }]);
+  btn.disabled = false; btn.textContent = 'Add to Wish List'; btn.classList.remove('btn-loading');
+  if (error) { showToast('Something went wrong. Try again.', 'error'); return; }
+  document.getElementById('wl-title').value = '';
+  document.getElementById('wl-author').value = '';
+  document.getElementById('wl-note').value = '';
+  showToast('Added to the wish list!', 'success');
+  loadWishlist();
+});
+
+document.getElementById('wl-list').addEventListener('click', async (e) => {
+  const btn = e.target.closest('.wl-vote-btn');
+  if (!btn || btn.classList.contains('voted')) return;
+  const id = btn.dataset.id;
+  const currentVotes = parseInt(btn.dataset.votes, 10);
+  btn.classList.add('voted', 'vote-bump');
+  btn.innerHTML = `<span class="wl-vote-count">✓ ${currentVotes + 1}</span><span class="wl-vote-label">Voted</span>`;
+  markWishlistVoted(id);
+  const { error } = await sb.from('wishlist').update({ votes: currentVotes + 1 }).eq('id', id);
+  if (error) {
+    console.error('wishlist vote error:', error);
+  }
 });
 
 // ============ BOOKINGS (COD, saved to Supabase so the owner can see them) ============
@@ -656,6 +784,7 @@ if (localStorage.getItem('novelshift_terms_accepted') === 'true') {
 renderCart();
 loadReviews();
 loadBookData();
+loadWishlist();
 
 // ============ INTERACTIVITY / POLISH LAYER ============
 
@@ -844,13 +973,13 @@ document.body.classList.add('page-ready');
 
 // Active-section highlighting while scrolling
 (function(){
-  const sections = ['home', 'book', 'reviews', 'check-status']
+  const sections = ['home', 'book', 'reviews', 'wishlist', 'check-status']
     .map(id => document.getElementById(id))
     .filter(Boolean);
   const navA = document.querySelectorAll('.nav-links a');
   if (!sections.length || !navA.length) return;
 
-  const map = { home: 0, book: 1, reviews: 2, 'check-status': 3 };
+  const map = { home: 0, book: 1, reviews: 2, wishlist: 3, 'check-status': 4 };
   const io = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {

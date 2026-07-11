@@ -414,3 +414,26 @@ body.page-ready{animation:pageFadeIn 0.5s ease}
 @media (prefers-reduced-motion: reduce){
   .skeleton,.btn-loading::after,.confetti-piece,.empty-state-icon,body.page-ready{animation:none !important}
 }
+
+/* ============ WISH LIST ============ */
+.wl-form{background:var(--white);border:1px solid var(--peach-line);border-radius:16px;padding:2rem;margin-bottom:2.2rem}
+.wl-list{display:flex;flex-direction:column;gap:0.9rem}
+.wl-card{
+  background:var(--white);border:1px solid var(--peach-line);border-radius:14px;
+  padding:1.1rem 1.4rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;
+  animation:fadeUp 0.3s ease
+}
+.wl-info{min-width:0}
+.wl-title{color:var(--espresso);font-weight:700;font-size:0.98rem;font-family:'Fraunces',Georgia,serif}
+.wl-author{color:var(--brown);font-size:0.82rem;margin-top:0.1rem}
+.wl-note{color:var(--brown-soft);font-size:0.8rem;margin-top:0.35rem;font-style:italic}
+.wl-vote-btn{
+  flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:0.1rem;
+  background:var(--panel);border:1px solid var(--peach-line);border-radius:12px;
+  padding:0.5rem 1rem;cursor:pointer;transition:all 0.2s;color:var(--peach-deep);font-weight:700
+}
+.wl-vote-btn:hover{background:var(--peach-deep);color:white;border-color:var(--peach-deep);transform:translateY(-2px)}
+.wl-vote-btn.voted{background:var(--peach-deep);color:white;border-color:var(--peach-deep);cursor:default;pointer-events:none}
+.wl-vote-count{font-size:1.05rem;line-height:1}
+.wl-vote-label{font-size:0.62rem;text-transform:uppercase;letter-spacing:0.5px}
+.wl-vote-btn.vote-bump{animation:starSelect 0.35s ease}
