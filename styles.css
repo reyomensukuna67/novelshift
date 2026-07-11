@@ -331,3 +331,86 @@ footer{background:var(--cream);border-top:1px solid var(--peach-line);color:var(
   .reveal,.reveal-stagger > *,#book-cover,.btn-wish,.star-picker span,.toast{transition:none !important;animation:none !important}
   .reveal{opacity:1;transform:none}
 }
+
+/* ============ ROUND 2 QOL / POLISH ============ */
+
+/* Back to top button */
+#back-to-top{
+  position:fixed;bottom:2rem;left:2rem;width:44px;height:44px;border-radius:50%;
+  background:var(--white);border:1px solid var(--peach-line);color:var(--peach-deep);
+  display:flex;align-items:center;justify-content:center;font-size:1.1rem;cursor:pointer;
+  box-shadow:0 6px 18px var(--shadow);opacity:0;pointer-events:none;transform:translateY(12px) scale(0.9);
+  transition:opacity 0.3s ease,transform 0.3s ease,background 0.2s,border-color 0.2s;z-index:150
+}
+#back-to-top.visible{opacity:1;pointer-events:auto;transform:translateY(0) scale(1)}
+#back-to-top:hover{background:var(--peach-deep);color:white;border-color:var(--peach-deep)}
+
+/* Active-section nav highlighting reuses .active/underline already added */
+
+/* Skeleton loaders */
+.skeleton{background:linear-gradient(90deg,var(--panel) 25%,var(--panel2) 37%,var(--panel) 63%);background-size:400% 100%;animation:skeletonShine 1.4s ease infinite;border-radius:8px}
+@keyframes skeletonShine{0%{background-position:100% 50%}100%{background-position:0% 50%}}
+.skeleton-card{border:1px solid var(--peach-line);border-radius:14px;padding:1.2rem;margin-bottom:1rem}
+.skeleton-line{height:12px;margin-bottom:0.6rem;width:100%}
+.skeleton-line.short{width:40%}
+.skeleton-line.tiny{width:60px;height:10px}
+.skeleton-avatar{width:38px;height:38px;border-radius:50%;flex-shrink:0}
+.skeleton-row{display:flex;gap:0.7rem;align-items:center;margin-bottom:0.8rem}
+
+/* Button loading spinner */
+.btn-loading{color:transparent !important;pointer-events:none;position:relative}
+.btn-loading::after{
+  content:'';position:absolute;top:50%;left:50%;width:16px;height:16px;margin:-8px 0 0 -8px;
+  border:2px solid rgba(255,255,255,0.5);border-top-color:#fff;border-radius:50%;
+  animation:btnSpin 0.7s linear infinite
+}
+.btn-sm.btn-loading::after,.btn-accent.btn-loading::after{border:2px solid rgba(201,123,92,0.3);border-top-color:var(--peach-deep)}
+.btn-accent.btn-loading::after{border:2px solid rgba(255,255,255,0.5);border-top-color:#fff}
+@keyframes btnSpin{to{transform:rotate(360deg)}}
+
+/* Toast icon + progress bar */
+.toast{display:flex;align-items:center;gap:0.6rem;overflow:hidden}
+.toast-icon{font-size:1rem;flex-shrink:0}
+.toast-bar{position:absolute;left:0;bottom:0;height:2px;background:rgba(255,255,255,0.4);width:100%;transform-origin:left;animation:toastShrink 3.2s linear forwards}
+@keyframes toastShrink{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+
+/* Input focus glow + inline validation */
+input[type="text"],input[type="email"],input[type="password"],textarea{
+  transition:border-color 0.2s ease,box-shadow 0.2s ease,transform 0.15s ease
+}
+input[type="text"]:focus,input[type="email"]:focus,input[type="password"]:focus,textarea:focus{
+  outline:none;border-color:var(--peach-deep) !important;box-shadow:0 0 0 4px rgba(201,123,92,0.14)
+}
+.field-wrap{position:relative}
+.field-ok{border-color:var(--green) !important}
+.field-bad{border-color:var(--red) !important;animation:fieldShake 0.4s ease}
+@keyframes fieldShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.field-check{position:absolute;right:0.8rem;top:50%;transform:translateY(-50%);font-size:0.85rem;opacity:0;transition:opacity 0.2s ease}
+.field-check.show{opacity:1}
+.field-check.ok{color:var(--green)}
+.field-check.bad{color:var(--red)}
+
+/* Password strength meter */
+.pw-strength{height:4px;border-radius:2px;background:var(--panel);margin:0.4rem 0 0.6rem;overflow:hidden}
+.pw-strength-bar{height:100%;width:0%;border-radius:2px;transition:width 0.25s ease,background 0.25s ease}
+.pw-strength-label{font-size:0.7rem;color:var(--brown-soft);margin-top:-0.3rem;margin-bottom:0.5rem;display:block}
+
+/* Confetti */
+.confetti-piece{position:fixed;top:-10px;border-radius:2px;pointer-events:none;z-index:9999;animation:confettiFall linear forwards}
+@keyframes confettiFall{
+  0%{transform:translateY(0) rotate(0deg);opacity:1}
+  100%{transform:translateY(105vh) rotate(540deg);opacity:0.3}
+}
+
+/* Empty-state illustration polish */
+.empty-state{position:relative}
+.empty-state-icon{font-size:2.4rem;margin-bottom:0.6rem;display:block;animation:floatIcon 3s ease-in-out infinite}
+@keyframes floatIcon{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+/* Page load fade-in */
+body.page-ready{animation:pageFadeIn 0.5s ease}
+@keyframes pageFadeIn{from{opacity:0}to{opacity:1}}
+
+@media (prefers-reduced-motion: reduce){
+  .skeleton,.btn-loading::after,.confetti-piece,.empty-state-icon,body.page-ready{animation:none !important}
+}

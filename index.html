@@ -53,6 +53,8 @@
       <input id="cod-email-input" type="email" placeholder="you@example.com">
       <label style="display:block;font-size:0.75rem;color:var(--brown);margin-bottom:0.3rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px">Set a password</label>
       <input id="cod-password-input" type="password" placeholder="Choose a password" style="margin-bottom:0.3rem">
+      <div class="pw-strength"><div class="pw-strength-bar" id="pw-strength-bar"></div></div>
+      <span class="pw-strength-label" id="pw-strength-label"></span>
       <div style="font-size:0.72rem;color:var(--brown-soft);margin-bottom:0.4rem">Save this — you'll need your email + this password to check your booking status later. It can't be recovered if lost.</div>
     </div>
     <label style="display:flex;align-items:flex-start;gap:0.5rem;font-size:0.76rem;color:var(--brown);margin:0.8rem 0;cursor:pointer;text-align:left">
@@ -202,11 +204,22 @@
   </div>
 
   <div id="empty-state" class="empty-state" style="display:none">
-    <div class="empty-icon">📖</div>
+    <div class="empty-icon empty-state-icon">📖</div>
     <div class="empty-title">No reviews yet</div>
     <div class="empty-sub">Be the first to share your thoughts.</div>
   </div>
-  <div class="loading-reviews" id="loading-reviews">Loading reviews...</div>
+  <div class="loading-reviews" id="loading-reviews">
+    <div class="skeleton-card">
+      <div class="skeleton-row"><div class="skeleton skeleton-avatar"></div><div style="flex:1"><div class="skeleton skeleton-line short"></div><div class="skeleton skeleton-line tiny"></div></div></div>
+      <div class="skeleton skeleton-line"></div>
+      <div class="skeleton skeleton-line" style="width:80%"></div>
+    </div>
+    <div class="skeleton-card">
+      <div class="skeleton-row"><div class="skeleton skeleton-avatar"></div><div style="flex:1"><div class="skeleton skeleton-line short"></div><div class="skeleton skeleton-line tiny"></div></div></div>
+      <div class="skeleton skeleton-line"></div>
+      <div class="skeleton skeleton-line" style="width:60%"></div>
+    </div>
+  </div>
 
   <div class="reviews-list" id="reviews-list"></div>
 </div>
@@ -289,10 +302,30 @@ function applyBookData(data) {
 // ============ HELPERS ============
 function showToast(msg, type='') {
   const t = document.getElementById('toast');
-  t.textContent = msg;
+  const icon = type === 'success' ? '✓' : type === 'error' ? '✕' : '💬';
+  t.innerHTML = `<span class="toast-icon">${icon}</span><span>${escHtml(msg)}</span><span class="toast-bar"></span>`;
   t.className = 'toast show' + (type ? ' ' + type : '');
   clearTimeout(t._t);
   t._t = setTimeout(() => t.className = 'toast', 3200);
+  if (type === 'success') fireConfetti();
+}
+
+function fireConfetti() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const colors = ['#E8A87C', '#C97B5C', '#F2D9C4', '#4A3428'];
+  for (let i = 0; i < 26; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    const size = 6 + Math.random() * 6;
+    piece.style.width = size + 'px';
+    piece.style.height = (size * 0.4) + 'px';
+    piece.style.left = Math.random() * 100 + 'vw';
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.animationDuration = (1.8 + Math.random() * 1.2) + 's';
+    piece.style.animationDelay = (Math.random() * 0.3) + 's';
+    document.body.appendChild(piece);
+    setTimeout(() => piece.remove(), 3400);
+  }
 }
 
 // Escapes HTML special characters before inserting user text into innerHTML.
@@ -349,7 +382,7 @@ function renderReviews(reviews) {
 async function loadReviews() {
   const { data, error } = await sb.from('reviews').select('*').order('created_at',{ascending:false});
   if (error) {
-    document.getElementById('loading-reviews').textContent = 'Could not load reviews.';
+    document.getElementById('loading-reviews').innerHTML = '<div style="text-align:center;color:var(--brown-soft);font-size:0.85rem;padding:1rem 0">Could not load reviews.</div>';
     return;
   }
   updateAvgUI(data);
@@ -381,13 +414,13 @@ document.getElementById('submit-btn').addEventListener('click', async () => {
   if (text.length < 10) { errEl.textContent='Write at least a sentence (10+ chars).'; errEl.style.display=''; return; }
   if (text.length > 600) { errEl.textContent='Keep it under 600 characters.'; errEl.style.display=''; return; }
   const btn = document.getElementById('submit-btn');
-  btn.disabled=true; btn.textContent='Posting...';
+  btn.disabled=true; btn.textContent='Posting...'; btn.classList.add('btn-loading');
   const { error } = await sb.from('reviews').insert([{
     name: name ? name.slice(0,50) : null,
     rating: selectedRating,
     review_text: text
   }]);
-  btn.disabled=false; btn.textContent='Post review';
+  btn.disabled=false; btn.textContent='Post review'; btn.classList.remove('btn-loading');
   if (error) { showToast('Something went wrong. Try again.', 'error'); return; }
   document.getElementById('rev-name').value='';
   document.getElementById('rev-text').value='';
@@ -478,7 +511,7 @@ document.getElementById('cod-confirm-btn').addEventListener('click', async () =>
   if (!agreed) { errEl.textContent = 'Please confirm you understand the booking is final and COD.'; return; }
 
   const btn = document.getElementById('cod-confirm-btn');
-  btn.disabled = true; btn.textContent = 'Booking...';
+  btn.disabled = true; btn.textContent = 'Booking...'; btn.classList.add('btn-loading');
 
   const bookTitle = document.getElementById('book-title-main').textContent;
   const bookPrice = document.getElementById('price-current').textContent;
@@ -503,12 +536,12 @@ document.getElementById('cod-confirm-btn').addEventListener('click', async () =>
     const result = await res.json();
     if (!result.ok) {
       errEl.textContent = result.error || 'Something went wrong. Please try again.';
-      btn.disabled = false; btn.textContent = 'Confirm booking';
+      btn.disabled = false; btn.textContent = 'Confirm booking'; btn.classList.remove('btn-loading');
       return;
     }
   } catch (e) {
     errEl.textContent = 'Network error — please try again.';
-    btn.disabled = false; btn.textContent = 'Confirm booking';
+    btn.disabled = false; btn.textContent = 'Confirm booking'; btn.classList.remove('btn-loading');
     return;
   }
 
@@ -516,7 +549,7 @@ document.getElementById('cod-confirm-btn').addEventListener('click', async () =>
   saveCart();
   renderCart();
   closeBookingModal();
-  btn.disabled = false; btn.textContent = 'Confirm booking';
+  btn.disabled = false; btn.textContent = 'Confirm booking'; btn.classList.remove('btn-loading');
   showToast('Booked! Pay cash on delivery.', 'success');
 });
 
@@ -532,7 +565,7 @@ document.getElementById('status-check-btn').addEventListener('click', async () =
   if (!email || !password) { errEl.textContent = 'Enter both your email and password.'; return; }
 
   const btn = document.getElementById('status-check-btn');
-  btn.disabled = true; btn.textContent = 'Checking...';
+  btn.disabled = true; btn.textContent = 'Checking...'; btn.classList.add('btn-loading');
 
   try {
     const res = await fetch(`${FUNCTIONS_URL}/check-booking-status`, {
@@ -565,7 +598,7 @@ document.getElementById('status-check-btn').addEventListener('click', async () =
   } catch (e) {
     errEl.textContent = 'Network error — please try again.';
   } finally {
-    btn.disabled = false; btn.textContent = 'Check status';
+    btn.disabled = false; btn.textContent = 'Check status'; btn.classList.remove('btn-loading');
   }
 });
 
@@ -783,6 +816,98 @@ loadBookData();
     glow.classList.remove('is-active');
     active = false;
   });
+})();
+
+// ============ ROUND 2 QOL / POLISH ============
+
+document.body.classList.add('page-ready');
+
+// Back to top button
+(function(){
+  const btn = document.createElement('button');
+  btn.id = 'back-to-top';
+  btn.setAttribute('aria-label', 'Back to top');
+  btn.innerHTML = '↑';
+  document.body.appendChild(btn);
+  window.addEventListener('scroll', () => {
+    btn.classList.toggle('visible', window.scrollY > 500);
+  }, { passive: true });
+  btn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+})();
+
+// Active-section highlighting while scrolling
+(function(){
+  const sections = ['home', 'book', 'reviews', 'check-status']
+    .map(id => document.getElementById(id))
+    .filter(Boolean);
+  const navA = document.querySelectorAll('.nav-links a');
+  if (!sections.length || !navA.length) return;
+
+  const map = { home: 0, book: 1, reviews: 2, 'check-status': 3 };
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navA.forEach(a => a.classList.remove('active'));
+        const idx = map[entry.target.id];
+        if (navA[idx]) navA[idx].classList.add('active');
+        const underline = document.querySelector('.nav-underline');
+        const navLinks = document.querySelector('.nav-links');
+        if (underline && navLinks && navA[idx] && !navLinks.matches(':hover')) {
+          underline.style.left = navA[idx].offsetLeft + 'px';
+          underline.style.width = navA[idx].offsetWidth + 'px';
+        }
+      }
+    });
+  }, { threshold: 0.4, rootMargin: '-70px 0px -50% 0px' });
+  sections.forEach(s => io.observe(s));
+})();
+
+// Password strength meter (COD booking password)
+(function(){
+  const input = document.getElementById('cod-password-input');
+  const bar = document.getElementById('pw-strength-bar');
+  const label = document.getElementById('pw-strength-label');
+  if (!input || !bar) return;
+  input.addEventListener('input', () => {
+    const v = input.value;
+    let score = 0;
+    if (v.length >= 4) score++;
+    if (v.length >= 8) score++;
+    if (/[A-Z]/.test(v) && /[a-z]/.test(v)) score++;
+    if (/[0-9]/.test(v)) score++;
+    if (/[^A-Za-z0-9]/.test(v)) score++;
+    const levels = [
+      { w: '0%', c: 'transparent', l: '' },
+      { w: '20%', c: 'var(--red)', l: 'Too short' },
+      { w: '40%', c: 'var(--red)', l: 'Weak' },
+      { w: '60%', c: '#D98A2C', l: 'Okay' },
+      { w: '80%', c: 'var(--peach-deep)', l: 'Good' },
+      { w: '100%', c: 'var(--green)', l: 'Strong' }
+    ];
+    const lvl = v.length === 0 ? levels[0] : levels[Math.min(score + 1, 5)];
+    bar.style.width = lvl.w;
+    bar.style.background = lvl.c;
+    label.textContent = v.length ? lvl.l : '';
+  });
+})();
+
+// Inline email validation feedback (COD modal + status check)
+(function(){
+  function wireEmailField(id) {
+    const input = document.getElementById(id);
+    if (!input) return;
+    input.addEventListener('blur', () => {
+      if (!input.value) { input.classList.remove('field-ok', 'field-bad'); return; }
+      const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value.trim());
+      input.classList.toggle('field-ok', valid);
+      input.classList.toggle('field-bad', !valid);
+    });
+    input.addEventListener('input', () => input.classList.remove('field-ok', 'field-bad'));
+  }
+  wireEmailField('cod-email-input');
+  wireEmailField('status-email-input');
 })();
 </script>
 </body>
