@@ -618,6 +618,167 @@ if (localStorage.getItem('novelshift_terms_accepted') === 'true') {
 renderCart();
 loadReviews();
 loadBookData();
+
+// ============ INTERACTIVITY / POLISH LAYER ============
+
+// Scroll progress bar
+(function(){
+  const bar = document.createElement('div');
+  bar.id = 'scroll-progress';
+  document.body.appendChild(bar);
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+    bar.style.width = scrolled + '%';
+  }, { passive: true });
+})();
+
+// Scroll-reveal for main sections
+(function(){
+  const targets = document.querySelectorAll('.section, .reviews-section, .hero');
+  targets.forEach(el => el.classList.add('reveal'));
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  targets.forEach(el => io.observe(el));
+
+  const revList = document.getElementById('reviews-list');
+  if (revList) {
+    revList.classList.add('reveal-stagger');
+    const io2 = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          io2.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    io2.observe(revList);
+  }
+})();
+
+// Book cover 3D tilt on mouse move
+(function(){
+  const cover = document.getElementById('book-cover');
+  if (!cover) return;
+  const wrap = cover.closest('.book-cover-wrap') || cover;
+  wrap.addEventListener('mousemove', (e) => {
+    const r = cover.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width - 0.5;
+    const y = (e.clientY - r.top) / r.height - 0.5;
+    cover.classList.add('tilt-active');
+    cover.style.transform = `rotateY(${x * 14}deg) rotateX(${-y * 14}deg) scale(1.02)`;
+  });
+  wrap.addEventListener('mouseleave', () => {
+    cover.classList.remove('tilt-active');
+    cover.style.transform = 'rotateY(0) rotateX(0) scale(1)';
+  });
+})();
+
+// Ripple effect on primary/nav buttons
+(function(){
+  const selector = '.btn-buy, .btn-accent, .btn-sm, .nav-links a';
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest(selector);
+    if (!btn) return;
+    const r = btn.getBoundingClientRect();
+    const ripple = document.createElement('span');
+    const size = Math.max(r.width, r.height);
+    ripple.className = 'ripple';
+    ripple.style.width = ripple.style.height = size + 'px';
+    ripple.style.left = (e.clientX - r.left - size / 2) + 'px';
+    ripple.style.top = (e.clientY - r.top - size / 2) + 'px';
+    btn.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 620);
+  });
+})();
+
+// Wishlist heart pop feedback
+(function(){
+  const wishBtn = document.getElementById('add-to-wishlist-btn');
+  if (!wishBtn) return;
+  wishBtn.addEventListener('click', () => {
+    wishBtn.classList.remove('wish-pop');
+    void wishBtn.offsetWidth; // restart animation
+    wishBtn.classList.add('wish-pop');
+  });
+})();
+
+// Star picker hover bounce (visual only, layered on top of existing click logic)
+(function(){
+  const picker = document.getElementById('star-picker');
+  if (!picker) return;
+  picker.addEventListener('mouseover', (e) => {
+    const star = e.target.closest('span');
+    if (!star) return;
+    [...picker.children].forEach(s => s.classList.toggle('hovered', picker.contains(s) && Array.prototype.indexOf.call(picker.children, s) <= Array.prototype.indexOf.call(picker.children, star)));
+  });
+  picker.addEventListener('mouseleave', () => {
+    [...picker.children].forEach(s => s.classList.remove('hovered'));
+  });
+  picker.addEventListener('click', (e) => {
+    const star = e.target.closest('span');
+    if (!star) return;
+    star.classList.remove('selected');
+    void star.offsetWidth;
+    star.classList.add('selected');
+  });
+})();
+
+// Animated nav underline that follows active/hovered link
+(function(){
+  const navLinks = document.querySelector('.nav-links');
+  if (!navLinks) return;
+  const underline = document.createElement('div');
+  underline.className = 'nav-underline';
+  navLinks.appendChild(underline);
+
+  function moveTo(el) {
+    if (!el) { underline.style.width = '0px'; return; }
+    underline.style.left = el.offsetLeft + 'px';
+    underline.style.width = el.offsetWidth + 'px';
+  }
+  const active = navLinks.querySelector('a.active') || navLinks.querySelector('a');
+  requestAnimationFrame(() => moveTo(active));
+
+  navLinks.querySelectorAll('a').forEach(a => {
+    a.addEventListener('mouseenter', () => moveTo(a));
+  });
+  navLinks.addEventListener('mouseleave', () => moveTo(navLinks.querySelector('a.active') || active));
+})();
+
+// Cart panel open animation
+(function(){
+  const cartBtn = document.getElementById('nav-cart-btn');
+  const cartPanel = document.getElementById('cart-panel');
+  if (!cartBtn || !cartPanel) return;
+  cartBtn.addEventListener('click', () => {
+    if (cartPanel.style.display !== 'none') {
+      cartPanel.classList.remove('cart-opening');
+      void cartPanel.offsetWidth;
+      cartPanel.classList.add('cart-opening');
+    }
+  });
+})();
+
+// Hero cursor-follow glow
+(function(){
+  const hero = document.querySelector('.hero');
+  if (!hero) return;
+  const glow = document.createElement('div');
+  glow.className = 'hero-glow';
+  hero.appendChild(glow);
+  hero.addEventListener('mousemove', (e) => {
+    const r = hero.getBoundingClientRect();
+    glow.style.left = (e.clientX - r.left) + 'px';
+    glow.style.top = (e.clientY - r.top) + 'px';
+  });
+})();
 </script>
 </body>
 </html>
