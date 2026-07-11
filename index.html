@@ -486,34 +486,42 @@ document.getElementById('wl-submit-btn').addEventListener('click', async () => {
   const btn = document.getElementById('wl-submit-btn');
   btn.disabled = true; btn.textContent = 'Adding...'; btn.classList.add('btn-loading');
 
-  const bookTitle = document.getElementById('book-title-main').textContent;
+  try {
+    const bookTitleEl = document.getElementById('book-title-main');
+    const bookTitle = bookTitleEl ? bookTitleEl.textContent : null;
 
-  const { error } = await sb.from('wishlist').insert([{
-    name: name.slice(0,60),
-    email: email.slice(0,100),
-    phone: phone.slice(0,20),
-    offer_price: price.slice(0,30),
-    note: note ? note.slice(0,300) : null,
-    book_title: bookTitle
-  }]);
+    const { error } = await sb.from('wishlist').insert([{
+      name: name.slice(0,60),
+      email: email.slice(0,100),
+      phone: phone.slice(0,20),
+      offer_price: price.slice(0,30),
+      note: note ? note.slice(0,300) : null,
+      book_title: bookTitle
+    }]);
 
-  btn.disabled = false; btn.textContent = 'Add to Wish List'; btn.classList.remove('btn-loading');
-  if (error) {
-    console.error('wishlist insert error:', error);
-    errEl.textContent = 'Something went wrong. Please try again.';
+    if (error) {
+      console.error('wishlist insert error:', error);
+      errEl.textContent = 'Could not submit — ' + (error.message || 'please try again, or check with the site owner.');
+      errEl.style.display = '';
+      btn.disabled = false; btn.textContent = 'Add to Wish List'; btn.classList.remove('btn-loading');
+      return;
+    }
+
+    document.getElementById('wl-name').value = '';
+    document.getElementById('wl-email').value = '';
+    document.getElementById('wl-phone').value = '';
+    document.getElementById('wl-price').value = '';
+    document.getElementById('wl-note').value = '';
+    document.querySelector('#wishlist .wl-form').style.display = 'none';
+    document.getElementById('wl-success').style.display = '';
+    showToast('Added to wish list!', 'success');
+  } catch (e) {
+    console.error('wishlist unexpected error:', e);
+    errEl.textContent = 'Unexpected error — please try again.';
     errEl.style.display = '';
-    return;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Add to Wish List'; btn.classList.remove('btn-loading');
   }
-
-  document.getElementById('wl-name').value = '';
-  document.getElementById('wl-email').value = '';
-  document.getElementById('wl-phone').value = '';
-  document.getElementById('wl-price').value = '';
-  document.getElementById('wl-note').value = '';
-  document.querySelector('#wishlist .wl-form').style.display = 'none';
-  const successEl = document.getElementById('wl-success');
-  successEl.style.display = '';
-  showToast('Added to wish list!', 'success');
 });
 
 // ============ BOOKINGS (COD, saved to Supabase so the owner can see them) ============
