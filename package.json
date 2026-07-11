@@ -1,0 +1,12 @@
+{
+  "name": "novelshift",
+  "version": "1.0.0",
+  "description": "Fiction that shifts you",
+  "type": "module",
+  "scripts": {
+    "build": "echo 'No build step required for static site'"
+  },
+  "dependencies": {
+    "@vercel/speed-insights": "^1.0.12"
+  }
+}
