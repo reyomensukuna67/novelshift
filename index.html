@@ -18,19 +18,6 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- Terms gate — shown once per browser, no login involved -->
-<div id="terms-gate">
-  <div class="gate-card">
-    <div class="gate-logo">Novel<span>shift</span></div>
-    <div class="gate-sub">Fiction that shifts you.</div>
-    <label style="display:flex;align-items:flex-start;gap:0.6rem;font-size:0.82rem;color:var(--brown);margin-bottom:1rem;cursor:pointer;text-align:left">
-      <input type="checkbox" id="terms-checkbox" style="margin-top:0.2rem">
-      <span>By buying this book, you also agree to our <a href="https://pastefy.app/Ou9wtg8l" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#5B9BD5;text-decoration:underline">Terms and Service</a>.</span>
-    </label>
-    <button class="gate-pw-confirm" id="terms-continue" style="width:100%;opacity:0.5;cursor:not-allowed" disabled>Continue to Novelshift</button>
-  </div>
-</div>
-
 <div id="book-cod-gate" class="modal-overlay">
   <div class="modal-box">
     <div style="font-size:1.6rem;margin-bottom:0.6rem">📦</div>
@@ -49,9 +36,13 @@
       <span class="pw-strength-label" id="pw-strength-label"></span>
       <div style="font-size:0.72rem;color:var(--brown-soft);margin-bottom:0.4rem">Save this — you'll need your email + this password to check your booking status later. It can't be recovered if lost.</div>
     </div>
-    <label style="display:flex;align-items:flex-start;gap:0.5rem;font-size:0.76rem;color:var(--brown);margin:0.8rem 0;cursor:pointer;text-align:left">
+    <label style="display:flex;align-items:flex-start;gap:0.5rem;font-size:0.76rem;color:var(--brown);margin:0.8rem 0 0.5rem;cursor:pointer;text-align:left">
       <input type="checkbox" id="cod-confirm-checkbox" style="margin-top:0.2rem">
       <span>I understand this booking is final and cannot be cancelled. I agree to pay cash on delivery.</span>
+    </label>
+    <label style="display:flex;align-items:flex-start;gap:0.5rem;font-size:0.76rem;color:var(--brown);margin:0 0 0.8rem;cursor:pointer;text-align:left">
+      <input type="checkbox" id="terms-checkbox" style="margin-top:0.2rem">
+      <span>I accept the <a href="https://pastefy.app/Ou9wtg8l" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#5B9BD5;text-decoration:underline">Terms and Service</a>.</span>
     </label>
     <div id="cod-error" style="color:var(--red);font-size:0.78rem;min-height:1.1rem;margin-bottom:0.4rem"></div>
     <div style="display:flex;gap:0.6rem;justify-content:center">
@@ -125,15 +116,15 @@
         <img id="book-cover-img" src="" alt="" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit">
         <div class="cover-lines"></div>
         <div class="cover-genre" id="cover-fallback-genre">Fiction</div>
-        <div class="cover-title" id="cover-title">The Midnight Library</div>
+        <div class="cover-title" id="cover-title">Lost in the Loop</div>
         <div class="cover-deco"></div>
-        <div class="cover-author" id="cover-fallback-author">Matt Haig</div>
+        <div class="cover-author" id="cover-fallback-author">Srihan Kayshap</div>
       </div>
       <div class="cover-badge">New arrival</div>
     </div>
     <div>
-      <div class="book-title-main" id="book-title-main">The Midnight Library</div>
-      <div class="book-author-main">by <span id="book-author-main">Matt Haig</span></div>
+      <div class="book-title-main" id="book-title-main">Lost in the Loop</div>
+      <div class="book-author-main">by <span id="book-author-main">Srihan Kayshap</span></div>
       <div class="rating-row">
         <span class="stars-disp" id="avg-stars">☆☆☆☆☆</span>
         <span class="rating-count" id="avg-text">No reviews yet — be the first!</span>
@@ -574,6 +565,7 @@ function openBookingModal() {
   document.getElementById('cod-email-input').value = '';
   document.getElementById('cod-password-input').value = '';
   document.getElementById('cod-confirm-checkbox').checked = false;
+  document.getElementById('terms-checkbox').checked = false;
   document.getElementById('cod-error').textContent = '';
   document.getElementById('book-cod-gate').style.display = 'flex';
 }
@@ -588,6 +580,7 @@ document.getElementById('cod-confirm-btn').addEventListener('click', async () =>
   const email = document.getElementById('cod-email-input').value.trim();
   const password = document.getElementById('cod-password-input').value;
   const agreed = document.getElementById('cod-confirm-checkbox').checked;
+  const termsAgreed = document.getElementById('terms-checkbox').checked;
   const errEl = document.getElementById('cod-error');
   errEl.textContent = '';
 
@@ -595,6 +588,7 @@ document.getElementById('cod-confirm-btn').addEventListener('click', async () =>
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { errEl.textContent = 'Please enter a valid email.'; return; }
   if (!password || password.length < 4) { errEl.textContent = 'Password must be at least 4 characters.'; return; }
   if (!agreed) { errEl.textContent = 'Please confirm you understand the booking is final and COD.'; return; }
+  if (!termsAgreed) { errEl.textContent = 'Please accept the Terms and Service to continue.'; return; }
 
   const btn = document.getElementById('cod-confirm-btn');
   btn.disabled = true; btn.textContent = 'Booking...'; btn.classList.add('btn-loading');
@@ -718,21 +712,6 @@ document.addEventListener('click', (e) => {
     panel.style.display = 'none';
   }
 });
-
-// ============ TERMS GATE (one-time, no login) ============
-document.getElementById('terms-checkbox').addEventListener('change', (e) => {
-  const btn = document.getElementById('terms-continue');
-  btn.disabled = !e.target.checked;
-  btn.style.opacity = e.target.checked ? '1' : '0.5';
-  btn.style.cursor = e.target.checked ? 'pointer' : 'not-allowed';
-});
-document.getElementById('terms-continue').addEventListener('click', () => {
-  localStorage.setItem('novelshift_terms_accepted', 'true');
-  document.getElementById('terms-gate').style.display = 'none';
-});
-if (localStorage.getItem('novelshift_terms_accepted') === 'true') {
-  document.getElementById('terms-gate').style.display = 'none';
-}
 
 // ============ INIT ============
 renderCart();
