@@ -516,6 +516,7 @@ document.getElementById('cod-confirm-btn').addEventListener('click', async () =>
   const bookTitle = document.getElementById('book-title-main').textContent;
   const bookPrice = document.getElementById('price-current').textContent;
 
+  let result;
   try {
     const res = await fetch(`${FUNCTIONS_URL}/create-booking`, {
       method: 'POST',
@@ -533,14 +534,18 @@ document.getElementById('cod-confirm-btn').addEventListener('click', async () =>
         password
       })
     });
-    const result = await res.json();
-    if (!result.ok) {
-      errEl.textContent = result.error || 'Something went wrong. Please try again.';
-      btn.disabled = false; btn.textContent = 'Confirm booking'; btn.classList.remove('btn-loading');
-      return;
-    }
+    console.log('create-booking status:', res.status);
+    result = await res.json();
+    console.log('create-booking response:', result);
   } catch (e) {
+    console.error('create-booking error:', e);
     errEl.textContent = 'Network error — please try again.';
+    btn.disabled = false; btn.textContent = 'Confirm booking'; btn.classList.remove('btn-loading');
+    return;
+  }
+
+  if (!result || !result.ok) {
+    errEl.textContent = (result && result.error) || 'Something went wrong. Please try again.';
     btn.disabled = false; btn.textContent = 'Confirm booking'; btn.classList.remove('btn-loading');
     return;
   }
