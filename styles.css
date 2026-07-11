@@ -243,7 +243,25 @@ footer{background:var(--cream);border-top:1px solid var(--peach-line);color:var(
 /* overlay modals (debug pass gate, COD gate) */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(74,52,40,0.55);backdrop-filter:blur(4px);z-index:10003;align-items:center;justify-content:center;flex-direction:column}
 .modal-box{background:var(--cream);border:1px solid var(--peach-line);border-radius:16px;padding:2.1rem;width:min(360px,90vw);text-align:center;box-shadow:0 20px 50px rgba(74,52,40,0.3)}
-.modal-box input{width:100%;padding:0.65rem 0.85rem;border-radius:8px;border:1px solid var(--peach-line);background:var(--white);color:var(--espresso);margin-bottom:0.8rem;font-family:'Inter',Arial,sans-serif}
+.modal-box input{width:100%;padding:0.65rem 0.85rem;border-radius:8px;border:1px solid var(--peach-line);background:var(--white);color:var(--espresso);margin-bottom:0.8rem;font-family:'Inter',Arial,sans-serif;font-size:0.87rem;line-height:1.4}
+
+/* ---- Cash-on-delivery booking modal ---- */
+.cod-box{width:min(400px,92vw);padding:2.2rem 2rem}
+.cod-icon{font-size:1.7rem;margin-bottom:0.7rem;line-height:1}
+.cod-title{font-family:'Fraunces',Georgia,serif;font-size:1.2rem;font-weight:600;color:var(--espresso);margin-bottom:0.4rem;letter-spacing:-0.2px}
+.cod-subtitle{color:var(--brown);font-size:0.83rem;line-height:1.5;margin-bottom:1.5rem}
+.cod-fields{text-align:left}
+.cod-label{display:block;font-size:0.72rem;color:var(--brown);margin-bottom:0.35rem;font-weight:700;text-transform:uppercase;letter-spacing:0.6px}
+.cod-input{margin-bottom:1rem}
+.cod-input-spaced{margin-bottom:1.2rem}
+.cod-input-tight{margin-bottom:0.4rem}
+.cod-save-hint{font-size:0.74rem;color:var(--brown-soft);line-height:1.55;margin-bottom:0.2rem}
+.cod-agree-row{display:flex;align-items:flex-start;gap:0.65rem;font-size:0.82rem;line-height:1.55;color:var(--brown);margin:1.2rem 0 0.6rem;cursor:pointer;text-align:left}
+.cod-checkbox{margin-top:0.2rem;width:16px;height:16px;flex-shrink:0;accent-color:var(--peach-deep);cursor:pointer}
+.cod-link{color:var(--peach-deep);text-decoration:underline;font-weight:600}
+.cod-error{color:var(--red);font-size:0.78rem;min-height:1.1rem;margin-bottom:0.6rem;text-align:left;line-height:1.4}
+.cod-actions{display:flex;gap:0.7rem;justify-content:center;margin-top:0.4rem}
+.cod-actions .btn-accent,.cod-actions .btn-ghost{flex:1;padding:0.75rem 1rem}
 
 /* ============ BOOKING STATUS CHECK (index.html) ============ */
 .status-check-box{background:var(--white);border:1px solid var(--peach-line);border-radius:16px;padding:2rem;max-width:480px}
