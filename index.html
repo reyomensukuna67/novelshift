@@ -42,11 +42,7 @@
       <span class="pw-strength-label" id="pw-strength-label"></span>
       <div style="font-size:0.72rem;color:var(--brown-soft);margin-bottom:0.4rem">Save this — you'll need your email + this password to check your booking status later. It can't be recovered if lost.</div>
     </div>
-    <label style="display:flex;align-items:flex-start;gap:0.5rem;font-size:0.76rem;color:var(--brown);margin:0.8rem 0 0.5rem;cursor:pointer;text-align:left">
-      <input type="checkbox" id="cod-confirm-checkbox" style="margin-top:0.2rem">
-      <span>I understand this booking is final and cannot be cancelled. I agree to pay cash on delivery.</span>
-    </label>
-    <label style="display:flex;align-items:flex-start;gap:0.5rem;font-size:0.76rem;color:var(--brown);margin:0 0 0.8rem;cursor:pointer;text-align:left">
+    <label style="display:flex;align-items:flex-start;gap:0.5rem;font-size:0.76rem;color:var(--brown);margin:0.8rem 0 0.8rem;cursor:pointer;text-align:left">
       <input type="checkbox" id="terms-checkbox" style="margin-top:0.2rem">
       <span>I accept the <a href="https://pastefy.app/r1uopQrU" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#5B9BD5;text-decoration:underline">Terms and Service</a>.</span>
     </label>
@@ -570,7 +566,6 @@ function openBookingModal() {
   document.getElementById('cod-class-input').value = '';
   document.getElementById('cod-email-input').value = '';
   document.getElementById('cod-password-input').value = '';
-  document.getElementById('cod-confirm-checkbox').checked = false;
   document.getElementById('terms-checkbox').checked = false;
   document.getElementById('cod-error').textContent = '';
   document.getElementById('book-cod-gate').style.display = 'flex';
@@ -585,7 +580,6 @@ document.getElementById('cod-confirm-btn').addEventListener('click', async () =>
   const className = document.getElementById('cod-class-input').value.trim();
   const email = document.getElementById('cod-email-input').value.trim();
   const password = document.getElementById('cod-password-input').value;
-  const agreed = document.getElementById('cod-confirm-checkbox').checked;
   const termsAgreed = document.getElementById('terms-checkbox').checked;
   const errEl = document.getElementById('cod-error');
   errEl.textContent = '';
@@ -593,7 +587,6 @@ document.getElementById('cod-confirm-btn').addEventListener('click', async () =>
   if (!name || !className) { errEl.textContent = 'Please enter both your name and your class.'; return; }
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { errEl.textContent = 'Please enter a valid email.'; return; }
   if (!password || password.length < 4) { errEl.textContent = 'Password must be at least 4 characters.'; return; }
-  if (!agreed) { errEl.textContent = 'Please confirm you understand the booking is final and COD.'; return; }
   if (!termsAgreed) { errEl.textContent = 'Please accept the Terms and Service to continue.'; return; }
 
   const btn = document.getElementById('cod-confirm-btn');
