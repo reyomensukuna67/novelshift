@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=3">
+<link rel="stylesheet" href="styles.css">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 </head>
 <body>
@@ -25,29 +25,33 @@
 <div class="toast" id="toast"></div>
 
 <div id="book-cod-gate" class="modal-overlay">
-  <div class="modal-box cod-box">
-    <div class="cod-icon">📦</div>
-    <div class="cod-title">Book — Cash on Delivery</div>
-    <div class="cod-subtitle">No online payment. Pay in cash when the book is delivered.</div>
-    <div class="cod-fields">
-      <label class="cod-label" for="cod-name-input">Your name</label>
-      <input id="cod-name-input" class="cod-input" type="text" placeholder="Full name" maxlength="60">
-      <label class="cod-label" for="cod-class-input">Your class</label>
-      <input id="cod-class-input" class="cod-input cod-input-spaced" type="text" placeholder="e.g. 10th B" maxlength="30">
-      <label class="cod-label" for="cod-email-input">Your email</label>
-      <input id="cod-email-input" class="cod-input" type="email" placeholder="you@example.com">
-      <label class="cod-label" for="cod-password-input">Set a password</label>
-      <input id="cod-password-input" class="cod-input cod-input-tight" type="password" placeholder="Choose a password">
+  <div class="modal-box">
+    <div style="font-size:1.6rem;margin-bottom:0.6rem">📦</div>
+    <div style="color:var(--espresso);font-weight:700;margin-bottom:0.4rem">Book — Cash on Delivery</div>
+    <div style="color:var(--brown);font-size:0.8rem;margin-bottom:1.2rem">No online payment. Pay in cash when the book is delivered.</div>
+    <div style="text-align:left">
+      <label style="display:block;font-size:0.75rem;color:var(--brown);margin-bottom:0.3rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px">Your name</label>
+      <input id="cod-name-input" type="text" placeholder="Full name" maxlength="60">
+      <label style="display:block;font-size:0.75rem;color:var(--brown);margin-bottom:0.3rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px">Your class</label>
+      <input id="cod-class-input" type="text" placeholder="e.g. 10th B" maxlength="30" style="margin-bottom:0.9rem">
+      <label style="display:block;font-size:0.75rem;color:var(--brown);margin-bottom:0.3rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px">Your email</label>
+      <input id="cod-email-input" type="email" placeholder="you@example.com">
+      <label style="display:block;font-size:0.75rem;color:var(--brown);margin-bottom:0.3rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px">Set a password</label>
+      <input id="cod-password-input" type="password" placeholder="Choose a password" style="margin-bottom:0.3rem">
       <div class="pw-strength"><div class="pw-strength-bar" id="pw-strength-bar"></div></div>
       <span class="pw-strength-label" id="pw-strength-label"></span>
-      <div class="cod-save-hint">Save this — you'll need your email + this password to check your booking status later. It can't be recovered if lost.</div>
+      <div style="font-size:0.72rem;color:var(--brown-soft);margin-bottom:0.4rem">Save this — you'll need your email + this password to check your booking status later. It can't be recovered if lost.</div>
     </div>
-    <label class="cod-agree-row">
-      <input type="checkbox" id="cod-confirm-checkbox" class="cod-checkbox">
-      <span>I understand this booking is final and cannot be cancelled, I agree to pay cash on delivery, and I accept the <a href="https://pastefy.app/r1uopQrU" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="cod-link">Terms and Service</a>.</span>
+    <label style="display:flex;align-items:flex-start;gap:0.5rem;font-size:0.76rem;color:var(--brown);margin:0.8rem 0 0.5rem;cursor:pointer;text-align:left">
+      <input type="checkbox" id="cod-confirm-checkbox" style="margin-top:0.2rem">
+      <span>I understand this booking is final and cannot be cancelled. I agree to pay cash on delivery.</span>
     </label>
-    <div id="cod-error" class="cod-error"></div>
-    <div class="cod-actions">
+    <label style="display:flex;align-items:flex-start;gap:0.5rem;font-size:0.76rem;color:var(--brown);margin:0 0 0.8rem;cursor:pointer;text-align:left">
+      <input type="checkbox" id="terms-checkbox" style="margin-top:0.2rem">
+      <span>I accept the <a href="https://pastefy.app/r1uopQrU" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#5B9BD5;text-decoration:underline">Terms and Service</a>.</span>
+    </label>
+    <div id="cod-error" style="color:var(--red);font-size:0.78rem;min-height:1.1rem;margin-bottom:0.4rem"></div>
+    <div style="display:flex;gap:0.6rem;justify-content:center">
       <button class="btn-accent" id="cod-confirm-btn">Confirm booking</button>
       <button class="btn-ghost" id="cod-cancel-btn">Cancel</button>
     </div>
@@ -567,6 +571,7 @@ function openBookingModal() {
   document.getElementById('cod-email-input').value = '';
   document.getElementById('cod-password-input').value = '';
   document.getElementById('cod-confirm-checkbox').checked = false;
+  document.getElementById('terms-checkbox').checked = false;
   document.getElementById('cod-error').textContent = '';
   document.getElementById('book-cod-gate').style.display = 'flex';
 }
@@ -581,13 +586,15 @@ document.getElementById('cod-confirm-btn').addEventListener('click', async () =>
   const email = document.getElementById('cod-email-input').value.trim();
   const password = document.getElementById('cod-password-input').value;
   const agreed = document.getElementById('cod-confirm-checkbox').checked;
+  const termsAgreed = document.getElementById('terms-checkbox').checked;
   const errEl = document.getElementById('cod-error');
   errEl.textContent = '';
 
   if (!name || !className) { errEl.textContent = 'Please enter both your name and your class.'; return; }
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { errEl.textContent = 'Please enter a valid email.'; return; }
   if (!password || password.length < 4) { errEl.textContent = 'Password must be at least 4 characters.'; return; }
-  if (!agreed) { errEl.textContent = 'Please confirm the booking terms and Terms and Service to continue.'; return; }
+  if (!agreed) { errEl.textContent = 'Please confirm you understand the booking is final and COD.'; return; }
+  if (!termsAgreed) { errEl.textContent = 'Please accept the Terms and Service to continue.'; return; }
 
   const btn = document.getElementById('cod-confirm-btn');
   btn.disabled = true; btn.textContent = 'Booking...'; btn.classList.add('btn-loading');
