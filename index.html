@@ -35,14 +35,14 @@
       <button type="button" class="btn-ghost" id="pay-method-upi-btn" data-selected="false">📱 Online Payment (UPI)</button>
     </div>
 
-    <div id="upi-payment-box" style="display:none;background:var(--cream,#faf3ea);border:1px solid var(--tan,#e8d9c5);border-radius:12px;padding:0.9rem;margin-bottom:1rem;text-align:center">
-      <div style="font-weight:700;color:var(--espresso);margin-bottom:0.5rem" id="upi-pay-amount-label">Pay ₹— using any UPI app</div>
-      <img src="upi-qr.png" alt="UPI QR code" style="width:150px;height:150px;margin:0 auto 0.5rem;display:block;border-radius:8px;border:1px solid var(--tan,#e8d9c5)">
-      <div style="font-size:0.78rem;color:var(--brown);margin-bottom:0.6rem">UPI ID: <strong id="upi-id-text">8115138858@ybl</strong></div>
-      <label style="display:block;font-size:0.75rem;color:var(--brown);margin-bottom:0.3rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;text-align:left">UPI transaction ID</label>
-      <input id="upi-txn-input" type="text" placeholder="12-digit reference number" maxlength="60" style="margin-bottom:0.4rem">
-      <div style="font-size:0.72rem;color:var(--brown-soft);text-align:left">After paying, enter the transaction/reference ID from your UPI app. We'll verify it within 1-2 days.</div>
-      <div style="font-size:0.7rem;color:var(--brown-soft);text-align:left;margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--tan,#e8d9c5)">If your payment doesn't reach us, the wrong amount goes through, or the booking doesn't get created properly, we'll refund you and email you about it.</div>
+    <div id="upi-payment-box" style="display:none;background:var(--cream,#faf3ea);border:1px solid var(--tan,#e8d9c5);border-radius:12px;padding:0.7rem;margin-bottom:0.8rem;text-align:center">
+      <div style="font-weight:700;color:var(--espresso);margin-bottom:0.4rem;font-size:0.85rem" id="upi-pay-amount-label">Pay ₹— using any UPI app</div>
+      <img src="upi-qr.png" alt="UPI QR code" style="width:110px;height:110px;margin:0 auto 0.4rem;display:block;border-radius:8px;border:1px solid var(--tan,#e8d9c5)">
+      <div style="font-size:0.74rem;color:var(--brown);margin-bottom:0.5rem">UPI ID: <strong id="upi-id-text">8115138858@ybl</strong></div>
+      <label style="display:block;font-size:0.72rem;color:var(--brown);margin-bottom:0.25rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;text-align:left">UPI transaction ID</label>
+      <input id="upi-txn-input" type="text" placeholder="12-digit reference number" maxlength="60" style="margin-bottom:0.3rem">
+      <div style="font-size:0.68rem;color:var(--brown-soft);text-align:left">After paying, enter the transaction/reference ID from your UPI app. We'll verify it within 1-2 days.</div>
+      <div style="font-size:0.66rem;color:var(--brown-soft);text-align:left;margin-top:0.4rem;padding-top:0.4rem;border-top:1px solid var(--tan,#e8d9c5)">If your payment doesn't reach us, the wrong amount goes through, or the booking doesn't get created properly, we'll refund you and email you about it.</div>
     </div>
 
     <div style="text-align:left">
@@ -611,8 +611,12 @@ function openBookingModal() {
   selectedPaymentMethod = 'cod';
   updatePaymentMethodUI();
   document.getElementById('book-cod-gate').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
 }
-function closeBookingModal() { document.getElementById('book-cod-gate').style.display = 'none'; }
+function closeBookingModal() {
+  document.getElementById('book-cod-gate').style.display = 'none';
+  document.body.style.overflow = '';
+}
 
 document.getElementById('add-to-cart-btn').addEventListener('click', openBookingModal);
 document.getElementById('cod-cancel-btn').addEventListener('click', closeBookingModal);
