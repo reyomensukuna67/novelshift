@@ -268,11 +268,15 @@ async function loadOrders() {
   list.innerHTML = data.map(o => {
     const date = new Date(o.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
     const status = o.status || 'pending';
+    const paymentLabel = o.payment_method === 'upi'
+      ? `UPI${o.upi_txn_id ? ` (txn: ${escHtml(o.upi_txn_id)})` : ''}`
+      : 'Cash on Delivery';
     return `<div class="order-card" data-id="${o.id}">
       <div class="order-top">
         <div>
           <div class="order-name">${escHtml(o.buyer_name)} · Class ${escHtml(o.buyer_class)}</div>
           <div class="order-meta">${escHtml(o.book_title || '')} · ${escHtml(o.price || '')} · ${escHtml(o.email || 'no email')} · ${escHtml(date)}</div>
+          <div class="order-meta">${paymentLabel}</div>
         </div>
         <span class="order-status status-${escHtml(status)}">${escHtml(status)}</span>
       </div>
