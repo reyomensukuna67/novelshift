@@ -91,7 +91,9 @@
     <li><a href="#wishlist">Wish List</a></li>
     <li><a href="#check-status">My Booking</a></li>
   </ul>
-  <div class="nav-r" style="position:relative">
+  <div class="nav-r" style="position:relative;display:flex;align-items:center;gap:0.5rem">
+    <button class="btn-sm" id="nav-signin-google-btn" title="New here? Sign in with Google to book">Sign in with Google</button>
+    <button class="btn-sm" id="nav-login-google-btn" title="Already booked? Log in with Google to check status">Login with Google</button>
     <button class="btn-sm" id="nav-cart-btn">🛒 Bookings (0)</button>
     <div id="cart-panel" style="display:none;position:absolute;top:calc(100% + 0.6rem);right:0;width:280px;background:var(--white);border:1px solid var(--peach-line);border-radius:12px;padding:1rem;box-shadow:0 12px 30px var(--shadow);z-index:50">
       <div id="cart-items" style="font-size:0.85rem;color:var(--brown);max-height:220px;overflow-y:auto"></div>
@@ -306,11 +308,19 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
 
 // If the user just came back from a Google OAuth redirect, Supabase leaves
-// tokens in the URL hash. Reopen the booking modal so they land right back
-// where they left off, signed in.
+// tokens in the URL hash. Route them based on which button they clicked:
+// "Sign in with Google" -> booking modal, "Login with Google" -> My Booking status.
 if (window.location.hash.includes('access_token')) {
   window.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => openBookingModal(), 300); // small delay lets sb.auth pick up the session from the URL
+    setTimeout(() => {
+      const intent = sessionStorage.getItem('novelshift-google-intent');
+      sessionStorage.removeItem('novelshift-google-intent');
+      if (intent === 'status') {
+        runGoogleStatusCheck();
+      } else {
+        openBookingModal();
+      }
+    }, 300); // small delay lets sb.auth pick up the session from the URL
   });
 }
 
@@ -663,6 +673,55 @@ document.getElementById('google-signout-link').addEventListener('click', async (
   updateGoogleSignInUI();
 });
 
+// Nav bar "Sign in with Google" — new customers, goes straight to booking.
+document.getElementById('nav-signin-google-btn').addEventListener('click', async () => {
+  sessionStorage.setItem('novelshift-google-intent', 'book');
+  await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.href }
+  });
+});
+
+// Nav bar "Login with Google" — returning customers, goes to My Booking
+// and auto-checks status using the Google session instead of a password.
+document.getElementById('nav-login-google-btn').addEventListener('click', async () => {
+  sessionStorage.setItem('novelshift-google-intent', 'status');
+  await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.href }
+  });
+});
+
+async function runGoogleStatusCheck() {
+  const { data } = await sb.auth.getSession();
+  const token = data?.session?.access_token;
+  if (!token) return;
+
+  window.location.hash = '#check-status';
+  const resultsEl = document.getElementById('status-check-results');
+  const errEl = document.getElementById('status-check-error');
+  if (errEl) errEl.textContent = '';
+  if (resultsEl) resultsEl.innerHTML = '<div style="color:var(--brown-soft);font-size:0.85rem">Checking your bookings…</div>';
+
+  try {
+    const res = await fetch(`${FUNCTIONS_URL}/check-booking-status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}`, 'apikey': SUPABASE_KEY },
+      body: JSON.stringify({ google_access_token: token })
+    });
+    const result = await res.json();
+    if (!result.ok) {
+      if (errEl) errEl.textContent = result.error || 'No bookings found.';
+      if (resultsEl) resultsEl.innerHTML = '';
+      return;
+    }
+    renderStatusResults(result.orders);
+  } catch (e) {
+    console.error('Google status check error:', e);
+    if (errEl) errEl.textContent = 'Network error — please try again.';
+  }
+}
+
 function updatePaymentMethodUI() {
   const codBtn = document.getElementById('pay-method-cod-btn');
   const upiBtn = document.getElementById('pay-method-upi-btn');
@@ -787,6 +846,23 @@ document.getElementById('cod-confirm-btn').addEventListener('click', async () =>
 });
 
 // ============ BOOKING STATUS CHECK ============
+function renderStatusResults(orders) {
+  const resultsEl = document.getElementById('status-check-results');
+  resultsEl.innerHTML = orders.map(o => {
+    const date = new Date(o.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
+    const status = o.status || 'pending';
+    return `<div class="status-card">
+      <div class="order-top">
+        <div>
+          <div class="order-name">${escHtml(o.book_title || 'Booking')}</div>
+          <div class="order-meta">Booked ${escHtml(date)} · ${escHtml(o.price || '')}</div>
+        </div>
+        <span class="order-status status-${escHtml(status)}">${escHtml(status)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 document.getElementById('status-check-btn').addEventListener('click', async () => {
   const email = document.getElementById('status-email-input').value.trim();
   const password = document.getElementById('status-password-input').value;
@@ -815,19 +891,7 @@ document.getElementById('status-check-btn').addEventListener('click', async () =
       errEl.textContent = result.error || 'Invalid email or password.';
       return;
     }
-    resultsEl.innerHTML = result.orders.map(o => {
-      const date = new Date(o.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
-      const status = o.status || 'pending';
-      return `<div class="status-card">
-        <div class="order-top">
-          <div>
-            <div class="order-name">${escHtml(o.book_title || 'Booking')}</div>
-            <div class="order-meta">Booked ${escHtml(date)} · ${escHtml(o.price || '')}</div>
-          </div>
-          <span class="order-status status-${escHtml(status)}">${escHtml(status)}</span>
-        </div>
-      </div>`;
-    }).join('');
+    renderStatusResults(result.orders);
   } catch (e) {
     errEl.textContent = 'Network error — please try again.';
   } finally {
