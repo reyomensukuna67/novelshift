@@ -720,7 +720,7 @@ checkGoogleSession();
 document.getElementById('google-signin-btn').addEventListener('click', async () => {
   await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.href }
+    options: { redirectTo: window.location.origin + window.location.pathname }
   });
 });
 
@@ -738,7 +738,7 @@ document.getElementById('nav-signin-google-btn').addEventListener('click', async
   sessionStorage.setItem('novelshift-google-intent', 'book');
   await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.href }
+    options: { redirectTo: window.location.origin + window.location.pathname }
   });
 });
 
@@ -748,7 +748,7 @@ document.getElementById('nav-login-google-btn').addEventListener('click', async 
   sessionStorage.setItem('novelshift-google-intent', 'status');
   await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.href }
+    options: { redirectTo: window.location.origin + window.location.pathname }
   });
 });
 
