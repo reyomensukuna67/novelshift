@@ -1,6 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="7" fill="#FDF6EE"/>
-  <path d="M6 8.5c0-1.1.9-2 2-2h6.3c.9 0 1.7.5 1.7 1.4V23c0-.9-.8-1.4-1.7-1.4H8c-1.1 0-2 .9-2 2z" fill="#E8A87C"/>
-  <path d="M26 8.5c0-1.1-.9-2-2-2h-6.3c-.9 0-1.7.5-1.7 1.4V23c0-.9.8-1.4 1.7-1.4H24c1.1 0 2 .9 2 2z" fill="#C97B5C"/>
-  <rect x="14.5" y="5.5" width="3" height="7.5" fill="#C1503B"/>
-</svg>
+Copyright (c) 2026 Novelshift (bookies.space). All Rights Reserved.
+
+This source code and its associated design, content, and assets are the
+exclusive property of the copyright holder.
+
+No part of this codebase — including but not limited to its HTML, CSS,
+JavaScript, database schema, or design — may be copied, reproduced,
+distributed, republished, modified, reverse-engineered, or used to create
+derivative works, in whole or in part, in any form or by any means,
+without the prior written permission of the copyright holder.
+
+Unauthorized use, reproduction, or distribution of this code or any
+portion of it is strictly prohibited and may result in legal action.
+
+For permission requests, contact the site owner via bookies.space.
