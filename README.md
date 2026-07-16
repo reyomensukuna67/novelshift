@@ -1,91 +1,1292 @@
-# Novelshift
+<!--
+  Novelshift (bookies.space)
+  Copyright (c) 2026. All Rights Reserved.
+  Unauthorized copying, reproduction, or distribution of this source
+  code, in whole or in part, is strictly prohibited. See LICENSE.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Novelshift — Fiction that shifts you</title>
 
-A single-book, cash-on-delivery storefront for *Lost in the Loop* by
-Srihan Kayshap — a peach-and-cream themed, no-login-required site backed by
-[Supabase](https://supabase.com), with a separate password-gated admin panel.
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6442890970772980"
+     crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+</head>
+<body>
 
-## Live site
+<div class="toast" id="toast"></div>
 
-Hosted on GitHub Pages: `https://<yourusername>.github.io/<your-repo-name>/`
-*(update this link to match your actual Pages URL, and see the CNAME file
-if you're using a custom domain)*
+<div id="book-cod-gate" class="modal-overlay">
+  <div class="modal-box">
+    <div style="font-size:1.6rem;margin-bottom:0.6rem">📦</div>
+    <div style="color:var(--espresso);font-weight:700;margin-bottom:0.4rem">Book your copy</div>
+    <div style="color:var(--brown);font-size:0.8rem;margin-bottom:1rem" id="payment-method-subtitle">Choose how you'd like to pay.</div>
 
-## How it works
+    <div style="display:flex;gap:0.6rem;justify-content:center;margin-bottom:1.1rem">
+      <button type="button" class="btn-ghost" id="pay-method-cod-btn" data-selected="true">💵 Cash on Delivery</button>
+      <button type="button" class="btn-ghost" id="pay-method-upi-btn" data-selected="false">📱 Online Payment (UPI)</button>
+    </div>
 
-- **No sign-in required.** Anyone can browse the book, read reviews, and
-  place a booking without creating an account.
-- **Cash on Delivery only.** No online payment is processed. A visitor who
-  wants the book fills out the booking modal (name, class, email, a
-  password of their choosing, and acceptance of the Terms and Service),
-  which creates an order in Supabase. Payment happens in person when the
-  book is delivered.
-- **Booking status check.** Using the email + password set at booking time,
-  a visitor can check their order status later on the same page.
-- **Wish List.** A private "can't afford it right now" form — visitors
-  submit their name, email, phone, and an offer price. Nothing here is
-  shown publicly; submissions are visible only in `admin.html`.
-- **Reviews.** Any visitor can leave a star rating + review; no login
-  needed.
-- **Admin panel (`admin.html`).** Password-gated (client-side password
-  check, not tied to Supabase auth) for the site owner to view/manage
-  orders, delete reviews, edit the book's details, and browse Wish List
-  submissions with click-to-contact email/WhatsApp links.
+    <div id="upi-payment-box" style="display:none;background:var(--cream,#faf3ea);border:1px solid var(--tan,#e8d9c5);border-radius:12px;padding:0.7rem;margin-bottom:0.8rem;text-align:center">
+      <div style="font-weight:700;color:var(--espresso);margin-bottom:0.4rem;font-size:0.85rem" id="upi-pay-amount-label">Pay ₹— using any UPI app</div>
+      <img src="upi-qr.png" alt="UPI QR code" style="width:110px;height:110px;margin:0 auto 0.4rem;display:block;border-radius:8px;border:1px solid var(--tan,#e8d9c5)">
+      <div style="font-size:0.74rem;color:var(--brown);margin-bottom:0.5rem">UPI ID: <strong id="upi-id-text">8115138858@ybl</strong></div>
+      <label style="display:block;font-size:0.72rem;color:var(--brown);margin-bottom:0.25rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;text-align:left">UPI transaction ID</label>
+      <input id="upi-txn-input" type="text" placeholder="12-digit reference number" maxlength="60" style="margin-bottom:0.3rem">
+      <div style="font-size:0.68rem;color:var(--brown-soft);text-align:left">After paying, enter the transaction/reference ID from your UPI app. We'll verify it within 1-2 days.</div>
+      <div style="font-size:0.66rem;color:var(--brown-soft);text-align:left;margin-top:0.4rem;padding-top:0.4rem;border-top:1px solid var(--tan,#e8d9c5)">If your payment doesn't reach us, the wrong amount goes through, or the booking doesn't get created properly, we'll refund you and email you about it.</div>
+    </div>
 
-## Tech stack
+    <button type="button" id="google-signin-btn" style="width:100%;display:flex;align-items:center;justify-content:center;gap:0.5rem;padding:0.55rem;border-radius:8px;border:1px solid var(--peach-line);background:var(--white);color:var(--espresso);font-weight:600;font-size:0.82rem;cursor:pointer;margin-bottom:0.7rem">
+      <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.4 6 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.4 6 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.3 0 10.1-2 13.7-5.4l-6.3-5.3C29.4 35 26.8 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.2 5.6l6.3 5.3C40.9 36.5 44 30.9 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
+      Sign in with Google
+    </button>
+    <div id="google-signed-in-note" style="display:none;font-size:0.74rem;color:var(--brown);background:var(--cream,#faf3ea);border-radius:8px;padding:0.5rem 0.7rem;margin-bottom:0.7rem;text-align:left">
+      Signed in as <strong id="google-email-display"></strong> · <a href="#" id="google-signout-link" style="color:#5B9BD5;text-decoration:underline">use a different email</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.7rem;color:var(--brown-soft);font-size:0.72rem">
+      <div style="flex:1;height:1px;background:var(--peach-line)"></div>OR<div style="flex:1;height:1px;background:var(--peach-line)"></div>
+    </div>
 
-- Plain HTML/CSS/JavaScript — no build step, no framework
-- [Supabase](https://supabase.com) for the database and Edge Functions
-- Supabase tables: `book_settings`, `reviews`, `orders`, `wishlist`,
-  `profiles` (currently unused by the live flow)
-- Supabase Edge Functions (deployed on the Supabase side, not in this
-  repo): `create-booking`, `check-booking-status`, `check-cart-status`,
-  `get-orders`, `update-order-status`, `delete-order`, `verify-mod-password`
+    <div style="text-align:left">
+      <label style="display:block;font-size:0.75rem;color:var(--brown);margin-bottom:0.3rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px">Your name</label>
+      <input id="cod-name-input" type="text" placeholder="Full name" maxlength="60">
+      <label style="display:block;font-size:0.75rem;color:var(--brown);margin-bottom:0.3rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px">Your class</label>
+      <input id="cod-class-input" type="text" placeholder="e.g. 10th B" maxlength="30" style="margin-bottom:0.9rem">
+      <label style="display:block;font-size:0.75rem;color:var(--brown);margin-bottom:0.3rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px" id="cod-email-label">Your email</label>
+      <input id="cod-email-input" type="email" placeholder="you@example.com">
+      <label style="display:block;font-size:0.75rem;color:var(--brown);margin-bottom:0.3rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px" id="cod-password-label">Set a password</label>
+      <input id="cod-password-input" type="password" placeholder="Choose a password" style="margin-bottom:0.3rem">
+      <div class="pw-strength"><div class="pw-strength-bar" id="pw-strength-bar"></div></div>
+      <span class="pw-strength-label" id="pw-strength-label"></span>
+      <div style="font-size:0.72rem;color:var(--brown-soft);margin-bottom:0.4rem" id="cod-password-hint">Save this — you'll need your email + this password to check your booking status later. It can't be recovered if lost.</div>
+    </div>
+    <label style="display:flex;align-items:flex-start;gap:0.5rem;font-size:0.76rem;color:var(--brown);margin:0.8rem 0 0.8rem;cursor:pointer;text-align:left">
+      <input type="checkbox" id="terms-checkbox" style="margin-top:0.2rem">
+      <span>I accept the <a href="https://pastefy.app/r1uopQrU" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#5B9BD5;text-decoration:underline">Terms and Service</a>.</span>
+    </label>
+    <div id="cod-error" style="color:var(--red);font-size:0.78rem;min-height:1.1rem;margin-bottom:0.4rem"></div>
+    <div style="display:flex;gap:0.6rem;justify-content:center">
+      <button class="btn-accent" id="cod-confirm-btn">Confirm booking</button>
+      <button class="btn-ghost" id="cod-cancel-btn">Cancel</button>
+    </div>
+  </div>
+</div>
 
-## Setup
+<!-- NAV -->
+<nav>
+  <a class="logo" href="#">Novel<span>shift</span></a>
+  <ul class="nav-links">
+    <li><a href="#" class="active">Home</a></li>
+    <li><a href="#book">Shop</a></li>
+    <li><a href="#reviews">Reviews</a></li>
+    <li><a href="#wishlist">Wish List</a></li>
+    <li><a href="#check-status">My Booking</a></li>
+  </ul>
+  <div class="nav-r" style="position:relative;display:flex;align-items:center;gap:0.5rem">
+    <button class="btn-sm" id="nav-signin-google-btn" title="New here? Sign in with Google to book">Sign in</button>
+    <button class="btn-sm" id="nav-login-google-btn" title="Already booked? Log in with Google to check status">Login</button>
+    <div id="nav-google-avatar-wrap" style="display:none;position:relative">
+      <img id="nav-google-avatar" src="" alt="Your Google account" style="width:34px;height:34px;border-radius:50%;cursor:pointer;border:1px solid var(--peach-line);object-fit:cover">
+      <div id="nav-google-avatar-menu" style="display:none;position:absolute;top:calc(100% + 0.6rem);right:0;width:200px;background:var(--white);border:1px solid var(--peach-line);border-radius:12px;padding:0.7rem;box-shadow:0 12px 30px var(--shadow);z-index:60;text-align:left">
+        <div id="nav-google-avatar-email" style="font-size:0.78rem;color:var(--brown);margin-bottom:0.5rem;word-break:break-all"></div>
+        <button id="nav-google-signout-btn" style="width:100%;background:none;border:1px solid var(--peach-line);border-radius:8px;padding:0.4rem 0;font-size:0.78rem;color:var(--brown-soft);cursor:pointer">Sign out</button>
+      </div>
+    </div>
+    <button class="btn-sm" id="nav-cart-btn">🛒 Bookings (0)</button>
+    <div id="cart-panel" style="display:none;position:absolute;top:calc(100% + 0.6rem);right:0;width:280px;background:var(--white);border:1px solid var(--peach-line);border-radius:12px;padding:1rem;box-shadow:0 12px 30px var(--shadow);z-index:50">
+      <div id="cart-items" style="font-size:0.85rem;color:var(--brown);max-height:220px;overflow-y:auto"></div>
+      <div id="cart-empty" style="font-size:0.85rem;color:var(--brown-soft);text-align:center;padding:0.5rem 0">Your cart is empty.</div>
+      <button id="cart-clear-btn" style="width:100%;margin-top:0.6rem;background:none;border:1px solid var(--peach-line);border-radius:8px;padding:0.35rem 0;font-size:0.75rem;color:var(--brown-soft);cursor:pointer">Clear local list</button>
+    </div>
+  </div>
+</nav>
 
-1. **Clone this repo** and open `index.html` directly, or serve it with any
-   static file host.
-2. **Supabase project**: `index.html` and `admin.html` already point at a
-   configured Supabase project (URL + anon key near the top of each
-   `<script>` section). To run your own copy against a different project,
-   replace those values in both files.
-3. **Database tables** — run these in the Supabase SQL editor:
-   - `book_settings` (id, title, author, description, cover_image_url,
-     price, price_old, genre, pages, format, language, isbn)
-   - `reviews` (name, city, rating, review_text)
-   - `orders` (buyer_name, buyer_class, book_title, price, status, email,
-     password_hash)
-   - `wishlist` — see `wishlist_migration.sql` in this repo. **Run this
-     file as-is**; it includes a `drop table if exists wishlist;` guard in
-     case an older schema version exists.
-   - `rls_policies.sql` in this repo covers the RLS setup for the other
-     tables.
-4. **Edge Functions** — deploy `create-booking`, `check-booking-status`,
-   `check-cart-status`, `get-orders`, `update-order-status`, and
-   `delete-order` to your Supabase project. These handle booking
-   creation/lookup and admin order management server-side.
-5. **Admin password** — the admin panel's password check is handled
-   separately (see `verify-mod-password`); set that up in Supabase before
-   relying on `admin.html`.
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag"><span class="hero-dot"></span> Now available</div>
+  <h1>Fiction that<br><em>shifts you.</em></h1>
+  <p>One carefully chosen book. Real readers. Real reviews. No fluff. Grab a warm drink, pick a page, and get lost for a while.</p>
+  <div class="hero-cta">
+    <a href="#book" class="btn-hero">Shop this month's pick</a>
+    <a href="#reviews" class="btn-hero-ghost">Read reviews</a>
+  </div>
+</div>
 
-## Terms and Service
+<!-- WHY NOVELSHIFT -->
+<div class="section" id="home">
+  <div class="section-label">Why Novelshift</div>
+  <div class="section-title">A cafe corner for readers</div>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <span class="feature-icon">📖</span>
+      <div class="feature-title">One pick, done right</div>
+      <div class="feature-desc">No overwhelming catalog. Just one carefully chosen book at a time, worth your full attention.</div>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">💬</span>
+      <div class="feature-title">Real reader reviews</div>
+      <div class="feature-desc">Every review comes from someone who actually read it. Honest thoughts, star ratings, no filler.</div>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">📦</span>
+      <div class="feature-title">Cash on delivery</div>
+      <div class="feature-desc">No online payment hassle. Book your copy, pay in cash the moment it lands in your hands.</div>
+    </div>
+  </div>
+</div>
 
-The booking modal requires visitors to accept the site's Terms and Service
-before confirming a booking. The link currently points to an externally
-hosted document (see the `href` on the "Terms and Service" link inside the
-`#book-cod-gate` modal in `index.html`) — update that link if the hosted
-document's URL changes.
+<!-- SHOP / FEATURED BOOK -->
+<div class="section" id="book">
+  <div class="section-label">Fiction · Featured</div>
+  <div class="section-title">This month's pick</div>
+  <div class="book-layout">
+    <div class="book-cover-wrap">
+      <div class="book-cover" id="book-cover">
+        <img id="book-cover-img" src="" alt="" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit">
+        <div class="cover-lines"></div>
+        <div class="cover-genre" id="cover-fallback-genre">Fiction</div>
+        <div class="cover-title" id="cover-title">Lost in the Loop</div>
+        <div class="cover-deco"></div>
+        <div class="cover-author" id="cover-fallback-author">Srihan Kayshap</div>
+      </div>
+      <div class="cover-badge">New arrival</div>
+    </div>
+    <div>
+      <div class="book-title-main" id="book-title-main">Lost in the Loop</div>
+      <div class="book-author-main">by <span id="book-author-main">Srihan Kayshap</span></div>
+      <div class="rating-row">
+        <span class="stars-disp" id="avg-stars">☆☆☆☆☆</span>
+        <span class="rating-count" id="avg-text">No reviews yet — be the first!</span>
+      </div>
+      <div class="book-desc" id="book-desc">Between life and death there is a library, and within that library, the shelves go on forever. Every book provides a chance to try another life you could have lived. To see how things would be if you had made other choices... Would you have done anything different, if you had the chance to undo your regrets?</div>
+      <div class="book-meta">
+        <span class="meta-pill" id="meta-genre">Fiction</span>
+        <span class="meta-pill" id="meta-pages">288 pages</span>
+        <span class="meta-pill" id="meta-format">Paperback</span>
+        <span class="meta-pill" id="meta-language">English</span>
+        <span class="meta-pill" id="meta-isbn">ISBN: 978-0525559474</span>
+      </div>
+      <div class="price-row">
+        <span class="price" id="price-current">₹399</span>
+        <span class="price-old" id="price-old">₹599</span>
+        <span class="price-save" id="price-save">Save 33%</span>
+      </div>
+      <div class="buy-btns">
+        <button class="btn-buy" id="add-to-cart-btn">Book now — Cash on Delivery</button>
+        <a class="btn-wish" href="#wishlist" id="goto-wishlist-btn" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none">Suggest a book →</a>
+      </div>
+      <div style="font-size:0.78rem;color:var(--brown-soft);margin-top:0.6rem">No online payment. Pay cash when the book is delivered. Bookings can't be cancelled once placed.</div>
+    </div>
+  </div>
+</div>
 
-## Deploying on GitHub Pages
+<hr class="divider">
 
-1. Push this repo to GitHub (`index.html` at the root, as it is here).
-2. Repo → **Settings → Pages** → set source to your default branch, root
-   folder.
-3. GitHub gives you a URL like `https://yourusername.github.io/your-repo/`.
-4. If you're using a custom domain, make sure the `CNAME` file in this repo
-   matches it.
+<!-- REVIEWS -->
+<div class="reviews-section" id="reviews">
+  <div class="rev-header">
+    <div>
+      <h2>Reader reviews</h2>
+      <div class="rev-summary" id="rev-summary">Loading...</div>
+    </div>
+    <span class="stars-disp" id="avg-stars-2">☆☆☆☆☆</span>
+  </div>
 
-## License
+  <div class="review-form" id="review-form" style="display:block">
+    <div class="form-title">Write a review</div>
+    <div class="form-row">
+      <label>Your rating</label>
+      <div class="star-picker" id="star-picker">
+        <button class="star-btn" data-v="1" aria-label="1 star">★</button>
+        <button class="star-btn" data-v="2" aria-label="2 stars">★</button>
+        <button class="star-btn" data-v="3" aria-label="3 stars">★</button>
+        <button class="star-btn" data-v="4" aria-label="4 stars">★</button>
+        <button class="star-btn" data-v="5" aria-label="5 stars">★</button>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>Your name (optional)</label>
+      <input type="text" id="rev-name" placeholder="How should we display your name?" maxlength="50">
+    </div>
+    <div class="form-row">
+      <label>Your review</label>
+      <textarea id="rev-text" placeholder="What did you think of this book?" maxlength="600"></textarea>
+    </div>
+    <div class="form-error" id="form-error"></div>
+    <button class="submit-btn" id="submit-btn">Post review</button>
+  </div>
 
-All Rights Reserved — see [LICENSE](LICENSE). This code is not licensed for
-reuse, copying, or redistribution.
+  <div id="empty-state" class="empty-state" style="display:none">
+    <div class="empty-icon empty-state-icon">📖</div>
+    <div class="empty-title">No reviews yet</div>
+    <div class="empty-sub">Be the first to share your thoughts.</div>
+  </div>
+  <div class="loading-reviews" id="loading-reviews">
+    <div class="skeleton-card">
+      <div class="skeleton-row"><div class="skeleton skeleton-avatar"></div><div style="flex:1"><div class="skeleton skeleton-line short"></div><div class="skeleton skeleton-line tiny"></div></div></div>
+      <div class="skeleton skeleton-line"></div>
+      <div class="skeleton skeleton-line" style="width:80%"></div>
+    </div>
+    <div class="skeleton-card">
+      <div class="skeleton-row"><div class="skeleton skeleton-avatar"></div><div style="flex:1"><div class="skeleton skeleton-line short"></div><div class="skeleton skeleton-line tiny"></div></div></div>
+      <div class="skeleton skeleton-line"></div>
+      <div class="skeleton skeleton-line" style="width:60%"></div>
+    </div>
+  </div>
+
+  <div class="reviews-list" id="reviews-list"></div>
+</div>
+
+<hr class="divider">
+
+<!-- WISH LIST -->
+<div class="section" id="wishlist">
+  <div class="section-label">Can't afford it right now?</div>
+  <div class="section-title">Add to Wish List</div>
+  <p style="color:var(--brown);font-size:0.9rem;margin-bottom:1.8rem;max-width:520px">If the price is a bit much right now, add yourself here with what you'd be able to pay. We'll reach out and see if we can work something out.</p>
+
+  <div class="wl-form">
+    <div class="form-row">
+      <label>Your name</label>
+      <input type="text" id="wl-name" placeholder="Full name" maxlength="60">
+    </div>
+    <div class="form-row">
+      <label>Your email</label>
+      <input type="email" id="wl-email" placeholder="you@example.com">
+    </div>
+    <div class="form-row">
+      <label>Your phone / WhatsApp</label>
+      <input type="text" id="wl-phone" placeholder="e.g. 98765 43210" maxlength="20">
+    </div>
+    <div class="form-row">
+      <label>Price you'd be able to pay</label>
+      <input type="text" id="wl-price" placeholder="e.g. ₹250" maxlength="30">
+    </div>
+    <div class="form-row">
+      <label>Note (optional)</label>
+      <input type="text" id="wl-note" placeholder="Anything else you'd like us to know" maxlength="300">
+    </div>
+    <div class="form-error" id="wl-error"></div>
+    <button class="submit-btn" id="wl-submit-btn">Add to Wish List</button>
+    <div id="wl-success" style="display:none;margin-top:1rem;padding:0.9rem 1.1rem;background:var(--panel);border:1px solid var(--peach-line);border-radius:10px;color:var(--brown);font-size:0.85rem">
+      ✓ You're on the list! We'll reach out on the contact info you gave us if we can make it work.
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- BOOKING STATUS CHECK -->
+<div class="section" id="check-status">
+  <div class="section-label">Already booked?</div>
+  <div class="section-title">Check your booking status</div>
+  <div class="status-check-box">
+    <div class="admin-row"><label>Email</label><input type="email" id="status-email-input" placeholder="you@example.com"></div>
+    <div class="admin-row"><label>Password</label><input type="password" id="status-password-input" placeholder="Your booking password"></div>
+    <div id="status-check-error" style="color:var(--red);font-size:0.78rem;min-height:1.1rem;margin-bottom:0.2rem"></div>
+    <button class="btn-accent" id="status-check-btn">Check status</button>
+    <div id="status-check-results" style="margin-top:1.2rem"></div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="flogo">Novel<span>shift</span></div>
+  <div>© 2026 Novelshift. All rights reserved.</div>
+  <div class="payment-tags">
+    <span class="ptag">Cash on Delivery only — no online payment</span>
+  </div>
+</footer>
+
+<script>
+// ============ SUPABASE ============
+const SUPABASE_URL = 'https://yreawkggymjmcuukknup.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlyZWF3a2dneW1qbWN1dWtrbnVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MTgwMDYsImV4cCI6MjA5ODI5NDAwNn0.kAlUW4XJ_8ERgruKyx5G_NKVSKtsyUJGptte1rHt73E';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
+
+// If the user just came back from a Google OAuth redirect, Supabase leaves
+// tokens in the URL hash. Route them based on which button they clicked:
+// "Sign in with Google" -> booking modal, "Login with Google" -> My Booking status.
+if (window.location.hash.includes('access_token')) {
+  window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+      const intent = sessionStorage.getItem('novelshift-google-intent');
+      sessionStorage.removeItem('novelshift-google-intent');
+      if (intent === 'status') {
+        runGoogleStatusCheck();
+      } else {
+        openBookingModal();
+      }
+    }, 300); // small delay lets sb.auth pick up the session from the URL
+  });
+}
+
+// ============ BOOK DATA (read-only on public site) ============
+async function loadBookData() {
+  try {
+    const { data, error } = await sb.from('book_settings').select('*').eq('id', 1).single();
+    if (!error && data) applyBookData(data);
+  } catch (e) { /* table may not exist yet */ }
+}
+
+function applyBookData(data) {
+  if (data.title) {
+    document.getElementById('book-title-main').textContent = data.title;
+    document.getElementById('cover-title').textContent = data.title;
+  }
+  if (data.author) {
+    document.getElementById('book-author-main').textContent = data.author;
+    document.getElementById('cover-fallback-author').textContent = data.author;
+  }
+  if (data.description) document.getElementById('book-desc').textContent = data.description;
+  const img = document.getElementById('book-cover-img');
+  if (data.cover_image_url) {
+    img.src = data.cover_image_url;
+    img.style.display = 'block';
+  } else {
+    img.style.display = 'none';
+    img.src = '';
+  }
+  if (data.genre) {
+    document.getElementById('meta-genre').textContent = data.genre;
+    document.getElementById('cover-fallback-genre').textContent = data.genre;
+  }
+  if (data.pages) document.getElementById('meta-pages').textContent = `${data.pages} pages`;
+  if (data.format) document.getElementById('meta-format').textContent = data.format;
+  if (data.language) document.getElementById('meta-language').textContent = data.language;
+  if (data.isbn) document.getElementById('meta-isbn').textContent = `ISBN: ${data.isbn}`;
+  if (data.price != null) document.getElementById('price-current').textContent = `₹${data.price}`;
+  if (data.price_old != null) document.getElementById('price-old').textContent = `₹${data.price_old}`;
+  if (data.price != null && data.price_old != null && data.price_old > 0) {
+    const pct = Math.round((1 - data.price / data.price_old) * 100);
+    const saveEl = document.getElementById('price-save');
+    if (pct > 0) { saveEl.textContent = `Save ${pct}%`; saveEl.style.display = ''; }
+    else saveEl.style.display = 'none';
+  }
+}
+
+// ============ HELPERS ============
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  const icon = type === 'success' ? '✓' : type === 'error' ? '✕' : '💬';
+  t.innerHTML = `<span class="toast-icon">${icon}</span><span>${escHtml(msg)}</span><span class="toast-bar"></span>`;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.className = 'toast', 3200);
+  if (type === 'success') fireConfetti();
+}
+
+function fireConfetti() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const colors = ['#E8A87C', '#C97B5C', '#F2D9C4', '#4A3428'];
+  for (let i = 0; i < 26; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    const size = 6 + Math.random() * 6;
+    piece.style.width = size + 'px';
+    piece.style.height = (size * 0.4) + 'px';
+    piece.style.left = Math.random() * 100 + 'vw';
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.animationDuration = (1.8 + Math.random() * 1.2) + 's';
+    piece.style.animationDelay = (Math.random() * 0.3) + 's';
+    document.body.appendChild(piece);
+    setTimeout(() => piece.remove(), 3400);
+  }
+}
+
+// Escapes HTML special characters before inserting user text into innerHTML.
+// This is the XSS guard: review names/text always pass through here first.
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderStars(n, f='★', e='☆') {
+  const r = Math.round(n);
+  return f.repeat(r) + e.repeat(5 - r);
+}
+
+function updateAvgUI(reviews) {
+  const avg = reviews.length ? reviews.reduce((a,r)=>a+r.rating,0)/reviews.length : 0;
+  const s = renderStars(avg);
+  document.getElementById('avg-stars').textContent = s;
+  document.getElementById('avg-stars-2').textContent = s;
+  document.getElementById('avg-text').textContent = reviews.length
+    ? `${reviews.length} review${reviews.length>1?'s':''} · ${avg.toFixed(1)} / 5`
+    : 'No reviews yet — be the first!';
+  document.getElementById('rev-summary').textContent = reviews.length
+    ? `${reviews.length} review${reviews.length>1?'s':''}` : '0 reviews';
+}
+
+// ============ REVIEWS (public: read + insert only, no delete) ============
+function renderReviews(reviews) {
+  const list = document.getElementById('reviews-list');
+  const empty = document.getElementById('empty-state');
+  document.getElementById('loading-reviews').style.display = 'none';
+  if (!reviews.length) { empty.style.display=''; list.innerHTML=''; return; }
+  empty.style.display = 'none';
+  list.innerHTML = reviews.map(r => {
+    const displayName = r.name && r.name.trim() ? r.name.trim() : 'Reader';
+    const initials = displayName.split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const date = new Date(r.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
+    return `<div class="review-card">
+      <div class="rev-top">
+        <div class="rev-author-row">
+          <div class="rev-avatar">${escHtml(initials)}</div>
+          <div>
+            <div class="rev-name">${escHtml(displayName)}</div>
+            <div class="rev-date">${escHtml(date)}</div>
+          </div>
+        </div>
+        <div class="rev-stars">${renderStars(r.rating)}</div>
+      </div>
+      <div class="rev-text">"${escHtml(r.review_text)}"</div>
+      <div class="rev-verified">✓ Verified reader</div>
+    </div>`;
+  }).join('');
+}
+
+async function loadReviews() {
+  const { data, error } = await sb.from('reviews').select('*').order('created_at',{ascending:false});
+  if (error) {
+    document.getElementById('loading-reviews').innerHTML = '<div style="text-align:center;color:var(--brown-soft);font-size:0.85rem;padding:1rem 0">Could not load reviews.</div>';
+    return;
+  }
+  updateAvgUI(data);
+  renderReviews(data);
+}
+
+let selectedRating = 0;
+const starBtns = document.querySelectorAll('.star-btn');
+starBtns.forEach(btn => {
+  btn.addEventListener('mouseenter', () => {
+    const v = parseInt(btn.dataset.v);
+    starBtns.forEach(s => s.classList.toggle('on', parseInt(s.dataset.v) <= v));
+  });
+  btn.addEventListener('mouseleave', () => {
+    starBtns.forEach(s => s.classList.toggle('on', parseInt(s.dataset.v) <= selectedRating));
+  });
+  btn.addEventListener('click', () => {
+    selectedRating = parseInt(btn.dataset.v);
+    starBtns.forEach(s => s.classList.toggle('on', parseInt(s.dataset.v) <= selectedRating));
+  });
+});
+
+document.getElementById('submit-btn').addEventListener('click', async () => {
+  const name = document.getElementById('rev-name').value.trim();
+  const text = document.getElementById('rev-text').value.trim();
+  const errEl = document.getElementById('form-error');
+  errEl.style.display = 'none';
+  if (!selectedRating) { errEl.textContent='Pick a star rating.'; errEl.style.display=''; return; }
+  if (text.length < 10) { errEl.textContent='Write at least a sentence (10+ chars).'; errEl.style.display=''; return; }
+  if (text.length > 600) { errEl.textContent='Keep it under 600 characters.'; errEl.style.display=''; return; }
+  const btn = document.getElementById('submit-btn');
+  btn.disabled=true; btn.textContent='Posting...'; btn.classList.add('btn-loading');
+  const { error } = await sb.from('reviews').insert([{
+    name: name ? name.slice(0,50) : null,
+    rating: selectedRating,
+    review_text: text
+  }]);
+  btn.disabled=false; btn.textContent='Post review'; btn.classList.remove('btn-loading');
+  if (error) { showToast('Something went wrong. Try again.', 'error'); return; }
+  document.getElementById('rev-name').value='';
+  document.getElementById('rev-text').value='';
+  selectedRating=0;
+  starBtns.forEach(s=>s.classList.remove('on'));
+  showToast('Review posted! Thank you.', 'success');
+  loadReviews();
+});
+
+// ============ WISH LIST (private — visitor submits, only admin sees it) ============
+document.getElementById('wl-submit-btn').addEventListener('click', async () => {
+  const name = document.getElementById('wl-name').value.trim();
+  const email = document.getElementById('wl-email').value.trim();
+  const phone = document.getElementById('wl-phone').value.trim();
+  const price = document.getElementById('wl-price').value.trim();
+  const note = document.getElementById('wl-note').value.trim();
+  const errEl = document.getElementById('wl-error');
+  errEl.style.display = 'none';
+
+  if (!name) { errEl.textContent = 'Please enter your name.'; errEl.style.display = ''; return; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { errEl.textContent = 'Please enter a valid email.'; errEl.style.display = ''; return; }
+  if (!phone) { errEl.textContent = 'Please enter a phone or WhatsApp number.'; errEl.style.display = ''; return; }
+  if (!price) { errEl.textContent = 'Let us know what price would work for you.'; errEl.style.display = ''; return; }
+
+  const btn = document.getElementById('wl-submit-btn');
+  btn.disabled = true; btn.textContent = 'Adding...'; btn.classList.add('btn-loading');
+
+  try {
+    const bookTitleEl = document.getElementById('book-title-main');
+    const bookTitle = bookTitleEl ? bookTitleEl.textContent : null;
+
+    const { error } = await sb.from('wishlist').insert([{
+      name: name.slice(0,60),
+      email: email.slice(0,100),
+      phone: phone.slice(0,20),
+      offer_price: price.slice(0,30),
+      note: note ? note.slice(0,300) : null,
+      book_title: bookTitle
+    }]);
+
+    if (error) {
+      console.error('wishlist insert error:', error);
+      errEl.textContent = 'Could not submit — ' + (error.message || 'please try again, or check with the site owner.');
+      errEl.style.display = '';
+      btn.disabled = false; btn.textContent = 'Add to Wish List'; btn.classList.remove('btn-loading');
+      return;
+    }
+
+    document.getElementById('wl-name').value = '';
+    document.getElementById('wl-email').value = '';
+    document.getElementById('wl-phone').value = '';
+    document.getElementById('wl-price').value = '';
+    document.getElementById('wl-note').value = '';
+    document.querySelector('#wishlist .wl-form').style.display = 'none';
+    document.getElementById('wl-success').style.display = '';
+    showToast('Added to wish list!', 'success');
+  } catch (e) {
+    console.error('wishlist unexpected error:', e);
+    errEl.textContent = 'Unexpected error — please try again.';
+    errEl.style.display = '';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Add to Wish List'; btn.classList.remove('btn-loading');
+  }
+});
+
+// ============ BOOKINGS (COD, saved to Supabase so the owner can see them) ============
+let cartItems = JSON.parse(localStorage.getItem('novelshift-cart') || '[]');
+function saveCart() { localStorage.setItem('novelshift-cart', JSON.stringify(cartItems)); }
+
+// Keeps the local "Bookings" cart in sync with the real database — the
+// cart is just a local receipt list, so if a booking is deleted or its
+// status changes via the admin panel, this is what reflects that here.
+async function syncCartWithServer() {
+  const ids = cartItems.map(i => i.id).filter(id => id !== undefined && id !== null);
+  if (ids.length === 0) return;
+  try {
+    const res = await fetch(`${FUNCTIONS_URL}/check-cart-status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}`, 'apikey': SUPABASE_KEY },
+      body: JSON.stringify({ order_ids: ids })
+    });
+    const result = await res.json();
+    if (!result.ok) return;
+    const existingMap = new Map(result.existing.map(o => [String(o.id), o.status]));
+    const before = cartItems.length;
+    cartItems = cartItems
+      .filter(item => item.id === undefined || item.id === null || existingMap.has(String(item.id)))
+      .map(item => {
+        if (item.id !== undefined && existingMap.has(String(item.id))) {
+          return { ...item, status: existingMap.get(String(item.id)) };
+        }
+        return item;
+      });
+    if (cartItems.length !== before) saveCart();
+    renderCart();
+  } catch (e) {
+    // Silent — if the sync call fails, keep showing the last known local state.
+  }
+}
+
+function renderCart() {
+  document.getElementById('nav-cart-btn').textContent = `🛒 Bookings (${cartItems.length})`;
+  const list = document.getElementById('cart-items');
+  const empty = document.getElementById('cart-empty');
+  if (cartItems.length === 0) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  list.innerHTML = cartItems.map((item) => `
+    <div style="padding:0.5rem 0;border-bottom:1px solid var(--peach-line)">
+      <div style="display:flex;justify-content:space-between;align-items:baseline">
+        <div style="color:var(--espresso)">${escHtml(item.title)}</div>
+        <div style="color:var(--brown-soft)">${escHtml(item.price)}</div>
+      </div>
+      <div style="color:var(--brown-soft);font-size:0.78rem;margin-top:0.15rem">${escHtml(item.name)} · Class ${escHtml(item.className)} · COD${item.status ? ' · ' + escHtml(item.status) : ''}</div>
+    </div>
+  `).join('');
+}
+
+let selectedPaymentMethod = 'cod';
+let googleUser = null; // { email, name } when signed in via Google, else null
+
+function updateGoogleSignInUI() {
+  const btn = document.getElementById('google-signin-btn');
+  const note = document.getElementById('google-signed-in-note');
+  const emailInput = document.getElementById('cod-email-input');
+  const emailLabel = document.getElementById('cod-email-label');
+  const pwInput = document.getElementById('cod-password-input');
+  const pwLabel = document.getElementById('cod-password-label');
+  const pwHint = document.getElementById('cod-password-hint');
+  const pwBar = document.querySelector('.pw-strength');
+
+  if (googleUser) {
+    btn.style.display = 'none';
+    note.style.display = 'block';
+    document.getElementById('google-email-display').textContent = googleUser.email;
+    emailInput.value = googleUser.email;
+    emailInput.disabled = true;
+    emailLabel.textContent = 'Your email (from Google)';
+    if (!document.getElementById('cod-name-input').value && googleUser.name) {
+      document.getElementById('cod-name-input').value = googleUser.name;
+    }
+    // Password becomes optional when signed in via Google — the Google
+    // session itself proves identity, so we don't force a second password.
+    pwInput.value = '';
+    pwInput.placeholder = 'Optional — only needed for manual status lookup';
+    pwLabel.textContent = 'Set a password (optional)';
+    pwHint.textContent = 'Since you signed in with Google, this is optional. Set one only if you also want to check your booking status without Google later.';
+  } else {
+    btn.style.display = 'flex';
+    note.style.display = 'none';
+    emailInput.disabled = false;
+    emailLabel.textContent = 'Your email';
+    pwInput.placeholder = 'Choose a password';
+    pwLabel.textContent = 'Set a password';
+    pwHint.textContent = "Save this — you'll need your email + this password to check your booking status later. It can't be recovered if lost.";
+  }
+}
+
+async function checkGoogleSession() {
+  const { data } = await sb.auth.getSession();
+  const session = data?.session;
+  if (session?.user?.email) {
+    googleUser = {
+      email: session.user.email,
+      name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+      avatar_url: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture || ''
+    };
+  } else {
+    googleUser = null;
+  }
+  updateGoogleSignInUI();
+  updateNavGoogleUI();
+}
+
+function updateNavGoogleUI() {
+  const signinBtn = document.getElementById('nav-signin-google-btn');
+  const loginBtn = document.getElementById('nav-login-google-btn');
+  const avatarWrap = document.getElementById('nav-google-avatar-wrap');
+  const avatarImg = document.getElementById('nav-google-avatar');
+  const avatarEmail = document.getElementById('nav-google-avatar-email');
+
+  if (googleUser) {
+    signinBtn.style.display = 'none';
+    loginBtn.style.display = 'none';
+    avatarWrap.style.display = 'block';
+    avatarImg.src = googleUser.avatar_url || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"%3E%3Ccircle cx="12" cy="12" r="12" fill="%23C97B5C"/%3E%3C/svg%3E';
+    avatarEmail.textContent = googleUser.email;
+  } else {
+    signinBtn.style.display = 'inline-block';
+    loginBtn.style.display = 'inline-block';
+    avatarWrap.style.display = 'none';
+    document.getElementById('nav-google-avatar-menu').style.display = 'none';
+  }
+}
+
+document.getElementById('nav-google-avatar').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const menu = document.getElementById('nav-google-avatar-menu');
+  menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+});
+
+document.addEventListener('click', (e) => {
+  const wrap = document.getElementById('nav-google-avatar-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('nav-google-avatar-menu').style.display = 'none';
+  }
+});
+
+document.getElementById('nav-google-signout-btn').addEventListener('click', async () => {
+  await sb.auth.signOut();
+  googleUser = null;
+  updateNavGoogleUI();
+  updateGoogleSignInUI();
+  document.getElementById('nav-google-avatar-menu').style.display = 'none';
+});
+
+// Check for an existing Google session as soon as the page loads, not just
+// when the booking modal opens — so the nav avatar shows up immediately
+// for a returning signed-in visitor.
+checkGoogleSession();
+
+document.getElementById('google-signin-btn').addEventListener('click', async () => {
+  await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin + window.location.pathname }
+  });
+});
+
+document.getElementById('google-signout-link').addEventListener('click', async (e) => {
+  e.preventDefault();
+  await sb.auth.signOut();
+  googleUser = null;
+  document.getElementById('cod-email-input').value = '';
+  updateGoogleSignInUI();
+  updateNavGoogleUI();
+});
+
+// Nav bar "Sign in with Google" — new customers, goes straight to booking.
+document.getElementById('nav-signin-google-btn').addEventListener('click', async () => {
+  sessionStorage.setItem('novelshift-google-intent', 'book');
+  await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin + window.location.pathname }
+  });
+});
+
+// Nav bar "Login with Google" — returning customers, goes to My Booking
+// and auto-checks status using the Google session instead of a password.
+document.getElementById('nav-login-google-btn').addEventListener('click', async () => {
+  sessionStorage.setItem('novelshift-google-intent', 'status');
+  await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin + window.location.pathname }
+  });
+});
+
+async function runGoogleStatusCheck() {
+  const { data } = await sb.auth.getSession();
+  const token = data?.session?.access_token;
+  if (!token) return;
+
+  window.location.hash = '#check-status';
+  const resultsEl = document.getElementById('status-check-results');
+  const errEl = document.getElementById('status-check-error');
+  if (errEl) errEl.textContent = '';
+  if (resultsEl) resultsEl.innerHTML = '<div style="color:var(--brown-soft);font-size:0.85rem">Checking your bookings…</div>';
+
+  try {
+    const res = await fetch(`${FUNCTIONS_URL}/check-booking-status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}`, 'apikey': SUPABASE_KEY },
+      body: JSON.stringify({ google_access_token: token })
+    });
+    const result = await res.json();
+    if (!result.ok) {
+      if (errEl) errEl.textContent = result.error || 'No bookings found.';
+      if (resultsEl) resultsEl.innerHTML = '';
+      return;
+    }
+    renderStatusResults(result.orders);
+  } catch (e) {
+    console.error('Google status check error:', e);
+    if (errEl) errEl.textContent = 'Network error — please try again.';
+  }
+}
+
+function updatePaymentMethodUI() {
+  const codBtn = document.getElementById('pay-method-cod-btn');
+  const upiBtn = document.getElementById('pay-method-upi-btn');
+  const upiBox = document.getElementById('upi-payment-box');
+  const subtitle = document.getElementById('payment-method-subtitle');
+  const bookPrice = document.getElementById('price-current').textContent;
+
+  if (selectedPaymentMethod === 'upi') {
+    codBtn.classList.remove('btn-accent'); codBtn.classList.add('btn-ghost'); codBtn.dataset.selected = 'false';
+    upiBtn.classList.remove('btn-ghost'); upiBtn.classList.add('btn-accent'); upiBtn.dataset.selected = 'true';
+    upiBox.style.display = 'block';
+    subtitle.textContent = 'Pay online via UPI — scan, pay, then enter your transaction ID below.';
+    document.getElementById('upi-pay-amount-label').textContent = `Pay ${bookPrice} or the price of the book, using any UPI app`;
+  } else {
+    upiBtn.classList.remove('btn-accent'); upiBtn.classList.add('btn-ghost'); upiBtn.dataset.selected = 'false';
+    codBtn.classList.remove('btn-ghost'); codBtn.classList.add('btn-accent'); codBtn.dataset.selected = 'true';
+    upiBox.style.display = 'none';
+    subtitle.textContent = 'No online payment needed. Pay in cash when the book is delivered.';
+  }
+}
+
+function openBookingModal() {
+  document.getElementById('cod-name-input').value = '';
+  document.getElementById('cod-class-input').value = '';
+  document.getElementById('cod-password-input').value = '';
+  document.getElementById('upi-txn-input').value = '';
+  document.getElementById('terms-checkbox').checked = false;
+  document.getElementById('cod-error').textContent = '';
+  selectedPaymentMethod = 'cod';
+  updatePaymentMethodUI();
+  checkGoogleSession();
+  document.getElementById('book-cod-gate').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function closeBookingModal() {
+  document.getElementById('book-cod-gate').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+document.getElementById('add-to-cart-btn').addEventListener('click', openBookingModal);
+document.getElementById('cod-cancel-btn').addEventListener('click', closeBookingModal);
+document.getElementById('pay-method-cod-btn').addEventListener('click', () => { selectedPaymentMethod = 'cod'; updatePaymentMethodUI(); });
+document.getElementById('pay-method-upi-btn').addEventListener('click', () => { selectedPaymentMethod = 'upi'; updatePaymentMethodUI(); });
+
+document.getElementById('cod-confirm-btn').addEventListener('click', async () => {
+  const name = document.getElementById('cod-name-input').value.trim();
+  const className = document.getElementById('cod-class-input').value.trim();
+  const email = document.getElementById('cod-email-input').value.trim();
+  const password = document.getElementById('cod-password-input').value;
+  const termsAgreed = document.getElementById('terms-checkbox').checked;
+  const upiTxnId = document.getElementById('upi-txn-input').value.trim();
+  const errEl = document.getElementById('cod-error');
+  errEl.textContent = '';
+
+  if (!name || !className) { errEl.textContent = 'Please enter both your name and your class.'; return; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { errEl.textContent = 'Please enter a valid email.'; return; }
+  let effectivePassword = password;
+  if (googleUser) {
+    // Password is optional for Google sign-ins. If left blank, generate a
+    // random one behind the scenes so create-booking still has something
+    // to hash — the buyer signed in with Google, so they don't need it,
+    // but the backend's password_hash column still expects a value.
+    if (!password) {
+      effectivePassword = crypto.randomUUID();
+    } else if (password.length < 4) {
+      errEl.textContent = 'If you set a password, it must be at least 4 characters.'; return;
+    }
+  } else {
+    if (!password || password.length < 4) { errEl.textContent = 'Password must be at least 4 characters.'; return; }
+  }
+  if (selectedPaymentMethod === 'upi' && (!upiTxnId || upiTxnId.length < 6)) { errEl.textContent = 'Please enter your UPI transaction ID after paying.'; return; }
+  if (!termsAgreed) { errEl.textContent = 'Please accept the Terms and Service to continue.'; return; }
+
+  const btn = document.getElementById('cod-confirm-btn');
+  btn.disabled = true; btn.textContent = 'Booking...'; btn.classList.add('btn-loading');
+
+  const bookTitle = document.getElementById('book-title-main').textContent;
+  const bookPrice = document.getElementById('price-current').textContent;
+
+  let result;
+  try {
+    const res = await fetch(`${FUNCTIONS_URL}/create-booking`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'apikey': SUPABASE_KEY
+      },
+      body: JSON.stringify({
+        buyer_name: name.slice(0,60),
+        buyer_class: className.slice(0,30),
+        book_title: bookTitle,
+        price: bookPrice,
+        email,
+        password: effectivePassword,
+        payment_method: selectedPaymentMethod,
+        upi_txn_id: selectedPaymentMethod === 'upi' ? upiTxnId.slice(0,60) : null
+      })
+    });
+    console.log('create-booking status:', res.status);
+    result = await res.json();
+    console.log('create-booking response:', result);
+  } catch (e) {
+    console.error('create-booking error:', e);
+    errEl.textContent = 'Network error — please try again.';
+    btn.disabled = false; btn.textContent = 'Confirm booking'; btn.classList.remove('btn-loading');
+    return;
+  }
+
+  if (!result || !result.ok) {
+    errEl.textContent = (result && result.error) || 'Something went wrong. Please try again.';
+    btn.disabled = false; btn.textContent = 'Confirm booking'; btn.classList.remove('btn-loading');
+    return;
+  }
+
+  cartItems.push({ id: result.order?.id, title: bookTitle, price: bookPrice, name, className, status: result.order?.status });
+  saveCart();
+  renderCart();
+  closeBookingModal();
+  btn.disabled = false; btn.textContent = 'Confirm booking'; btn.classList.remove('btn-loading');
+  showToast('Booked! Pay cash on delivery.', 'success');
+});
+
+// ============ BOOKING STATUS CHECK ============
+function renderStatusResults(orders) {
+  const resultsEl = document.getElementById('status-check-results');
+  resultsEl.innerHTML = orders.map(o => {
+    const date = new Date(o.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
+    const status = o.status || 'pending';
+    return `<div class="status-card">
+      <div class="order-top">
+        <div>
+          <div class="order-name">${escHtml(o.book_title || 'Booking')}</div>
+          <div class="order-meta">Booked ${escHtml(date)} · ${escHtml(o.price || '')}</div>
+        </div>
+        <span class="order-status status-${escHtml(status)}">${escHtml(status)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+document.getElementById('status-check-btn').addEventListener('click', async () => {
+  const email = document.getElementById('status-email-input').value.trim();
+  const password = document.getElementById('status-password-input').value;
+  const errEl = document.getElementById('status-check-error');
+  const resultsEl = document.getElementById('status-check-results');
+  errEl.textContent = '';
+  resultsEl.innerHTML = '';
+
+  if (!email || !password) { errEl.textContent = 'Enter both your email and password.'; return; }
+
+  const btn = document.getElementById('status-check-btn');
+  btn.disabled = true; btn.textContent = 'Checking...'; btn.classList.add('btn-loading');
+
+  try {
+    const res = await fetch(`${FUNCTIONS_URL}/check-booking-status`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'apikey': SUPABASE_KEY
+      },
+      body: JSON.stringify({ email, password })
+    });
+    const result = await res.json();
+    if (!result.ok) {
+      errEl.textContent = result.error || 'Invalid email or password.';
+      return;
+    }
+    renderStatusResults(result.orders);
+  } catch (e) {
+    errEl.textContent = 'Network error — please try again.';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Check status'; btn.classList.remove('btn-loading');
+  }
+});
+
+document.getElementById('nav-cart-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const panel = document.getElementById('cart-panel');
+  const opening = panel.style.display !== 'block';
+  panel.style.display = opening ? 'block' : 'none';
+  if (opening) syncCartWithServer();
+});
+
+// Keep it fresh even without opening the panel — refresh every 60s and
+// on page load, so the "Bookings (n)" count itself stays accurate.
+syncCartWithServer();
+setInterval(syncCartWithServer, 60000);
+
+document.getElementById('cart-clear-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  cartItems = [];
+  saveCart();
+  renderCart();
+});
+document.addEventListener('click', (e) => {
+  const panel = document.getElementById('cart-panel');
+  if (panel.style.display === 'block' && !panel.contains(e.target) && e.target.id !== 'nav-cart-btn') {
+    panel.style.display = 'none';
+  }
+});
+
+// ============ INIT ============
+renderCart();
+loadReviews();
+loadBookData();
+
+// ============ INTERACTIVITY / POLISH LAYER ============
+
+// Scroll progress bar
+(function(){
+  const bar = document.createElement('div');
+  bar.id = 'scroll-progress';
+  document.body.appendChild(bar);
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+    bar.style.width = scrolled + '%';
+  }, { passive: true });
+})();
+
+// Scroll-reveal for main sections
+(function(){
+  const targets = document.querySelectorAll('.section, .reviews-section, .hero');
+  targets.forEach(el => el.classList.add('reveal'));
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  targets.forEach(el => io.observe(el));
+
+  const revList = document.getElementById('reviews-list');
+  if (revList) {
+    revList.classList.add('reveal-stagger');
+    const io2 = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          io2.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    io2.observe(revList);
+  }
+})();
+
+// Book cover 3D tilt on mouse move
+(function(){
+  const cover = document.getElementById('book-cover');
+  if (!cover) return;
+  const wrap = cover.closest('.book-cover-wrap') || cover;
+  wrap.addEventListener('mousemove', (e) => {
+    const r = cover.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width - 0.5;
+    const y = (e.clientY - r.top) / r.height - 0.5;
+    cover.classList.add('tilt-active');
+    cover.style.transform = `rotateY(${x * 14}deg) rotateX(${-y * 14}deg) scale(1.02)`;
+  });
+  wrap.addEventListener('mouseleave', () => {
+    cover.classList.remove('tilt-active');
+    cover.style.transform = 'rotateY(0) rotateX(0) scale(1)';
+  });
+})();
+
+// Ripple effect on primary/nav buttons
+(function(){
+  const selector = '.btn-buy, .btn-accent, .btn-sm, .nav-links a';
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest(selector);
+    if (!btn) return;
+    const r = btn.getBoundingClientRect();
+    const ripple = document.createElement('span');
+    const size = Math.max(r.width, r.height);
+    ripple.className = 'ripple';
+    ripple.style.width = ripple.style.height = size + 'px';
+    ripple.style.left = (e.clientX - r.left - size / 2) + 'px';
+    ripple.style.top = (e.clientY - r.top - size / 2) + 'px';
+    btn.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 620);
+  });
+})();
+
+// Wishlist heart pop feedback
+(function(){
+  const wishBtn = document.getElementById('add-to-wishlist-btn');
+  if (!wishBtn) return;
+  wishBtn.addEventListener('click', () => {
+    wishBtn.classList.remove('wish-pop');
+    void wishBtn.offsetWidth; // restart animation
+    wishBtn.classList.add('wish-pop');
+  });
+})();
+
+// Star picker hover bounce (visual only, layered on top of existing click logic)
+(function(){
+  const picker = document.getElementById('star-picker');
+  if (!picker) return;
+  picker.addEventListener('mouseover', (e) => {
+    const star = e.target.closest('span');
+    if (!star) return;
+    [...picker.children].forEach(s => s.classList.toggle('hovered', picker.contains(s) && Array.prototype.indexOf.call(picker.children, s) <= Array.prototype.indexOf.call(picker.children, star)));
+  });
+  picker.addEventListener('mouseleave', () => {
+    [...picker.children].forEach(s => s.classList.remove('hovered'));
+  });
+  picker.addEventListener('click', (e) => {
+    const star = e.target.closest('span');
+    if (!star) return;
+    star.classList.remove('selected');
+    void star.offsetWidth;
+    star.classList.add('selected');
+  });
+})();
+
+// Animated nav underline that follows active/hovered link
+(function(){
+  const navLinks = document.querySelector('.nav-links');
+  if (!navLinks) return;
+  const underline = document.createElement('div');
+  underline.className = 'nav-underline';
+  navLinks.appendChild(underline);
+
+  function moveTo(el) {
+    if (!el) { underline.style.width = '0px'; return; }
+    underline.style.left = el.offsetLeft + 'px';
+    underline.style.width = el.offsetWidth + 'px';
+  }
+  const active = navLinks.querySelector('a.active') || navLinks.querySelector('a');
+  requestAnimationFrame(() => moveTo(active));
+
+  navLinks.querySelectorAll('a').forEach(a => {
+    a.addEventListener('mouseenter', () => moveTo(a));
+  });
+  navLinks.addEventListener('mouseleave', () => moveTo(navLinks.querySelector('a.active') || active));
+  window.addEventListener('resize', () => moveTo(navLinks.querySelector('a.active') || active));
+})();
+
+// Cart panel open animation
+(function(){
+  const cartBtn = document.getElementById('nav-cart-btn');
+  const cartPanel = document.getElementById('cart-panel');
+  if (!cartBtn || !cartPanel) return;
+  cartBtn.addEventListener('click', () => {
+    if (cartPanel.style.display !== 'none') {
+      cartPanel.classList.remove('cart-opening');
+      void cartPanel.offsetWidth;
+      cartPanel.classList.add('cart-opening');
+    }
+  });
+})();
+
+// Site-wide cursor-follow glow
+(function(){
+  if (window.matchMedia('(hover: none)').matches) return; // skip on touch devices
+  const glow = document.createElement('div');
+  glow.id = 'cursor-glow';
+  document.body.appendChild(glow);
+
+  let active = false;
+  document.addEventListener('mousemove', (e) => {
+    glow.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%, -50%)`;
+    if (!active) { glow.classList.add('is-active'); active = true; }
+  });
+  document.addEventListener('mouseleave', () => {
+    glow.classList.remove('is-active');
+    active = false;
+  });
+})();
+
+// ============ ROUND 2 QOL / POLISH ============
+
+document.body.classList.add('page-ready');
+
+// Back to top button
+(function(){
+  const btn = document.createElement('button');
+  btn.id = 'back-to-top';
+  btn.setAttribute('aria-label', 'Back to top');
+  btn.innerHTML = '↑';
+  document.body.appendChild(btn);
+  window.addEventListener('scroll', () => {
+    btn.classList.toggle('visible', window.scrollY > 500);
+  }, { passive: true });
+  btn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+})();
+
+// Active-section highlighting while scrolling
+(function(){
+  const sections = ['home', 'book', 'reviews', 'wishlist', 'check-status']
+    .map(id => document.getElementById(id))
+    .filter(Boolean);
+  const navA = document.querySelectorAll('.nav-links a');
+  if (!sections.length || !navA.length) return;
+
+  const map = { home: 0, book: 1, reviews: 2, wishlist: 3, 'check-status': 4 };
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navA.forEach(a => a.classList.remove('active'));
+        const idx = map[entry.target.id];
+        if (navA[idx]) navA[idx].classList.add('active');
+        const underline = document.querySelector('.nav-underline');
+        const navLinks = document.querySelector('.nav-links');
+        if (underline && navLinks && navA[idx] && !navLinks.matches(':hover')) {
+          underline.style.left = navA[idx].offsetLeft + 'px';
+          underline.style.width = navA[idx].offsetWidth + 'px';
+        }
+      }
+    });
+  }, { threshold: 0.4, rootMargin: '-70px 0px -50% 0px' });
+  sections.forEach(s => io.observe(s));
+})();
+
+// Password strength meter (COD booking password)
+(function(){
+  const input = document.getElementById('cod-password-input');
+  const bar = document.getElementById('pw-strength-bar');
+  const label = document.getElementById('pw-strength-label');
+  if (!input || !bar) return;
+  input.addEventListener('input', () => {
+    const v = input.value;
+    let score = 0;
+    if (v.length >= 4) score++;
+    if (v.length >= 8) score++;
+    if (/[A-Z]/.test(v) && /[a-z]/.test(v)) score++;
+    if (/[0-9]/.test(v)) score++;
+    if (/[^A-Za-z0-9]/.test(v)) score++;
+    const levels = [
+      { w: '0%', c: 'transparent', l: '' },
+      { w: '20%', c: 'var(--red)', l: 'Too short' },
+      { w: '40%', c: 'var(--red)', l: 'Weak' },
+      { w: '60%', c: '#D98A2C', l: 'Okay' },
+      { w: '80%', c: 'var(--peach-deep)', l: 'Good' },
+      { w: '100%', c: 'var(--green)', l: 'Strong' }
+    ];
+    const lvl = v.length === 0 ? levels[0] : levels[Math.min(score + 1, 5)];
+    bar.style.width = lvl.w;
+    bar.style.background = lvl.c;
+    label.textContent = v.length ? lvl.l : '';
+  });
+})();
+
+// Inline email validation feedback (COD modal + status check)
+(function(){
+  function wireEmailField(id) {
+    const input = document.getElementById(id);
+    if (!input) return;
+    input.addEventListener('blur', () => {
+      if (!input.value) { input.classList.remove('field-ok', 'field-bad'); return; }
+      const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value.trim());
+      input.classList.toggle('field-ok', valid);
+      input.classList.toggle('field-bad', !valid);
+    });
+    input.addEventListener('input', () => input.classList.remove('field-ok', 'field-bad'));
+  }
+  wireEmailField('cod-email-input');
+  wireEmailField('status-email-input');
+})();
+
+// TEMP: floating download button — safe to delete this whole block
+(function(){
+  const btn = document.createElement('button');
+  btn.id = 'temp-download-btn';
+  btn.textContent = '⬇ Download Files';
+  btn.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    background: #C97B5C;
+    color: #fff;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 999px;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 14px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+    cursor: pointer;
+  `;
+  btn.addEventListener('mouseenter', () => btn.style.background = '#E8A87C');
+  btn.addEventListener('mouseleave', () => btn.style.background = '#C97B5C');
+  btn.addEventListener('click', () => {
+    const files = [
+      { href: 'assets/temp/Charlie_and_the_Chocolate_Factory_Review.pdf', name: 'Charlie_and_the_Chocolate_Factory_Review.pdf' },
+      { href: 'assets/temp/Book_Review_Script.txt', name: 'Book_Review_Script.txt' }
+    ];
+    files.forEach(f => {
+      const a = document.createElement('a');
+      a.href = f.href;
+      a.download = f.name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    });
+  });
+  document.body.appendChild(btn);
+})();
+</script>
+</body>
+</html>

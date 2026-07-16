@@ -1,421 +1,127 @@
-/*
-  Novelshift (bookies.space)
-  Copyright (c) 2026. All Rights Reserved.
-  Unauthorized copying, reproduction, or distribution of this stylesheet,
-  in whole or in part, is strictly prohibited. See LICENSE.
-*/
-*{margin:0;padding:0;box-sizing:border-box}
-
-:root{
-  --cream:#FDF6EE;--panel:#F7E4D3;--panel2:#F2D9C4;
-  --peach:#E8A87C;--peach-deep:#C97B5C;--peach-line:#E9C7AD;
-  --espresso:#4A3428;--brown:#8B6F5C;--brown-soft:#A88B76;
-  --white:#FFFFFF;--green:#3F8556;--red:#C1503B;
-  --shadow:rgba(74,52,40,0.14)
-}
-html{scroll-behavior:smooth}
-body{font-family:'Inter',Arial,sans-serif;background:var(--cream);color:var(--brown);min-height:100vh}
-h1,h2,h3,.display{font-family:'Fraunces',Georgia,serif}
-
-a{color:inherit}
-
-/* subtle paper grain across the whole page */
-body::before{
-  content:'';position:fixed;inset:0;pointer-events:none;z-index:1;opacity:0.035;
-  background-image:radial-gradient(circle at 20% 30%,#000 0.5px,transparent 0.5px),radial-gradient(circle at 70% 60%,#000 0.5px,transparent 0.5px);
-  background-size:3px 3px,4px 4px
-}
-
-/* ============ NAV ============ */
-nav{
-  background:rgba(253,246,238,0.9);backdrop-filter:blur(10px);
-  border-bottom:1px solid var(--peach-line);
-  padding:0 2.5rem;display:flex;align-items:center;justify-content:space-between;
-  height:70px;position:sticky;top:0;z-index:100
-}
-.logo{font-family:'Fraunces',Georgia,serif;font-size:1.5rem;font-weight:600;color:var(--espresso);letter-spacing:-0.3px;text-decoration:none}
-.logo span{color:var(--peach-deep);font-style:italic}
-.nav-links{display:flex;gap:2.1rem;list-style:none}
-.nav-links a{text-decoration:none;color:var(--brown);font-size:0.9rem;transition:color 0.2s;padding-bottom:0.2rem}
-.nav-links a:hover,.nav-links a.active{color:var(--espresso)}
-.nav-r{display:flex;gap:0.8rem;align-items:center}
-.user-pill{display:flex;align-items:center;gap:0.6rem;background:var(--panel);border:1px solid var(--peach-line);padding:0.35rem 0.9rem;border-radius:20px;font-size:0.8rem;color:var(--brown)}
-.user-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0}
-.btn-sm{background:var(--white);color:var(--brown);border:1px solid var(--peach-line);padding:0.5rem 1.1rem;border-radius:8px;font-size:0.85rem;cursor:pointer;transition:all 0.2s}
-.btn-sm:hover{border-color:var(--peach-deep);color:var(--peach-deep);box-shadow:0 2px 8px var(--shadow)}
-.btn-accent{background:var(--peach-deep);color:white;border:none;padding:0.5rem 1.3rem;border-radius:8px;font-size:0.85rem;cursor:pointer;transition:background 0.2s;font-weight:600}
-.btn-accent:hover{background:#B56A4E}
-.btn-ghost{background:transparent;color:var(--brown);border:1px solid var(--peach-line);padding:0.5rem 1.1rem;border-radius:8px;font-size:0.85rem;cursor:pointer;transition:all 0.2s}
-.btn-ghost:hover{color:var(--red);border-color:var(--red)}
-
-/* ============ HERO ============ */
-.hero{
-  padding:5.5rem 2.5rem 5rem;text-align:center;position:relative;overflow:hidden;
-  background:
-    radial-gradient(ellipse 90% 60% at 50% -10%, rgba(232,168,124,0.35) 0%, transparent 65%),
-    radial-gradient(circle at 85% 20%, rgba(201,123,92,0.12) 0%, transparent 40%)
-}
-.hero-tag{display:inline-flex;align-items:center;gap:0.5rem;background:var(--white);border:1px solid var(--peach-line);color:var(--peach-deep);font-size:0.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:0.4rem 1.1rem;border-radius:20px;margin-bottom:1.6rem}
-.hero-dot{width:6px;height:6px;border-radius:50%;background:var(--peach-deep);animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.35}}
-.hero h1{font-size:3.4rem;line-height:1.1;color:var(--espresso);margin-bottom:1rem;letter-spacing:-1px;font-weight:600}
-.hero h1 em{color:var(--peach-deep);font-style:italic}
-.hero p{color:var(--brown);font-size:1rem;max-width:460px;margin:0 auto 2.2rem;line-height:1.6}
-.hero-cta{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
-.btn-hero{background:var(--peach-deep);color:white;border:none;padding:0.9rem 2rem;border-radius:10px;font-size:0.95rem;cursor:pointer;font-weight:600;transition:all 0.2s;text-decoration:none;display:inline-block}
-.btn-hero:hover{background:#B56A4E;box-shadow:0 6px 20px var(--shadow);transform:translateY(-1px)}
-.btn-hero-ghost{background:var(--white);color:var(--espresso);border:1px solid var(--peach-line);padding:0.9rem 2rem;border-radius:10px;font-size:0.95rem;cursor:pointer;font-weight:600;transition:all 0.2s;text-decoration:none;display:inline-block}
-.btn-hero-ghost:hover{border-color:var(--peach-deep);box-shadow:0 4px 14px var(--shadow)}
-
-/* ============ SECTIONS ============ */
-.section{padding:4.5rem 2.5rem;max-width:1000px;margin:0 auto}
-.section-label{font-size:0.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--peach-deep);margin-bottom:0.5rem}
-.section-title{font-size:2rem;color:var(--espresso);margin-bottom:2.4rem;font-weight:600}
-
-/* feature cards on home */
-.feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
-.feature-card{background:var(--white);border:1px solid var(--peach-line);border-radius:16px;padding:2rem 1.7rem;transition:all 0.25s}
-.feature-card:hover{transform:translateY(-3px);box-shadow:0 10px 30px var(--shadow);border-color:var(--peach-deep)}
-.feature-icon{font-size:1.8rem;margin-bottom:1rem;display:block}
-.feature-title{font-family:'Fraunces',Georgia,serif;font-size:1.15rem;color:var(--espresso);margin-bottom:0.5rem;font-weight:600}
-.feature-desc{font-size:0.87rem;color:var(--brown);line-height:1.6}
-
-/* ============ BOOK LAYOUT (shop page) ============ */
-.book-layout{display:grid;grid-template-columns:260px 1fr;gap:3.5rem;align-items:start}
-.book-cover-wrap{position:relative}
-.book-cover{
-  width:260px;height:360px;border-radius:6px 18px 18px 6px;
-  background:linear-gradient(150deg,#D98E5F 0%,#C97B5C 45%,#A85D42 100%);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  color:white;padding:1.9rem;text-align:center;position:relative;
-  border:1px solid rgba(255,255,255,0.15);
-  box-shadow:0 4px 12px rgba(74,52,40,0.25),12px 14px 34px rgba(74,52,40,0.28)
-}
-.cover-lines{position:absolute;top:0;left:0;right:0;bottom:0;border-radius:inherit;overflow:hidden;opacity:0.08}
-.cover-lines::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 20px,white 20px,white 21px)}
-/* signature bookmark ribbon tab */
-.book-cover::after{
-  content:'';position:absolute;top:-4px;right:22px;width:22px;height:52px;
-  background:#F7E4D3;clip-path:polygon(0 0,100% 0,100% 100%,50% 78%,0 100%);
-  box-shadow:0 3px 8px rgba(74,52,40,0.3)
-}
-.cover-genre{font-size:0.62rem;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,0.85);margin-bottom:1.1rem;position:relative}
-.cover-title{font-family:'Fraunces',Georgia,serif;font-size:1.3rem;font-weight:600;line-height:1.3;margin-bottom:0.7rem;position:relative;color:white}
-.cover-deco{width:36px;height:1px;background:rgba(255,255,255,0.5);margin:0.9rem auto;position:relative}
-.cover-author{font-size:0.78rem;color:rgba(255,255,255,0.75);position:relative}
-.cover-badge{position:absolute;top:-10px;left:-10px;background:var(--espresso);color:white;font-size:0.68rem;font-weight:700;padding:0.4rem 0.85rem;border-radius:20px;letter-spacing:1px}
-
-.book-title-main{font-family:'Fraunces',Georgia,serif;font-size:2.1rem;color:var(--espresso);line-height:1.15;margin-bottom:0.35rem;font-weight:600}
-.book-author-main{color:var(--brown);font-size:1rem;margin-bottom:1.3rem}
-.rating-row{display:flex;align-items:center;gap:0.7rem;margin-bottom:1.3rem}
-.stars-disp{color:#D98A2C;font-size:1.1rem;letter-spacing:2px}
-.rating-count{font-size:0.85rem;color:var(--brown)}
-.book-desc{font-size:0.97rem;line-height:1.85;color:var(--brown);margin-bottom:1.7rem}
-.book-meta{display:flex;flex-wrap:wrap;gap:0.6rem;margin-bottom:1.7rem}
-.meta-pill{background:var(--panel);color:var(--espresso);font-size:0.77rem;padding:0.35rem 0.9rem;border-radius:20px;border:1px solid var(--peach-line)}
-.price-row{display:flex;align-items:baseline;gap:0.9rem;margin-bottom:1.7rem}
-.price{font-family:'Fraunces',Georgia,serif;font-size:2.2rem;font-weight:600;color:var(--espresso)}
-.price-old{font-size:1rem;color:var(--brown-soft);text-decoration:line-through}
-.price-save{font-size:0.78rem;color:var(--green);background:rgba(63,133,86,0.1);border:1px solid rgba(63,133,86,0.25);padding:0.25rem 0.65rem;border-radius:4px;font-weight:600}
-.buy-btns{display:flex;gap:0.8rem;flex-wrap:wrap}
-.btn-buy{background:var(--peach-deep);color:white;border:none;padding:0.9rem 2.2rem;border-radius:10px;font-size:0.95rem;cursor:pointer;transition:all 0.2s;font-weight:600}
-.btn-buy:hover{background:#B56A4E;box-shadow:0 6px 20px var(--shadow)}
-.btn-wish{background:var(--white);color:var(--espresso);border:1px solid var(--peach-line);padding:0.9rem 1.6rem;border-radius:10px;font-size:0.95rem;cursor:pointer;transition:all 0.2s}
-.btn-wish:hover{border-color:var(--peach-deep);color:var(--peach-deep)}
-
-hr.divider{border:none;border-top:1px solid var(--peach-line);margin:0}
-
-/* ============ REVIEWS ============ */
-.reviews-section{padding:4rem 2.5rem;max-width:1000px;margin:0 auto}
-.rev-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2.2rem;flex-wrap:wrap;gap:1rem}
-.rev-header h2{font-family:'Fraunces',Georgia,serif;font-size:1.75rem;color:var(--espresso);font-weight:600}
-.rev-summary{font-size:0.87rem;color:var(--brown);margin-top:0.3rem}
-
-.review-form{background:var(--white);border:1px solid var(--peach-line);border-radius:16px;padding:2rem;margin-bottom:2.2rem;display:none}
-.form-title{font-family:'Fraunces',Georgia,serif;font-size:1.1rem;color:var(--espresso);margin-bottom:1.4rem;font-weight:600}
-.form-user-info{display:flex;align-items:center;gap:0.7rem;background:var(--panel);border:1px solid var(--peach-line);border-radius:10px;padding:0.75rem 1.1rem;margin-bottom:1.4rem;font-size:0.85rem;color:var(--brown)}
-.form-user-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0}
-.form-row{margin-bottom:1.1rem}
-.form-row label{display:block;font-size:0.75rem;color:var(--brown);margin-bottom:0.4rem;font-weight:700;letter-spacing:0.5px;text-transform:uppercase}
-.form-row input,.form-row textarea{width:100%;padding:0.75rem 0.95rem;border:1px solid var(--peach-line);border-radius:10px;font-size:0.9rem;color:var(--espresso);background:var(--cream);outline:none;transition:border-color 0.2s;resize:vertical;font-family:'Inter',Arial,sans-serif}
-.form-row input::placeholder,.form-row textarea::placeholder{color:var(--brown-soft)}
-.form-row input:focus,.form-row textarea:focus{border-color:var(--peach-deep)}
-.form-row textarea{min-height:95px}
-.star-picker{display:flex;gap:6px;margin-top:0.3rem}
-.star-btn{background:none;border:none;font-size:1.6rem;cursor:pointer;color:var(--peach-line);transition:color 0.15s;padding:2px;line-height:1}
-.star-btn.on{color:#D98A2C}
-.submit-btn{background:var(--peach-deep);color:white;border:none;padding:0.82rem 2.2rem;border-radius:10px;font-size:0.92rem;cursor:pointer;transition:all 0.2s;margin-top:0.5rem;font-weight:600}
-.submit-btn:hover{background:#B56A4E;box-shadow:0 6px 18px var(--shadow)}
-.submit-btn:disabled{opacity:0.5;cursor:not-allowed}
-.form-error{font-size:0.8rem;color:var(--red);margin-top:0.5rem;display:none}
-
-.empty-state{text-align:center;padding:3.2rem 1rem;border:1px dashed var(--peach-line);border-radius:16px;margin-bottom:2rem;background:var(--white)}
-.empty-icon{font-size:2.5rem;margin-bottom:0.8rem;opacity:0.5}
-.empty-title{font-family:'Fraunces',Georgia,serif;font-size:1.05rem;color:var(--espresso);margin-bottom:0.4rem;font-weight:600}
-.empty-sub{font-size:0.85rem;color:var(--brown)}
-
-.loading-reviews{text-align:center;font-size:0.87rem;color:var(--brown);padding:2.5rem}
-.reviews-list{display:flex;flex-direction:column;gap:1.2rem}
-.review-card{background:var(--white);border:1px solid var(--peach-line);border-radius:14px;padding:1.5rem 1.7rem;animation:fadeUp 0.3s ease}
-@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.rev-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:0.9rem;gap:1rem;flex-wrap:wrap}
-.rev-author-row{display:flex;align-items:center;gap:0.75rem}
-.rev-avatar{width:38px;height:38px;border-radius:50%;background:var(--peach-deep);display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:700;color:white;flex-shrink:0}
-.rev-name{font-size:0.9rem;font-weight:700;color:var(--espresso)}
-.rev-date{font-size:0.73rem;color:var(--brown-soft);margin-top:1px}
-.rev-stars{color:#D98A2C;font-size:0.92rem;letter-spacing:2px}
-.rev-text{font-size:0.92rem;line-height:1.75;color:var(--brown);font-style:italic}
-.rev-verified{font-size:0.71rem;color:var(--green);margin-top:0.6rem;font-weight:600}
-
-/* ============ FOOTER ============ */
-footer{background:var(--cream);border-top:1px solid var(--peach-line);color:var(--brown-soft);padding:2rem 2.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;font-size:0.81rem}
-.flogo{font-family:'Fraunces',Georgia,serif;font-size:1.15rem;color:var(--espresso)}
-.flogo span{color:var(--peach-deep);font-style:italic}
-.payment-tags{display:flex;gap:0.5rem;flex-wrap:wrap}
-.ptag{background:var(--panel);border:1px solid var(--peach-line);border-radius:5px;padding:0.3rem 0.7rem;font-size:0.71rem;color:var(--brown)}
-
-/* ============ TOAST ============ */
-.toast{position:fixed;bottom:2rem;right:2rem;background:var(--espresso);border:1px solid var(--peach-deep);color:var(--cream);font-size:0.87rem;padding:0.9rem 1.6rem;border-radius:12px;z-index:9998;opacity:0;transform:translateY(10px);transition:all 0.3s;pointer-events:none;max-width:300px}
-.toast.show{opacity:1;transform:translateY(0)}
-.toast.success{border-color:var(--green)}
-.toast.error{border-color:var(--red)}
-
-@media(max-width:900px){
-  .feature-grid{grid-template-columns:1fr}
-}
-@media(max-width:640px){
-  .book-layout{grid-template-columns:1fr;justify-items:center}
-  nav{padding:0 1.2rem}
-  .nav-links{display:none}
-  .hero h1{font-size:2.3rem}
-  .hero{padding:3.5rem 1.2rem}
-  .section,.reviews-section{padding:2.8rem 1.2rem}
-}
+-- ============================================================
+-- Novelshift — Row Level Security (RLS) setup
+-- Run this in Supabase Dashboard → SQL Editor → New query
+-- ============================================================
+-- Why this matters: your SUPABASE_KEY in the HTML is public by design
+-- (it's the "anon" key). Anyone can use it to call your database directly,
+-- bypassing your website's buttons and forms entirely. RLS policies are
+-- the only real security boundary — they run inside Supabase itself and
+-- can't be skipped by editing browser code.
 
 
-.gate-label{font-size:0.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--peach-deep);margin-bottom:1rem;text-align:left}
-.role-option{display:flex;align-items:center;gap:1rem;background:var(--white);border:1px solid var(--peach-line);border-radius:12px;padding:1.05rem 1.3rem;margin-bottom:0.8rem;cursor:pointer;text-align:left;transition:all 0.2s}
-.role-option:hover{border-color:var(--peach-deep);background:var(--panel)}
-.role-icon{font-size:1.5rem;flex-shrink:0}
-.role-name{font-size:1rem;color:var(--espresso);font-weight:700;margin-bottom:0.15rem}
-.role-desc{font-size:0.8rem;color:var(--brown)}
-.gate-pw-box{display:none;text-align:left;margin-top:0.5rem}
-.gate-pw-box input{width:100%;padding:0.8rem 1rem;border:1px solid var(--peach-line);border-radius:10px;background:var(--white);color:var(--espresso);font-size:0.9rem;outline:none;margin-bottom:0.6rem;font-family:'Inter',Arial,sans-serif}
-.gate-pw-box input:focus{border-color:var(--peach-deep)}
-.gate-pw-row{display:flex;gap:0.6rem}
-.gate-pw-row button{flex:1;padding:0.8rem;border-radius:10px;border:none;font-size:0.88rem;cursor:pointer;font-weight:700}
-.gate-pw-confirm{background:var(--peach-deep);color:white}
-.gate-pw-confirm:hover{background:#B56A4E}
-.gate-pw-back{background:transparent;color:var(--brown);border:1px solid var(--peach-line) !important}
-.gate-pw-err{font-size:0.8rem;color:var(--red);margin-bottom:0.6rem;display:none;text-align:left}
+-- ============ REVIEWS TABLE ============
+-- Goal: anyone can read reviews, anyone can post a review,
+-- NOBODY can update or delete via the public anon key (deletes only
+-- happen through admin.html, which still uses the same anon key —
+-- see note at the bottom about tightening this further).
 
-.gate-auth-tabs{display:flex;gap:0.4rem;margin-bottom:0.9rem}
-.gate-auth-tab{flex:1;background:var(--white);border:1px solid var(--peach-line);color:var(--brown);font-size:0.78rem;padding:0.55rem;border-radius:8px;cursor:pointer}
-.gate-auth-tab.active{background:var(--peach-deep);color:white;border-color:var(--peach-deep)}
+alter table reviews enable row level security;
 
-.gate-rate-note{font-size:0.74rem;color:var(--brown-soft);margin:0.5rem 0 0;text-align:left;line-height:1.4}
+drop policy if exists "Public can read reviews" on reviews;
+create policy "Public can read reviews"
+  on reviews for select
+  using (true);
 
-.gate-pw-tip{font-size:0.74rem;color:var(--peach-deep);background:var(--panel);border:1px solid var(--peach-line);border-radius:8px;padding:0.55rem 0.75rem;margin-bottom:0.8rem;text-align:left;line-height:1.4}
-.gate-pwauth-switch{font-size:0.78rem;color:var(--peach-deep);margin-bottom:0.8rem;text-align:left;cursor:pointer;text-decoration:underline}
+drop policy if exists "Public can insert reviews" on reviews;
+create policy "Public can insert reviews"
+  on reviews for insert
+  with check (
+    char_length(review_text) >= 10
+    and char_length(review_text) <= 600
+    and rating between 1 and 5
+  );
 
-.mod-badge{display:flex;align-items:center;gap:0.5rem;background:rgba(193,80,59,0.1);border:1px solid rgba(193,80,59,0.3);color:var(--red);font-size:0.78rem;font-weight:700;padding:0.4rem 0.9rem;border-radius:20px}
-.rev-mod-actions{margin-top:0.7rem;display:flex;justify-content:flex-end}
-.btn-del-review{background:transparent;color:var(--red);border:1px solid rgba(193,80,59,0.4);padding:0.4rem 0.9rem;border-radius:8px;font-size:0.78rem;cursor:pointer;transition:all 0.2s}
-.btn-del-review:hover{background:rgba(193,80,59,0.1)}
-.btn-del-review:disabled{opacity:0.5;cursor:not-allowed}
+-- Delete is allowed for now so admin.html's "Delete review" button works.
+-- This is intentionally permissive because your setup has no per-request
+-- moderator identity to check against — see the hardening note below.
+drop policy if exists "Public can delete reviews" on reviews;
+create policy "Public can delete reviews"
+  on reviews for delete
+  using (true);
 
-/* ============ DEBUG CONSOLE ============ */
-#debug-fab{position:fixed;bottom:1.6rem;left:1.6rem;width:44px;height:44px;border-radius:50%;background:var(--white);border:1px solid var(--peach-line);color:var(--brown);font-size:1.1rem;cursor:pointer;z-index:10001;display:flex;align-items:center;justify-content:center;transition:all 0.2s;box-shadow:0 2px 10px var(--shadow)}
-#debug-fab:hover{border-color:var(--peach-deep);color:var(--peach-deep)}
-#debug-console{position:fixed;bottom:1.6rem;left:1.6rem;width:min(480px,calc(100vw - 3.2rem));max-height:60vh;background:var(--white);border:1px solid var(--peach-line);border-radius:14px;z-index:10002;display:none;flex-direction:column;overflow:hidden;box-shadow:0 10px 40px rgba(74,52,40,0.3)}
-.debug-header{display:flex;align-items:center;justify-content:space-between;padding:0.75rem 1.1rem;border-bottom:1px solid var(--peach-line);background:var(--panel)}
-.debug-header span{font-size:0.82rem;font-weight:700;color:var(--espresso)}
-.debug-header div{display:flex;gap:0.5rem}
-.debug-btn-sm{background:transparent;border:1px solid var(--peach-line);color:var(--brown);font-size:0.72rem;padding:0.28rem 0.65rem;border-radius:6px;cursor:pointer}
-.debug-btn-sm:hover{color:var(--espresso);border-color:var(--peach-deep)}
-#debug-log{flex:1;overflow-y:auto;padding:0.6rem;font-family:'Courier New',monospace;font-size:0.74rem;line-height:1.5}
-.dlog-row{padding:0.4rem 0.6rem;border-radius:6px;margin-bottom:0.25rem;word-break:break-word;white-space:pre-wrap}
-.dlog-info{color:var(--brown)}
-.dlog-error{background:rgba(193,80,59,0.08);color:#A8412C}
-.dlog-success{background:rgba(63,133,86,0.08);color:#2E6B42}
-.dlog-time{color:var(--brown-soft);margin-right:0.4rem}
+-- No update policy created — nobody can edit an existing review, only
+-- post new ones or delete them entirely. This is deliberate.
 
-/* overlay modals (debug pass gate, COD gate) */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(74,52,40,0.55);backdrop-filter:blur(4px);z-index:10003;align-items:center;justify-content:center;flex-direction:column}
-.modal-box{background:var(--cream);border:1px solid var(--peach-line);border-radius:16px;padding:1.5rem;width:min(360px,90vw);max-height:85vh;overflow-y:auto;text-align:center;box-shadow:0 20px 50px rgba(74,52,40,0.3)}
-.modal-box input{width:100%;padding:0.55rem 0.75rem;border-radius:8px;border:1px solid var(--peach-line);background:var(--white);color:var(--espresso);margin-bottom:0.65rem;font-family:'Inter',Arial,sans-serif}
 
-/* ============ BOOKING STATUS CHECK (index.html) ============ */
-.status-check-box{background:var(--white);border:1px solid var(--peach-line);border-radius:16px;padding:2rem;max-width:480px}
-.admin-row{margin-bottom:0.9rem}
-.admin-row label{display:block;font-size:0.75rem;color:var(--brown);margin-bottom:0.3rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px}
-.admin-row input{width:100%;padding:0.65rem 0.85rem;border:1px solid var(--peach-line);border-radius:8px;background:var(--cream);color:var(--espresso);font-size:0.87rem;outline:none;font-family:'Inter',Arial,sans-serif}
-.admin-row input:focus{border-color:var(--peach-deep)}
-.status-card{border:1px solid var(--peach-line);border-radius:10px;padding:1rem 1.2rem;margin-bottom:0.7rem;background:var(--cream)}
-.order-top{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap}
-.order-name{font-weight:700;color:var(--espresso);font-size:0.92rem}
-.order-meta{font-size:0.78rem;color:var(--brown-soft);margin-top:0.15rem}
-.order-status{font-size:0.72rem;font-weight:700;padding:0.25rem 0.7rem;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap}
-.status-pending{background:rgba(217,138,44,0.12);color:#B5750F}
-.status-approved{background:rgba(63,133,86,0.12);color:#2E6B42}
-.status-rejected{background:rgba(193,80,59,0.12);color:#A8412C}
+-- ============ ORDERS TABLE (bookings) ============
+-- Goal: anyone can create a booking (insert), but nobody can read
+-- other people's bookings or edit them — except admin.html, which
+-- needs to read+update to show/manage bookings. Same caveat as above.
 
-/* ============ INTERACTIVITY / POLISH LAYER ============ */
+alter table orders enable row level security;
 
-/* Scroll-reveal */
-.reveal{opacity:0;transform:translateY(28px);transition:opacity 0.7s cubic-bezier(.22,1,.36,1),transform 0.7s cubic-bezier(.22,1,.36,1)}
-.reveal.is-visible{opacity:1;transform:translateY(0)}
-.reveal-stagger.is-visible > *{animation:staggerIn 0.6s cubic-bezier(.22,1,.36,1) both}
-.reveal-stagger.is-visible > *:nth-child(1){animation-delay:0.05s}
-.reveal-stagger.is-visible > *:nth-child(2){animation-delay:0.12s}
-.reveal-stagger.is-visible > *:nth-child(3){animation-delay:0.19s}
-.reveal-stagger.is-visible > *:nth-child(4){animation-delay:0.26s}
-.reveal-stagger.is-visible > *:nth-child(5){animation-delay:0.33s}
-@keyframes staggerIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+drop policy if exists "Public can insert orders" on orders;
+create policy "Public can insert orders"
+  on orders for insert
+  with check (
+    char_length(buyer_name) > 0
+    and char_length(buyer_class) > 0
+  );
 
-/* Book cover tilt */
-.book-cover-wrap{perspective:1000px}
-#book-cover{transition:transform 0.15s ease-out,box-shadow 0.3s ease}
-#book-cover.tilt-active{transition:transform 0.05s linear}
-#book-cover:hover{box-shadow:0 22px 50px var(--shadow)}
+-- Needed so admin.html can list bookings. See hardening note below.
+drop policy if exists "Public can read orders" on orders;
+create policy "Public can read orders"
+  on orders for select
+  using (true);
 
-/* Buy / primary button ripple */
-.btn-buy,.btn-accent,.nav-links a,.btn-sm{position:relative;overflow:hidden}
-.ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,0.55);transform:scale(0);animation:rippleAnim 0.6s ease-out;pointer-events:none}
-.btn-sm .ripple{background:rgba(201,123,92,0.25)}
-@keyframes rippleAnim{to{transform:scale(2.6);opacity:0}}
+drop policy if exists "Public can update orders" on orders;
+create policy "Public can update orders"
+  on orders for update
+  using (true);
 
-/* Buy button press feedback */
-.btn-buy:active,.btn-accent:active{transform:scale(0.97)}
-.btn-buy,.btn-accent{transition:background 0.2s,box-shadow 0.2s,transform 0.12s}
 
-/* Wishlist heart pop */
-.btn-wish{transition:transform 0.15s ease,background 0.2s,color 0.2s}
-.btn-wish.wish-pop{animation:wishPop 0.4s ease}
-@keyframes wishPop{0%{transform:scale(1)}35%{transform:scale(1.18)}60%{transform:scale(0.95)}100%{transform:scale(1)}}
+-- ============ BOOK_SETTINGS TABLE ============
+-- Goal: anyone can read the book listing (public site needs this),
+-- anyone can update it via the anon key (needed for admin.html to save
+-- changes, same caveat as above).
 
-/* Star picker hover bounce */
-.star-picker span,.stars-disp{display:inline-block;transition:transform 0.15s ease,color 0.15s ease}
-.star-picker span:hover,.star-picker span.hovered{transform:scale(1.25) rotate(-4deg)}
-.star-picker span.selected{animation:starSelect 0.35s ease}
-@keyframes starSelect{0%{transform:scale(1)}40%{transform:scale(1.4) rotate(8deg)}100%{transform:scale(1)}}
+alter table book_settings enable row level security;
 
-/* Animated nav underline */
-.nav-links{position:relative}
-.nav-underline{position:absolute;bottom:-1px;height:2px;background:var(--peach-deep);border-radius:2px;transition:left 0.3s cubic-bezier(.22,1,.36,1),width 0.3s cubic-bezier(.22,1,.36,1);pointer-events:none}
+drop policy if exists "Public can read book_settings" on book_settings;
+create policy "Public can read book_settings"
+  on book_settings for select
+  using (true);
 
-/* Cart panel entrance */
-#cart-panel.cart-opening{animation:cartOpen 0.28s cubic-bezier(.22,1,.36,1)}
-@keyframes cartOpen{from{opacity:0;transform:translateY(-10px) scale(0.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+drop policy if exists "Public can update book_settings" on book_settings;
+create policy "Public can update book_settings"
+  on book_settings for update
+  using (true);
 
-/* Count-up number pop (price / rating) */
-.count-pop{animation:countPop 0.5s ease}
-@keyframes countPop{0%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:translateY(0)}}
+drop policy if exists "Public can insert book_settings" on book_settings;
+create policy "Public can insert book_settings"
+  on book_settings for insert
+  with check (true);
 
-/* Toast bounce-in (keep existing behavior, just add motion) */
-.toast{transition:transform 0.35s cubic-bezier(.34,1.56,.64,1),opacity 0.35s ease}
 
-/* Scroll progress bar */
-#scroll-progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--peach),var(--peach-deep));z-index:200;width:0%;transition:width 0.1s linear}
-
-/* Cursor-follow glow, site-wide */
-#cursor-glow{
-  position:fixed;top:0;left:0;width:420px;height:420px;border-radius:50%;
-  background:radial-gradient(circle,rgba(232,168,124,0.22),transparent 70%);
-  pointer-events:none;transform:translate(-50%,-50%);opacity:0;
-  transition:opacity 0.4s ease;z-index:2;will-change:transform
-}
-#cursor-glow.is-active{opacity:1}
-@media (hover:none){ #cursor-glow{display:none} }
-
-@media (prefers-reduced-motion: reduce){
-  .reveal,.reveal-stagger > *,#book-cover,.btn-wish,.star-picker span,.toast{transition:none !important;animation:none !important}
-  .reveal{opacity:1;transform:none}
-}
-
-/* ============ ROUND 2 QOL / POLISH ============ */
-
-/* Back to top button */
-#back-to-top{
-  position:fixed;bottom:2rem;left:2rem;width:44px;height:44px;border-radius:50%;
-  background:var(--white);border:1px solid var(--peach-line);color:var(--peach-deep);
-  display:flex;align-items:center;justify-content:center;font-size:1.1rem;cursor:pointer;
-  box-shadow:0 6px 18px var(--shadow);opacity:0;pointer-events:none;transform:translateY(12px) scale(0.9);
-  transition:opacity 0.3s ease,transform 0.3s ease,background 0.2s,border-color 0.2s;z-index:150
-}
-#back-to-top.visible{opacity:1;pointer-events:auto;transform:translateY(0) scale(1)}
-#back-to-top:hover{background:var(--peach-deep);color:white;border-color:var(--peach-deep)}
-
-/* Active-section nav highlighting reuses .active/underline already added */
-
-/* Skeleton loaders */
-.skeleton{background:linear-gradient(90deg,var(--panel) 25%,var(--panel2) 37%,var(--panel) 63%);background-size:400% 100%;animation:skeletonShine 1.4s ease infinite;border-radius:8px}
-@keyframes skeletonShine{0%{background-position:100% 50%}100%{background-position:0% 50%}}
-.skeleton-card{border:1px solid var(--peach-line);border-radius:14px;padding:1.2rem;margin-bottom:1rem}
-.skeleton-line{height:12px;margin-bottom:0.6rem;width:100%}
-.skeleton-line.short{width:40%}
-.skeleton-line.tiny{width:60px;height:10px}
-.skeleton-avatar{width:38px;height:38px;border-radius:50%;flex-shrink:0}
-.skeleton-row{display:flex;gap:0.7rem;align-items:center;margin-bottom:0.8rem}
-
-/* Button loading spinner */
-.btn-loading{color:transparent !important;pointer-events:none;position:relative}
-.btn-loading::after{
-  content:'';position:absolute;top:50%;left:50%;width:16px;height:16px;margin:-8px 0 0 -8px;
-  border:2px solid rgba(255,255,255,0.5);border-top-color:#fff;border-radius:50%;
-  animation:btnSpin 0.7s linear infinite
-}
-.btn-sm.btn-loading::after,.btn-accent.btn-loading::after{border:2px solid rgba(201,123,92,0.3);border-top-color:var(--peach-deep)}
-.btn-accent.btn-loading::after{border:2px solid rgba(255,255,255,0.5);border-top-color:#fff}
-@keyframes btnSpin{to{transform:rotate(360deg)}}
-
-/* Toast icon + progress bar */
-.toast{display:flex;align-items:center;gap:0.6rem;overflow:hidden}
-.toast-icon{font-size:1rem;flex-shrink:0}
-.toast-bar{position:absolute;left:0;bottom:0;height:2px;background:rgba(255,255,255,0.4);width:100%;transform-origin:left;animation:toastShrink 3.2s linear forwards}
-@keyframes toastShrink{from{transform:scaleX(1)}to{transform:scaleX(0)}}
-
-/* Input focus glow + inline validation */
-input[type="text"],input[type="email"],input[type="password"],textarea{
-  transition:border-color 0.2s ease,box-shadow 0.2s ease,transform 0.15s ease
-}
-input[type="text"]:focus,input[type="email"]:focus,input[type="password"]:focus,textarea:focus{
-  outline:none;border-color:var(--peach-deep) !important;box-shadow:0 0 0 4px rgba(201,123,92,0.14)
-}
-.field-wrap{position:relative}
-.field-ok{border-color:var(--green) !important}
-.field-bad{border-color:var(--red) !important;animation:fieldShake 0.4s ease}
-@keyframes fieldShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
-.field-check{position:absolute;right:0.8rem;top:50%;transform:translateY(-50%);font-size:0.85rem;opacity:0;transition:opacity 0.2s ease}
-.field-check.show{opacity:1}
-.field-check.ok{color:var(--green)}
-.field-check.bad{color:var(--red)}
-
-/* Password strength meter */
-.pw-strength{height:4px;border-radius:2px;background:var(--panel);margin:0.4rem 0 0.6rem;overflow:hidden}
-.pw-strength-bar{height:100%;width:0%;border-radius:2px;transition:width 0.25s ease,background 0.25s ease}
-.pw-strength-label{font-size:0.7rem;color:var(--brown-soft);margin-top:-0.3rem;margin-bottom:0.5rem;display:block}
-
-/* Confetti */
-.confetti-piece{position:fixed;top:-10px;border-radius:2px;pointer-events:none;z-index:9999;animation:confettiFall linear forwards}
-@keyframes confettiFall{
-  0%{transform:translateY(0) rotate(0deg);opacity:1}
-  100%{transform:translateY(105vh) rotate(540deg);opacity:0.3}
-}
-
-/* Empty-state illustration polish */
-.empty-state{position:relative}
-.empty-state-icon{font-size:2.4rem;margin-bottom:0.6rem;display:block;animation:floatIcon 3s ease-in-out infinite}
-@keyframes floatIcon{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-
-/* Page load fade-in */
-body.page-ready{animation:pageFadeIn 0.5s ease}
-@keyframes pageFadeIn{from{opacity:0}to{opacity:1}}
-
-@media (prefers-reduced-motion: reduce){
-  .skeleton,.btn-loading::after,.confetti-piece,.empty-state-icon,body.page-ready{animation:none !important}
-}
-
-/* ============ WISH LIST ============ */
-.wl-form{background:var(--white);border:1px solid var(--peach-line);border-radius:16px;padding:2rem;margin-bottom:2.2rem}
-
+-- ============================================================
+-- ⚠️ IMPORTANT HONEST CAVEAT — read this, Viraj
+-- ============================================================
+-- Because admin.html uses the SAME public anon key as the main site
+-- (just gated by a password check in the browser), the RLS policies
+-- above CANNOT tell the difference between a real visitor and someone
+-- who found your admin page. They use the identical database credentials.
+--
+-- This means: technically, someone who is good enough to open
+-- DevTools → Network tab could copy your anon key and run the same
+-- delete/update queries admin.html runs, without ever seeing your
+-- password screen. The password protects the UI, not the database.
+--
+-- This is a REAL limitation, not a scare tactic — and it's a common
+-- gap in small Supabase projects, so you're not alone in this. Two ways
+-- to actually close it, when you're ready for the next step up:
+--
+-- 1. Move delete/update actions into Supabase Edge Functions (like your
+--    verify-mod-password one) that check the password SERVER-SIDE before
+--    running the query, using the service_role key (never exposed to the
+--    browser). Then RLS can safely deny all public writes for those
+--    actions, and only the edge function (not any visitor) can perform them.
+--
+-- 2. Use real Supabase Auth for just the moderator account (email+password
+--    login, no public-facing UI for it), and write RLS policies that check
+--    auth.uid() — e.g. "allow delete only if auth.uid() = '<your-mod-user-id>'".
+--
+-- For now, with a small personal project and a password only you know,
+-- this setup is a reasonable middle ground — just know the password is a
+-- speed bump for a casual visitor, not a lock against someone who knows
+-- how to read Network requests. Worth revisiting as the site grows.
+-- ============================================================
