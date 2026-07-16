@@ -418,7 +418,7 @@ async function loadWishlistForAdmin() {
 (function(){
   const btn = document.createElement('button');
   btn.id = 'temp-download-btn';
-  btn.textContent = '⬇ Download PDF';
+  btn.textContent = '⬇ Download Files';
   btn.style.cssText = `
     position: fixed;
     bottom: 20px;
@@ -438,12 +438,18 @@ async function loadWishlistForAdmin() {
   btn.addEventListener('mouseenter', () => btn.style.background = '#E8A87C');
   btn.addEventListener('mouseleave', () => btn.style.background = '#C97B5C');
   btn.addEventListener('click', () => {
-    const a = document.createElement('a');
-    a.href = 'assets/temp/Charlie_and_the_Chocolate_Factory_Review.pdf';
-    a.download = 'Charlie_and_the_Chocolate_Factory_Review.pdf';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    const files = [
+      { href: 'assets/temp/Charlie_and_the_Chocolate_Factory_Review.pdf', name: 'Charlie_and_the_Chocolate_Factory_Review.pdf' },
+      { href: 'assets/temp/Book_Review_Script.txt', name: 'Book_Review_Script.txt' }
+    ];
+    files.forEach(f => {
+      const a = document.createElement('a');
+      a.href = f.href;
+      a.download = f.name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    });
   });
   document.body.appendChild(btn);
 })();
