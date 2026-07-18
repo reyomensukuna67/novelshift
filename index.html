@@ -661,7 +661,11 @@ async function checkGoogleSession() {
     googleUser = {
       email: session.user.email,
       name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-      avatar_url: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture || ''
+      avatar_url: session.user.user_metadata?.avatar_url
+        || session.user.user_metadata?.picture
+        || session.user.identities?.find(i => i.provider === 'google')?.identity_data?.avatar_url
+        || session.user.identities?.find(i => i.provider === 'google')?.identity_data?.picture
+        || ''
     };
   } else {
     googleUser = null;
@@ -681,7 +685,9 @@ function updateNavGoogleUI() {
     signinBtn.style.display = 'none';
     loginBtn.style.display = 'none';
     avatarWrap.style.display = 'block';
-    avatarImg.src = googleUser.avatar_url || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"%3E%3Ccircle cx="12" cy="12" r="12" fill="%23C97B5C"/%3E%3C/svg%3E';
+    const fallbackAvatar = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"%3E%3Ccircle cx="12" cy="12" r="12" fill="%23C97B5C"/%3E%3C/svg%3E';
+    avatarImg.onerror = () => { avatarImg.onerror = null; avatarImg.src = fallbackAvatar; };
+    avatarImg.src = googleUser.avatar_url || fallbackAvatar;
     avatarEmail.textContent = googleUser.email;
   } else {
     signinBtn.style.display = 'inline-block';
@@ -720,7 +726,11 @@ checkGoogleSession();
 document.getElementById('google-signin-btn').addEventListener('click', async () => {
   await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.origin + window.location.pathname }
+    options: {
+      redirectTo: window.location.origin + window.location.pathname,
+      scopes: 'email profile',
+      queryParams: { prompt: 'select_account' }
+    }
   });
 });
 
@@ -738,7 +748,11 @@ document.getElementById('nav-signin-google-btn').addEventListener('click', async
   sessionStorage.setItem('novelshift-google-intent', 'book');
   await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.origin + window.location.pathname }
+    options: {
+      redirectTo: window.location.origin + window.location.pathname,
+      scopes: 'email profile',
+      queryParams: { prompt: 'select_account' }
+    }
   });
 });
 
@@ -748,7 +762,11 @@ document.getElementById('nav-login-google-btn').addEventListener('click', async 
   sessionStorage.setItem('novelshift-google-intent', 'status');
   await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.origin + window.location.pathname }
+    options: {
+      redirectTo: window.location.origin + window.location.pathname,
+      scopes: 'email profile',
+      queryParams: { prompt: 'select_account' }
+    }
   });
 });
 
