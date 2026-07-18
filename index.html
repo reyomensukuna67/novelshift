@@ -95,9 +95,11 @@
     <button class="btn-sm" id="nav-signin-google-btn" title="New here? Sign in with Google to book">Sign in</button>
     <button class="btn-sm" id="nav-login-google-btn" title="Already booked? Log in with Google to check status">Login</button>
     <div id="nav-google-avatar-wrap" style="display:none;position:relative">
-      <img id="nav-google-avatar" src="" alt="Your Google account" style="width:34px;height:34px;border-radius:50%;cursor:pointer;border:1px solid var(--peach-line);object-fit:cover">
-      <div id="nav-google-avatar-menu" style="display:none;position:absolute;top:calc(100% + 0.6rem);right:0;width:200px;background:var(--white);border:1px solid var(--peach-line);border-radius:12px;padding:0.7rem;box-shadow:0 12px 30px var(--shadow);z-index:60;text-align:left">
+      <div id="nav-google-avatar" title="Choose your avatar" style="width:34px;height:34px;border-radius:50%;cursor:pointer;border:1px solid var(--peach-line);display:flex;align-items:center;justify-content:center;font-size:1.05rem;flex-shrink:0"></div>
+      <div id="nav-google-avatar-menu" style="display:none;position:absolute;top:calc(100% + 0.6rem);right:0;width:220px;background:var(--white);border:1px solid var(--peach-line);border-radius:12px;padding:0.7rem;box-shadow:0 12px 30px var(--shadow);z-index:60;text-align:left">
         <div id="nav-google-avatar-email" style="font-size:0.78rem;color:var(--brown);margin-bottom:0.5rem;word-break:break-all"></div>
+        <div style="font-size:0.7rem;font-weight:600;color:var(--brown-soft);text-transform:uppercase;letter-spacing:0.03em;margin-bottom:0.4rem">Choose your avatar</div>
+        <div id="nav-avatar-picker" style="display:grid;grid-template-columns:repeat(5,1fr);gap:0.4rem;margin-bottom:0.6rem"></div>
         <button id="nav-google-signout-btn" style="width:100%;background:none;border:1px solid var(--peach-line);border-radius:8px;padding:0.4rem 0;font-size:0.78rem;color:var(--brown-soft);cursor:pointer">Sign out</button>
       </div>
     </div>
@@ -438,10 +440,11 @@ function renderReviews(reviews) {
     const displayName = r.name && r.name.trim() ? r.name.trim() : 'Reader';
     const initials = displayName.split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2);
     const date = new Date(r.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
+    const avatar = getAvatarById(r.avatar) || hashKeyToAvatar(r.id || (displayName + r.created_at));
     return `<div class="review-card">
       <div class="rev-top">
         <div class="rev-author-row">
-          <div class="rev-avatar">${escHtml(initials)}</div>
+          <div class="rev-avatar" style="background:${avatar.bg};font-size:1.1rem">${avatar.emoji}</div>
           <div>
             <div class="rev-name">${escHtml(displayName)}</div>
             <div class="rev-date">${escHtml(date)}</div>
@@ -491,11 +494,22 @@ document.getElementById('submit-btn').addEventListener('click', async () => {
   if (text.length > 600) { errEl.textContent='Keep it under 600 characters.'; errEl.style.display=''; return; }
   const btn = document.getElementById('submit-btn');
   btn.disabled=true; btn.textContent='Posting...'; btn.classList.add('btn-loading');
-  const { error } = await sb.from('reviews').insert([{
+  const avatarId = googleUser ? getUserAvatar().id : null;
+  let { error } = await sb.from('reviews').insert([{
     name: name ? name.slice(0,50) : null,
     rating: selectedRating,
-    review_text: text
+    review_text: text,
+    avatar: avatarId
   }]);
+  if (error && /column .*avatar/i.test(error.message || '')) {
+    // The `avatar` column hasn't been added to the reviews table yet —
+    // retry without it so posting still works.
+    ({ error } = await sb.from('reviews').insert([{
+      name: name ? name.slice(0,50) : null,
+      rating: selectedRating,
+      review_text: text
+    }]));
+  }
   btn.disabled=false; btn.textContent='Post review'; btn.classList.remove('btn-loading');
   if (error) { showToast('Something went wrong. Try again.', 'error'); return; }
   document.getElementById('rev-name').value='';
@@ -617,6 +631,74 @@ function renderCart() {
 let selectedPaymentMethod = 'cod';
 let googleUser = null; // { email, name } when signed in via Google, else null
 
+// ============ AVATARS ============
+// A small fixed set of book-themed avatars. Each user (by email) can pick
+// one from the nav menu; it's saved locally and attached to reviews they
+// post. Reviews without a saved avatar (older reviews, or ones missing the
+// `avatar` column) get a stable pick derived from the review itself, so
+// the same review always shows the same avatar rather than reshuffling.
+const AVATAR_SET = [
+  { id: 'fox',    emoji: '🦊', bg: '#D98A5F' },
+  { id: 'cat',    emoji: '🐱', bg: '#C97B5C' },
+  { id: 'owl',    emoji: '🦉', bg: '#8C6B4F' },
+  { id: 'moon',   emoji: '🌙', bg: '#6B7A8F' },
+  { id: 'star',   emoji: '⭐', bg: '#D9A45F' },
+  { id: 'clover', emoji: '🍀', bg: '#6E9A6A' },
+  { id: 'palette',emoji: '🎨', bg: '#B15C6E' },
+  { id: 'flame',  emoji: '🔥', bg: '#C9603C' },
+  { id: 'wave',   emoji: '🌊', bg: '#5B8FA3' },
+  { id: 'leaf',   emoji: '🍁', bg: '#B96B3D' }
+];
+
+function hashKeyToAvatar(key) {
+  let h = 0;
+  const s = String(key || 'reader');
+  for (let i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) >>> 0; }
+  return AVATAR_SET[h % AVATAR_SET.length];
+}
+
+function getAvatarById(id) {
+  return AVATAR_SET.find(a => a.id === id) || null;
+}
+
+function avatarStorageKey(email) {
+  return `novelshift-avatar:${(email || '').toLowerCase()}`;
+}
+
+function getUserAvatar() {
+  if (!googleUser) return null;
+  const savedId = localStorage.getItem(avatarStorageKey(googleUser.email));
+  return getAvatarById(savedId) || hashKeyToAvatar(googleUser.email);
+}
+
+function setUserAvatar(id) {
+  if (!googleUser) return;
+  localStorage.setItem(avatarStorageKey(googleUser.email), id);
+}
+
+function avatarCircleHTML(avatar, sizePx) {
+  return `<div style="width:${sizePx}px;height:${sizePx}px;border-radius:50%;background:${avatar.bg};display:flex;align-items:center;justify-content:center;font-size:${Math.round(sizePx*0.55)}px;flex-shrink:0">${avatar.emoji}</div>`;
+}
+
+function renderAvatarPicker() {
+  const wrap = document.getElementById('nav-avatar-picker');
+  if (!wrap) return;
+  const current = getUserAvatar();
+  wrap.innerHTML = AVATAR_SET.map(a => `
+    <button class="nav-avatar-choice" data-id="${a.id}" title="${a.id}"
+      style="width:34px;height:34px;border-radius:50%;background:${a.bg};display:flex;align-items:center;justify-content:center;font-size:1rem;border:2px solid ${current && current.id===a.id ? 'var(--brown)' : 'transparent'};cursor:pointer;padding:0">
+      ${a.emoji}
+    </button>`).join('');
+  wrap.querySelectorAll('.nav-avatar-choice').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      setUserAvatar(btn.dataset.id);
+      updateNavGoogleUI();
+    });
+  });
+}
+
+
 function updateGoogleSignInUI() {
   const btn = document.getElementById('google-signin-btn');
   const note = document.getElementById('google-signed-in-note');
@@ -678,17 +760,18 @@ function updateNavGoogleUI() {
   const signinBtn = document.getElementById('nav-signin-google-btn');
   const loginBtn = document.getElementById('nav-login-google-btn');
   const avatarWrap = document.getElementById('nav-google-avatar-wrap');
-  const avatarImg = document.getElementById('nav-google-avatar');
+  const avatarEl = document.getElementById('nav-google-avatar');
   const avatarEmail = document.getElementById('nav-google-avatar-email');
 
   if (googleUser) {
     signinBtn.style.display = 'none';
     loginBtn.style.display = 'none';
     avatarWrap.style.display = 'block';
-    const fallbackAvatar = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"%3E%3Ccircle cx="12" cy="12" r="12" fill="%23C97B5C"/%3E%3C/svg%3E';
-    avatarImg.onerror = () => { avatarImg.onerror = null; avatarImg.src = fallbackAvatar; };
-    avatarImg.src = googleUser.avatar_url || fallbackAvatar;
+    const avatar = getUserAvatar();
+    avatarEl.style.background = avatar.bg;
+    avatarEl.textContent = avatar.emoji;
     avatarEmail.textContent = googleUser.email;
+    renderAvatarPicker();
   } else {
     signinBtn.style.display = 'inline-block';
     loginBtn.style.display = 'inline-block';
