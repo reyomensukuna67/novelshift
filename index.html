@@ -68,29 +68,13 @@
       <div style="font-size:0.66rem;color:var(--brown-soft);text-align:left;margin-top:0.4rem;padding-top:0.4rem;border-top:1px solid var(--tan,#e8d9c5)">If your payment doesn't reach us, the wrong amount goes through, or the booking doesn't get created properly, we'll refund you and email you about it.</div>
     </div>
 
-    <button type="button" id="google-signin-btn" style="width:100%;display:flex;align-items:center;justify-content:center;gap:0.5rem;padding:0.55rem;border-radius:8px;border:1px solid var(--peach-line);background:var(--white);color:var(--espresso);font-weight:600;font-size:0.82rem;cursor:pointer;margin-bottom:0.7rem">
-      <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.4 6 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.4 6 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.3 0 10.1-2 13.7-5.4l-6.3-5.3C29.4 35 26.8 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.2 5.6l6.3 5.3C40.9 36.5 44 30.9 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
-      Sign in with Google
-    </button>
-    <div id="google-signed-in-note" style="display:none;font-size:0.74rem;color:var(--brown);background:var(--cream,#faf3ea);border-radius:8px;padding:0.5rem 0.7rem;margin-bottom:0.7rem;text-align:left">
-      Signed in as <strong id="google-email-display"></strong> · <a href="#" id="google-signout-link" style="color:#5B9BD5;text-decoration:underline">use a different email</a>
-    </div>
-    <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.7rem;color:var(--brown-soft);font-size:0.72rem">
-      <div style="flex:1;height:1px;background:var(--peach-line)"></div>OR<div style="flex:1;height:1px;background:var(--peach-line)"></div>
-    </div>
-
     <div style="text-align:left">
       <label style="display:block;font-size:0.75rem;color:var(--brown);margin-bottom:0.3rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px">Your name</label>
       <input id="cod-name-input" type="text" placeholder="Full name" maxlength="60">
       <label style="display:block;font-size:0.75rem;color:var(--brown);margin-bottom:0.3rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px">Your class</label>
       <input id="cod-class-input" type="text" placeholder="e.g. 10th B" maxlength="30" style="margin-bottom:0.9rem">
-      <label style="display:block;font-size:0.75rem;color:var(--brown);margin-bottom:0.3rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px" id="cod-email-label">Your email</label>
-      <input id="cod-email-input" type="email" placeholder="you@example.com">
-      <label style="display:block;font-size:0.75rem;color:var(--brown);margin-bottom:0.3rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px" id="cod-password-label">Set a password</label>
-      <input id="cod-password-input" type="password" placeholder="Choose a password" style="margin-bottom:0.3rem">
-      <div class="pw-strength"><div class="pw-strength-bar" id="pw-strength-bar"></div></div>
-      <span class="pw-strength-label" id="pw-strength-label"></span>
-      <div style="font-size:0.72rem;color:var(--brown-soft);margin-bottom:0.4rem" id="cod-password-hint">Save this — you'll need your email + this password to check your booking status later. It can't be recovered if lost.</div>
+      <label style="display:block;font-size:0.75rem;color:var(--brown);margin-bottom:0.3rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px">Your phone number</label>
+      <input id="cod-phone-input" type="tel" placeholder="e.g. 98765 43210" maxlength="15" style="margin-bottom:0.9rem">
     </div>
     <label style="display:flex;align-items:flex-start;gap:0.5rem;font-size:0.76rem;color:var(--brown);margin:0.8rem 0 0.8rem;cursor:pointer;text-align:left">
       <input type="checkbox" id="terms-checkbox" style="margin-top:0.2rem">
@@ -98,7 +82,7 @@
     </label>
     <div id="cod-error" style="color:var(--red);font-size:0.78rem;min-height:1.1rem;margin-bottom:0.4rem"></div>
     <div style="display:flex;gap:0.6rem;justify-content:center">
-      <button class="btn-accent" id="cod-confirm-btn">Confirm booking</button>
+      <button class="btn-accent" id="cod-confirm-btn">Make it yours</button>
       <button class="btn-ghost" id="cod-cancel-btn">Cancel</button>
     </div>
   </div>
@@ -210,7 +194,7 @@
         <span class="price-save" id="price-save">Save 33%</span>
       </div>
       <div class="buy-btns">
-        <button class="btn-buy" id="add-to-cart-btn">Book now — Cash on Delivery</button>
+        <button class="btn-buy" id="add-to-cart-btn">Make it yours</button>
         <a class="btn-wish" href="#wishlist" id="goto-wishlist-btn" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none">Suggest a book →</a>
       </div>
       <div style="font-size:0.78rem;color:var(--brown-soft);margin-top:0.6rem">No online payment. Pay cash when the book is delivered. Bookings can't be cancelled once placed.</div>
@@ -326,8 +310,6 @@
   <div class="section-label">Already booked?</div>
   <div class="section-title">Check your booking status</div>
   <div class="status-check-box">
-    <div class="admin-row"><label>Email</label><input type="email" id="status-email-input" placeholder="you@example.com"></div>
-    <div class="admin-row"><label>Password</label><input type="password" id="status-password-input" placeholder="Your booking password"></div>
     <div id="status-check-error" style="color:var(--red);font-size:0.78rem;min-height:1.1rem;margin-bottom:0.2rem"></div>
     <button class="btn-accent" id="status-check-btn">Check status</button>
     <div id="status-check-results" style="margin-top:1.2rem"></div>
@@ -858,39 +840,11 @@ document.getElementById('rev-identity-edit-btn').addEventListener('click', () =>
 });
 
 function updateGoogleSignInUI() {
-  const btn = document.getElementById('google-signin-btn');
-  const note = document.getElementById('google-signed-in-note');
-  const emailInput = document.getElementById('cod-email-input');
-  const emailLabel = document.getElementById('cod-email-label');
-  const pwInput = document.getElementById('cod-password-input');
-  const pwLabel = document.getElementById('cod-password-label');
-  const pwHint = document.getElementById('cod-password-hint');
-  const pwBar = document.querySelector('.pw-strength');
-
   if (googleUser) {
-    btn.style.display = 'none';
-    note.style.display = 'block';
-    document.getElementById('google-email-display').textContent = googleUser.email;
-    emailInput.value = googleUser.email;
-    emailInput.disabled = true;
-    emailLabel.textContent = 'Your email (from Google)';
-    if (!document.getElementById('cod-name-input').value && googleUser.name) {
-      document.getElementById('cod-name-input').value = googleUser.name;
+    const nameInput = document.getElementById('cod-name-input');
+    if (nameInput && !nameInput.value && googleUser.name) {
+      nameInput.value = googleUser.name;
     }
-    // Password becomes optional when signed in via Google — the Google
-    // session itself proves identity, so we don't force a second password.
-    pwInput.value = '';
-    pwInput.placeholder = 'Optional — only needed for manual status lookup';
-    pwLabel.textContent = 'Set a password (optional)';
-    pwHint.textContent = 'Since you signed in with Google, this is optional. Set one only if you also want to check your booking status without Google later.';
-  } else {
-    btn.style.display = 'flex';
-    note.style.display = 'none';
-    emailInput.disabled = false;
-    emailLabel.textContent = 'Your email';
-    pwInput.placeholder = 'Choose a password';
-    pwLabel.textContent = 'Set a password';
-    pwHint.textContent = "Save this — you'll need your email + this password to check your booking status later. It can't be recovered if lost.";
   }
 }
 
@@ -983,26 +937,6 @@ document.getElementById('login-gate-google-btn').addEventListener('click', async
   });
 });
 
-document.getElementById('google-signin-btn').addEventListener('click', async () => {
-  await sb.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: window.location.origin + window.location.pathname,
-      scopes: 'email profile',
-      queryParams: { prompt: 'select_account' }
-    }
-  });
-});
-
-document.getElementById('google-signout-link').addEventListener('click', async (e) => {
-  e.preventDefault();
-  await sb.auth.signOut();
-  googleUser = null;
-  document.getElementById('cod-email-input').value = '';
-  updateGoogleSignInUI();
-  updateNavGoogleUI();
-});
-
 // Nav bar "Sign in with Google" — new customers, goes straight to booking.
 document.getElementById('nav-signin-google-btn').addEventListener('click', async () => {
   sessionStorage.setItem('novelshift-google-intent', 'book');
@@ -1033,12 +967,17 @@ document.getElementById('nav-login-google-btn').addEventListener('click', async 
 async function runGoogleStatusCheck() {
   const { data } = await sb.auth.getSession();
   const token = data?.session?.access_token;
-  if (!token) return;
+  const errEl = document.getElementById('status-check-error');
+  const resultsEl = document.getElementById('status-check-results');
+  const btn = document.getElementById('status-check-btn');
+  if (!token) {
+    if (errEl) errEl.textContent = 'You need to be signed in with Google to check your status.';
+    return;
+  }
 
   window.location.hash = '#check-status';
-  const resultsEl = document.getElementById('status-check-results');
-  const errEl = document.getElementById('status-check-error');
   if (errEl) errEl.textContent = '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Checking...'; btn.classList.add('btn-loading'); }
   if (resultsEl) resultsEl.innerHTML = '<div style="color:var(--brown-soft);font-size:0.85rem">Checking your bookings…</div>';
 
   try {
@@ -1057,6 +996,8 @@ async function runGoogleStatusCheck() {
   } catch (e) {
     console.error('Google status check error:', e);
     if (errEl) errEl.textContent = 'Network error — please try again.';
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Check status'; btn.classList.remove('btn-loading'); }
   }
 }
 
@@ -1084,7 +1025,7 @@ function updatePaymentMethodUI() {
 function openBookingModal() {
   document.getElementById('cod-name-input').value = '';
   document.getElementById('cod-class-input').value = '';
-  document.getElementById('cod-password-input').value = '';
+  document.getElementById('cod-phone-input').value = '';
   document.getElementById('upi-txn-input').value = '';
   document.getElementById('terms-checkbox').checked = false;
   document.getElementById('cod-error').textContent = '';
@@ -1107,29 +1048,20 @@ document.getElementById('pay-method-upi-btn').addEventListener('click', () => { 
 document.getElementById('cod-confirm-btn').addEventListener('click', async () => {
   const name = document.getElementById('cod-name-input').value.trim();
   const className = document.getElementById('cod-class-input').value.trim();
-  const email = document.getElementById('cod-email-input').value.trim();
-  const password = document.getElementById('cod-password-input').value;
+  const phone = document.getElementById('cod-phone-input').value.trim();
   const termsAgreed = document.getElementById('terms-checkbox').checked;
   const upiTxnId = document.getElementById('upi-txn-input').value.trim();
   const errEl = document.getElementById('cod-error');
   errEl.textContent = '';
 
+  if (!googleUser) { errEl.textContent = 'Please sign in with Google to continue.'; return; }
   if (!name || !className) { errEl.textContent = 'Please enter both your name and your class.'; return; }
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { errEl.textContent = 'Please enter a valid email.'; return; }
-  let effectivePassword = password;
-  if (googleUser) {
-    // Password is optional for Google sign-ins. If left blank, generate a
-    // random one behind the scenes so create-booking still has something
-    // to hash — the buyer signed in with Google, so they don't need it,
-    // but the backend's password_hash column still expects a value.
-    if (!password) {
-      effectivePassword = crypto.randomUUID();
-    } else if (password.length < 4) {
-      errEl.textContent = 'If you set a password, it must be at least 4 characters.'; return;
-    }
-  } else {
-    if (!password || password.length < 4) { errEl.textContent = 'Password must be at least 4 characters.'; return; }
-  }
+  if (!phone || phone.replace(/\D/g,'').length < 8) { errEl.textContent = 'Please enter a valid phone number.'; return; }
+  // Identity is proven by the (forced) Google session, so email comes from
+  // there and a random password is generated behind the scenes just to
+  // satisfy the backend's password_hash column — the buyer never sees it.
+  const email = googleUser.email;
+  const effectivePassword = crypto.randomUUID();
   if (selectedPaymentMethod === 'upi' && (!upiTxnId || upiTxnId.length < 6)) { errEl.textContent = 'Please enter your UPI transaction ID after paying.'; return; }
   if (!termsAgreed) { errEl.textContent = 'Please accept the Terms and Service to continue.'; return; }
 
@@ -1151,6 +1083,7 @@ document.getElementById('cod-confirm-btn').addEventListener('click', async () =>
       body: JSON.stringify({
         buyer_name: name.slice(0,60),
         buyer_class: className.slice(0,30),
+        buyer_phone: phone.slice(0,15),
         book_title: bookTitle,
         price: bookPrice,
         email,
@@ -1165,13 +1098,13 @@ document.getElementById('cod-confirm-btn').addEventListener('click', async () =>
   } catch (e) {
     console.error('create-booking error:', e);
     errEl.textContent = 'Network error — please try again.';
-    btn.disabled = false; btn.textContent = 'Confirm booking'; btn.classList.remove('btn-loading');
+    btn.disabled = false; btn.textContent = 'Make it yours'; btn.classList.remove('btn-loading');
     return;
   }
 
   if (!result || !result.ok) {
     errEl.textContent = (result && result.error) || 'Something went wrong. Please try again.';
-    btn.disabled = false; btn.textContent = 'Confirm booking'; btn.classList.remove('btn-loading');
+    btn.disabled = false; btn.textContent = 'Make it yours'; btn.classList.remove('btn-loading');
     return;
   }
 
@@ -1179,8 +1112,8 @@ document.getElementById('cod-confirm-btn').addEventListener('click', async () =>
   saveCart();
   renderCart();
   closeBookingModal();
-  btn.disabled = false; btn.textContent = 'Confirm booking'; btn.classList.remove('btn-loading');
-  showToast('Booked! Pay cash on delivery.', 'success');
+  btn.disabled = false; btn.textContent = 'Make it yours'; btn.classList.remove('btn-loading');
+  showToast('Booked!', 'success');
 });
 
 // ============ BOOKING STATUS CHECK ============
@@ -1202,39 +1135,7 @@ function renderStatusResults(orders) {
 }
 
 document.getElementById('status-check-btn').addEventListener('click', async () => {
-  const email = document.getElementById('status-email-input').value.trim();
-  const password = document.getElementById('status-password-input').value;
-  const errEl = document.getElementById('status-check-error');
-  const resultsEl = document.getElementById('status-check-results');
-  errEl.textContent = '';
-  resultsEl.innerHTML = '';
-
-  if (!email || !password) { errEl.textContent = 'Enter both your email and password.'; return; }
-
-  const btn = document.getElementById('status-check-btn');
-  btn.disabled = true; btn.textContent = 'Checking...'; btn.classList.add('btn-loading');
-
-  try {
-    const res = await fetch(`${FUNCTIONS_URL}/check-booking-status`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SUPABASE_KEY}`,
-        'apikey': SUPABASE_KEY
-      },
-      body: JSON.stringify({ email, password })
-    });
-    const result = await res.json();
-    if (!result.ok) {
-      errEl.textContent = result.error || 'Invalid email or password.';
-      return;
-    }
-    renderStatusResults(result.orders);
-  } catch (e) {
-    errEl.textContent = 'Network error — please try again.';
-  } finally {
-    btn.disabled = false; btn.textContent = 'Check status'; btn.classList.remove('btn-loading');
-  }
+  await runGoogleStatusCheck();
 });
 
 document.getElementById('nav-cart-btn').addEventListener('click', (e) => {
@@ -1478,52 +1379,6 @@ document.body.classList.add('page-ready');
     });
   }, { threshold: 0.4, rootMargin: '-70px 0px -50% 0px' });
   sections.forEach(s => io.observe(s));
-})();
-
-// Password strength meter (COD booking password)
-(function(){
-  const input = document.getElementById('cod-password-input');
-  const bar = document.getElementById('pw-strength-bar');
-  const label = document.getElementById('pw-strength-label');
-  if (!input || !bar) return;
-  input.addEventListener('input', () => {
-    const v = input.value;
-    let score = 0;
-    if (v.length >= 4) score++;
-    if (v.length >= 8) score++;
-    if (/[A-Z]/.test(v) && /[a-z]/.test(v)) score++;
-    if (/[0-9]/.test(v)) score++;
-    if (/[^A-Za-z0-9]/.test(v)) score++;
-    const levels = [
-      { w: '0%', c: 'transparent', l: '' },
-      { w: '20%', c: 'var(--red)', l: 'Too short' },
-      { w: '40%', c: 'var(--red)', l: 'Weak' },
-      { w: '60%', c: '#D98A2C', l: 'Okay' },
-      { w: '80%', c: 'var(--peach-deep)', l: 'Good' },
-      { w: '100%', c: 'var(--green)', l: 'Strong' }
-    ];
-    const lvl = v.length === 0 ? levels[0] : levels[Math.min(score + 1, 5)];
-    bar.style.width = lvl.w;
-    bar.style.background = lvl.c;
-    label.textContent = v.length ? lvl.l : '';
-  });
-})();
-
-// Inline email validation feedback (COD modal + status check)
-(function(){
-  function wireEmailField(id) {
-    const input = document.getElementById(id);
-    if (!input) return;
-    input.addEventListener('blur', () => {
-      if (!input.value) { input.classList.remove('field-ok', 'field-bad'); return; }
-      const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value.trim());
-      input.classList.toggle('field-ok', valid);
-      input.classList.toggle('field-bad', !valid);
-    });
-    input.addEventListener('input', () => input.classList.remove('field-ok', 'field-bad'));
-  }
-  wireEmailField('cod-email-input');
-  wireEmailField('status-email-input');
 })();
 </script>
 </body>
