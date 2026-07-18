@@ -413,46 +413,6 @@ async function loadWishlistForAdmin() {
     });
   });
 }
-
-// TEMP: floating download button — safe to delete this whole block
-(function(){
-  const btn = document.createElement('button');
-  btn.id = 'temp-download-btn';
-  btn.textContent = '⬇ Download Files';
-  btn.style.cssText = `
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 9999;
-    background: #C97B5C;
-    color: #fff;
-    border: none;
-    padding: 12px 18px;
-    border-radius: 999px;
-    font-family: inherit;
-    font-weight: 600;
-    font-size: 14px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.2);
-    cursor: pointer;
-  `;
-  btn.addEventListener('mouseenter', () => btn.style.background = '#E8A87C');
-  btn.addEventListener('mouseleave', () => btn.style.background = '#C97B5C');
-  btn.addEventListener('click', () => {
-    const files = [
-      { href: 'assets/temp/Charlie_and_the_Chocolate_Factory_Review.pdf', name: 'Charlie_and_the_Chocolate_Factory_Review.pdf' },
-      { href: 'assets/temp/Book_Review_Script.txt', name: 'Book_Review_Script.txt' }
-    ];
-    files.forEach(f => {
-      const a = document.createElement('a');
-      a.href = f.href;
-      a.download = f.name;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    });
-  });
-  document.body.appendChild(btn);
-})();
 </script>
 </body>
 </html>
