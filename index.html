@@ -96,10 +96,10 @@
     <button class="btn-sm" id="nav-login-google-btn" title="Already booked? Log in with Google to check status">Login</button>
     <div id="nav-google-avatar-wrap" style="display:none;position:relative">
       <div id="nav-google-avatar" title="Choose your avatar" style="width:34px;height:34px;border-radius:50%;cursor:pointer;border:1px solid var(--peach-line);display:flex;align-items:center;justify-content:center;font-size:1.05rem;flex-shrink:0"></div>
-      <div id="nav-google-avatar-menu" style="display:none;position:absolute;top:calc(100% + 0.6rem);right:0;width:220px;background:var(--white);border:1px solid var(--peach-line);border-radius:12px;padding:0.7rem;box-shadow:0 12px 30px var(--shadow);z-index:60;text-align:left">
+      <div id="nav-google-avatar-menu" style="display:none;position:absolute;top:calc(100% + 0.6rem);right:0;width:260px;max-height:70vh;overflow-y:auto;background:var(--white);border:1px solid var(--peach-line);border-radius:12px;padding:0.7rem;box-shadow:0 12px 30px var(--shadow);z-index:60;text-align:left">
         <div id="nav-google-avatar-email" style="font-size:0.78rem;color:var(--brown);margin-bottom:0.5rem;word-break:break-all"></div>
         <div style="font-size:0.7rem;font-weight:600;color:var(--brown-soft);text-transform:uppercase;letter-spacing:0.03em;margin-bottom:0.4rem">Choose your avatar</div>
-        <div id="nav-avatar-picker" style="display:grid;grid-template-columns:repeat(5,1fr);gap:0.4rem;margin-bottom:0.6rem"></div>
+        <div id="nav-avatar-picker"></div>
         <button id="nav-google-signout-btn" style="width:100%;background:none;border:1px solid var(--peach-line);border-radius:8px;padding:0.4rem 0;font-size:0.78rem;color:var(--brown-soft);cursor:pointer">Sign out</button>
       </div>
     </div>
@@ -444,7 +444,7 @@ function renderReviews(reviews) {
     return `<div class="review-card">
       <div class="rev-top">
         <div class="rev-author-row">
-          <div class="rev-avatar" style="background:${avatar.bg};font-size:1.1rem">${avatar.emoji}</div>
+          <div class="rev-avatar" style="background:${avatarBackground(avatar)};font-size:1.1rem">${avatar.emoji}</div>
           <div>
             <div class="rev-name">${escHtml(displayName)}</div>
             <div class="rev-date">${escHtml(date)}</div>
@@ -632,23 +632,69 @@ let selectedPaymentMethod = 'cod';
 let googleUser = null; // { email, name } when signed in via Google, else null
 
 // ============ AVATARS ============
-// A small fixed set of book-themed avatars. Each user (by email) can pick
-// one from the nav menu; it's saved locally and attached to reviews they
-// post. Reviews without a saved avatar (older reviews, or ones missing the
-// `avatar` column) get a stable pick derived from the review itself, so
-// the same review always shows the same avatar rather than reshuffling.
-const AVATAR_SET = [
-  { id: 'fox',    emoji: '🦊', bg: '#D98A5F' },
-  { id: 'cat',    emoji: '🐱', bg: '#C97B5C' },
-  { id: 'owl',    emoji: '🦉', bg: '#8C6B4F' },
-  { id: 'moon',   emoji: '🌙', bg: '#6B7A8F' },
-  { id: 'star',   emoji: '⭐', bg: '#D9A45F' },
-  { id: 'clover', emoji: '🍀', bg: '#6E9A6A' },
-  { id: 'palette',emoji: '🎨', bg: '#B15C6E' },
-  { id: 'flame',  emoji: '🔥', bg: '#C9603C' },
-  { id: 'wave',   emoji: '🌊', bg: '#5B8FA3' },
-  { id: 'leaf',   emoji: '🍁', bg: '#B96B3D' }
+// A large set of book-themed avatars, grouped into categories. Each user
+// (by email) can pick one from the nav menu; it's saved locally and
+// attached to reviews they post. Reviews without a saved avatar (older
+// reviews, or ones missing the `avatar` column) get a stable pick derived
+// from the review itself, so the same review always shows the same avatar
+// rather than reshuffling.
+const AVATAR_CATEGORIES = [
+  {
+    label: 'Creatures',
+    avatars: [
+      { id: 'fox',    emoji: '🦊', grad: ['#E08A52', '#C4602F'] },
+      { id: 'cat',    emoji: '🐱', grad: ['#D48A6B', '#A85A3E'] },
+      { id: 'owl',    emoji: '🦉', grad: ['#9A7B54', '#6E5335'] },
+      { id: 'wolf',   emoji: '🐺', grad: ['#7D7D8A', '#4E4E5C'] },
+      { id: 'rabbit', emoji: '🐰', grad: ['#D9B2A8', '#B87F71'] },
+      { id: 'hedgehog',emoji:'🦔', grad: ['#B08968', '#7A5439'] },
+      { id: 'raccoon',emoji: '🦝', grad: ['#8B8378', '#5A5348'] },
+      { id: 'dragon', emoji: '🐉', grad: ['#5E9270', '#3B6B4C'] },
+      { id: 'butterfly',emoji:'🦋', grad: ['#A0729E', '#6E4A75'] },
+      { id: 'dove',   emoji: '🕊️', grad: ['#A9BFC7', '#7A97A2'] }
+    ]
+  },
+  {
+    label: 'Sky & Nature',
+    avatars: [
+      { id: 'moon',    emoji: '🌙', grad: ['#7B8AA0', '#4E5A73'] },
+      { id: 'star',    emoji: '⭐', grad: ['#E0B25F', '#C48A2E'] },
+      { id: 'sun',     emoji: '☀️', grad: ['#E8B84B', '#D68F2A'] },
+      { id: 'cloud',   emoji: '☁️', grad: ['#B7C6CF', '#8FA3AE'] },
+      { id: 'rainbow', emoji: '🌈', grad: ['#C97B8A', '#5B9BD5'] },
+      { id: 'wave',    emoji: '🌊', grad: ['#5B93A3', '#356273'] },
+      { id: 'leaf',    emoji: '🍁', grad: ['#C97B3D', '#9A5222'] },
+      { id: 'clover',  emoji: '🍀', grad: ['#7CA36E', '#4F7A45'] },
+      { id: 'mountain',emoji: '⛰️', grad: ['#8C8272', '#5D5648'] },
+      { id: 'flower',  emoji: '🌸', grad: ['#D897AA', '#B4607A'] }
+    ]
+  },
+  {
+    label: 'Reading & Cozy',
+    avatars: [
+      { id: 'book',    emoji: '📖', grad: ['#C97B5C', '#9C5638'] },
+      { id: 'candle',  emoji: '🕯️', grad: ['#D9A45F', '#A8722F'] },
+      { id: 'tea',     emoji: '🍵', grad: ['#7FA083', '#537A57'] },
+      { id: 'coffee',  emoji: '☕', grad: ['#8A5A3C', '#5C3A24'] },
+      { id: 'glasses', emoji: '👓', grad: ['#6E6459', '#453D34'] },
+      { id: 'quill',   emoji: '🪶', grad: ['#A5978A', '#6E6155'] },
+      { id: 'lantern', emoji: '🏮', grad: ['#C9603C', '#943F22'] },
+      { id: 'key',     emoji: '🗝️', grad: ['#B08A45', '#7C5D28'] }
+    ]
+  },
+  {
+    label: 'Mood & Color',
+    avatars: [
+      { id: 'palette', emoji: '🎨', grad: ['#B15C6E', '#7C3A4A'] },
+      { id: 'flame',   emoji: '🔥', grad: ['#D9683F', '#A8441F'] },
+      { id: 'gem',     emoji: '💎', grad: ['#6EA0A8', '#3E6E76'] },
+      { id: 'sparkle', emoji: '✨', grad: ['#D8B25F', '#A8842E'] },
+      { id: 'compass', emoji: '🧭', grad: ['#8C7355', '#5D4A32'] },
+      { id: 'balloon', emoji: '🎈', grad: ['#C25C7A', '#8C3B54'] }
+    ]
+  }
 ];
+const AVATAR_SET = AVATAR_CATEGORIES.flatMap(c => c.avatars);
 
 function hashKeyToAvatar(key) {
   let h = 0;
@@ -659,6 +705,10 @@ function hashKeyToAvatar(key) {
 
 function getAvatarById(id) {
   return AVATAR_SET.find(a => a.id === id) || null;
+}
+
+function avatarBackground(avatar) {
+  return `linear-gradient(135deg, ${avatar.grad[0]}, ${avatar.grad[1]})`;
 }
 
 function avatarStorageKey(email) {
@@ -677,18 +727,24 @@ function setUserAvatar(id) {
 }
 
 function avatarCircleHTML(avatar, sizePx) {
-  return `<div style="width:${sizePx}px;height:${sizePx}px;border-radius:50%;background:${avatar.bg};display:flex;align-items:center;justify-content:center;font-size:${Math.round(sizePx*0.55)}px;flex-shrink:0">${avatar.emoji}</div>`;
+  return `<div style="width:${sizePx}px;height:${sizePx}px;border-radius:50%;background:${avatarBackground(avatar)};box-shadow:inset 0 0 0 1px rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:center;font-size:${Math.round(sizePx*0.55)}px;flex-shrink:0">${avatar.emoji}</div>`;
 }
 
 function renderAvatarPicker() {
   const wrap = document.getElementById('nav-avatar-picker');
   if (!wrap) return;
   const current = getUserAvatar();
-  wrap.innerHTML = AVATAR_SET.map(a => `
-    <button class="nav-avatar-choice" data-id="${a.id}" title="${a.id}"
-      style="width:34px;height:34px;border-radius:50%;background:${a.bg};display:flex;align-items:center;justify-content:center;font-size:1rem;border:2px solid ${current && current.id===a.id ? 'var(--brown)' : 'transparent'};cursor:pointer;padding:0">
-      ${a.emoji}
-    </button>`).join('');
+  wrap.innerHTML = AVATAR_CATEGORIES.map(cat => `
+    <div style="margin-bottom:0.55rem">
+      <div style="font-size:0.65rem;font-weight:600;color:var(--brown-soft);text-transform:uppercase;letter-spacing:0.03em;margin-bottom:0.35rem">${escHtml(cat.label)}</div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:0.35rem">
+        ${cat.avatars.map(a => `
+          <button class="nav-avatar-choice" data-id="${a.id}" title="${a.id}"
+            style="width:32px;height:32px;border-radius:50%;background:${avatarBackground(a)};display:flex;align-items:center;justify-content:center;font-size:0.95rem;border:2px solid ${current && current.id===a.id ? 'var(--brown)' : 'transparent'};cursor:pointer;padding:0">
+            ${a.emoji}
+          </button>`).join('')}
+      </div>
+    </div>`).join('');
   wrap.querySelectorAll('.nav-avatar-choice').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -768,7 +824,7 @@ function updateNavGoogleUI() {
     loginBtn.style.display = 'none';
     avatarWrap.style.display = 'block';
     const avatar = getUserAvatar();
-    avatarEl.style.background = avatar.bg;
+    avatarEl.style.background = avatarBackground(avatar);
     avatarEl.textContent = avatar.emoji;
     avatarEmail.textContent = googleUser.email;
     renderAvatarPicker();
