@@ -110,6 +110,11 @@
     <h3>💌 Wish List — price negotiation requests</h3>
     <div id="admin-wishlist-list"><div class="empty-note">Loading wish list...</div></div>
   </div>
+
+  <div class="admin-panel">
+    <h3>✍️ Creator applications — "Post your own book"</h3>
+    <div id="admin-creators-list"><div class="empty-note">Loading creator applications...</div></div>
+  </div>
 </div>
 
 <script>
@@ -183,6 +188,7 @@ function showAdmin() {
   loadOrders();
   loadReviewsForAdmin();
   loadWishlistForAdmin();
+  loadCreatorApplicationsForAdmin();
 }
 // Note: orders now load via a password-gated edge function, and that
 // password is kept in memory only (never persisted) — so unlike before,
@@ -410,6 +416,58 @@ async function loadWishlistForAdmin() {
       }
       showToast('Removed.', 'success');
       loadWishlistForAdmin();
+    });
+  });
+}
+
+// ============ CREATOR APPLICATIONS — "Post your own book" ============
+async function loadCreatorApplicationsForAdmin() {
+  const list = document.getElementById('admin-creators-list');
+  const { data, error } = await sb.from('creator_applications').select('*').order('created_at', { ascending: false });
+  if (error) { list.innerHTML = `<div class="empty-note">Could not load creator applications.</div>`; return; }
+  if (!data || !data.length) { list.innerHTML = '<div class="empty-note">No creator applications yet.</div>'; return; }
+  list.innerHTML = data.map(c => {
+    const date = new Date(c.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+    const waLink = 'https://wa.me/' + c.phone.replace(/[^0-9]/g, '');
+    const status = c.status || 'pending';
+    return `<div class="review-admin-card" data-id="${c.id}">
+      <div class="order-top">
+        <div>
+          <div class="order-name">${escHtml(c.name)}</div>
+          <div class="order-meta">${escHtml(date)}</div>
+        </div>
+        <div class="order-status ${status === 'contacted' ? '' : 'status-pending'}" style="${status === 'contacted' ? 'background:rgba(90,154,90,0.15);color:#3F7A3F' : ''}">${escHtml(status)}</div>
+      </div>
+      <div style="font-size:0.85rem;color:var(--brown);margin-top:0.6rem">
+        📧 <a href="mailto:${escHtml(c.email)}" style="color:var(--peach-deep)">${escHtml(c.email)}</a><br>
+        📱 <a href="${waLink}" target="_blank" rel="noopener" style="color:var(--peach-deep)">${escHtml(c.phone)}</a>
+      </div>
+      <div class="order-actions">
+        ${status !== 'contacted' ? `<button class="btn-del-review-admin btn-mark-contacted" data-id="${c.id}">Mark contacted</button>` : ''}
+        <button class="btn-del-review-admin" data-id="${c.id}" data-del="1">Remove</button>
+      </div>
+    </div>`;
+  }).join('');
+  list.querySelectorAll('.btn-mark-contacted').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      btn.disabled = true; btn.textContent = 'Updating...';
+      const { error } = await sb.from('creator_applications').update({ status: 'contacted' }).eq('id', btn.dataset.id);
+      if (error) { showToast('Could not update — check RLS policy allows update.', 'error'); btn.disabled = false; btn.textContent = 'Mark contacted'; return; }
+      loadCreatorApplicationsForAdmin();
+    });
+  });
+  list.querySelectorAll('[data-del="1"]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('Remove this creator application?')) return;
+      btn.disabled = true; btn.textContent = 'Removing...';
+      const { error, data: delData } = await sb.from('creator_applications').delete().eq('id', btn.dataset.id).select();
+      if (error || !delData || !delData.length) {
+        showToast('Delete blocked — check RLS policy allows delete.', 'error');
+        btn.disabled = false; btn.textContent = 'Remove';
+        return;
+      }
+      showToast('Removed.', 'success');
+      loadCreatorApplicationsForAdmin();
     });
   });
 }
