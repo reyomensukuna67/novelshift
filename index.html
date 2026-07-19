@@ -40,7 +40,7 @@
   <div class="modal-box">
     <div style="font-size:1.6rem;margin-bottom:0.6rem">✍️</div>
     <div style="color:var(--espresso);font-weight:700;margin-bottom:0.4rem">Pick a username</div>
-    <div style="color:var(--brown);font-size:0.8rem;margin-bottom:1rem">This is what shows on your reviews instead of your email — you can change it later from your account menu.</div>
+    <div style="color:var(--brown);font-size:0.8rem;margin-bottom:1rem">This is what shows on your reviews instead of your email. Choose carefully — <strong>you can only set this once and can't change it later.</strong> Keep it appropriate.</div>
     <input type="text" id="username-modal-input" placeholder="e.g. bookish_priya" maxlength="24">
     <div style="color:#b3543f;font-size:0.75rem;min-height:1.1rem;margin:-0.2rem 0 0.6rem" id="username-modal-error"></div>
     <button type="button" class="btn" id="username-modal-save-btn" style="width:100%">Save username</button>
@@ -144,7 +144,6 @@
       <div id="nav-google-avatar-menu" style="display:none;position:absolute;top:calc(100% + 0.6rem);right:0;width:260px;max-height:70vh;overflow-y:auto;background:var(--white);border:1px solid var(--peach-line);border-radius:12px;padding:0.7rem;box-shadow:0 12px 30px var(--shadow);z-index:60;text-align:left">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:0.4rem;margin-bottom:0.15rem">
           <div id="nav-google-username" style="font-size:0.88rem;font-weight:700;color:var(--espresso)"></div>
-          <button id="nav-edit-username-btn" type="button" style="background:none;border:none;color:var(--brown-soft);font-size:0.7rem;text-decoration:underline;cursor:pointer;padding:0">Edit</button>
         </div>
         <div id="nav-google-avatar-email" style="font-size:0.72rem;color:var(--brown-soft);margin-bottom:0.5rem;word-break:break-all"></div>
         <div style="font-size:0.7rem;font-weight:600;color:var(--brown-soft);text-transform:uppercase;letter-spacing:0.03em;margin-bottom:0.4rem">Choose your avatar</div>
@@ -272,7 +271,6 @@
       <label>Posting as</label>
       <div style="display:flex;align-items:center;gap:0.5rem;color:var(--espresso);font-weight:600;font-size:0.9rem">
         <span id="rev-identity-name"></span>
-        <button type="button" id="rev-identity-edit-btn" style="background:none;border:none;color:var(--brown-soft);font-size:0.75rem;text-decoration:underline;cursor:pointer;padding:0">change username</button>
       </div>
     </div>
     <div class="form-row">
@@ -825,6 +823,8 @@ function avatarStorageKey(email) {
 // ============ USERNAME ============
 // A per-account display name, separate from the Google name/email, shown
 // on the nav menu and used automatically as the review author name.
+// Can only be set ONCE per account — there's no edit option after that,
+// so nobody can keep relabeling themselves with something offensive.
 function usernameStorageKey(email) {
   return `novelshift-username:${(email || '').toLowerCase()}`;
 }
@@ -837,6 +837,25 @@ function getUsername() {
 function setUsername(name) {
   if (!googleUser) return;
   localStorage.setItem(usernameStorageKey(googleUser.email), name);
+}
+
+// A basic blocklist to catch common profanity/slurs and obvious dodges
+// (leetspeak substitutions, repeated/separated letters, admin impersonation).
+// Not foolproof, but stops the obvious stuff.
+const USERNAME_BLOCKLIST = [
+  'fuck','shit','bitch','asshole','bastard','dick','pussy','cunt','whore','slut',
+  'nigger','nigga','faggot','fag','retard','rape','nazi','hitler','kill yourself','kys',
+  'admin','moderator','novelshift'
+];
+function normalizeForFilter(s) {
+  return s.toLowerCase()
+    .replace(/0/g,'o').replace(/1/g,'i').replace(/3/g,'e').replace(/4/g,'a')
+    .replace(/5/g,'s').replace(/7/g,'t').replace(/@/g,'a').replace(/\$/g,'s')
+    .replace(/[^a-z]/g,'');
+}
+function usernameContainsBlockedWord(raw) {
+  const normalized = normalizeForFilter(raw);
+  return USERNAME_BLOCKLIST.some(bad => normalized.includes(bad));
 }
 
 function openUsernameModal(prefill) {
@@ -854,19 +873,17 @@ function closeUsernameModal() {
 }
 
 document.getElementById('username-modal-save-btn').addEventListener('click', () => {
+  if (getUsername()) return; // already locked in — no re-saving
   const input = document.getElementById('username-modal-input');
   const err = document.getElementById('username-modal-error');
   const val = input.value.trim();
   if (val.length < 2) { err.textContent = 'Username needs to be at least 2 characters.'; return; }
   if (val.length > 24) { err.textContent = 'Keep it under 24 characters.'; return; }
+  if (!/^[a-zA-Z0-9_. ]+$/.test(val)) { err.textContent = 'Letters, numbers, spaces, "_" and "." only.'; return; }
+  if (usernameContainsBlockedWord(val)) { err.textContent = 'That username isn\'t allowed — please pick something else.'; return; }
   setUsername(val);
   closeUsernameModal();
   updateNavGoogleUI();
-});
-
-document.getElementById('nav-edit-username-btn').addEventListener('click', (e) => {
-  e.stopPropagation();
-  openUsernameModal(getUsername() || '');
 });
 
 function getUserAvatar() {
@@ -924,10 +941,6 @@ function updateReviewIdentityUI() {
     idRow.style.display = 'none';
   }
 }
-
-document.getElementById('rev-identity-edit-btn').addEventListener('click', () => {
-  openUsernameModal(getUsername() || '');
-});
 
 function updateGoogleSignInUI() {
   if (googleUser) {
