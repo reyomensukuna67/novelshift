@@ -28,11 +28,8 @@
   <div class="modal-box">
     <div style="font-size:1.8rem;margin-bottom:0.6rem">📚</div>
     <div style="color:var(--espresso);font-weight:700;font-size:1.05rem;margin-bottom:0.4rem">Welcome to Novelshift</div>
-    <div style="color:var(--brown);font-size:0.85rem;margin-bottom:1.1rem">Sign in with Google to continue — it's how we keep track of your bookings and reviews.</div>
-    <button type="button" id="login-gate-google-btn" style="width:100%;display:flex;align-items:center;justify-content:center;gap:0.5rem;padding:0.6rem;border-radius:8px;border:1px solid var(--peach-line);background:var(--white);color:var(--espresso);font-weight:600;font-size:0.85rem;cursor:pointer">
-      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.9 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34.5 5.1 29.5 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21 21-9.4 21-21c0-1.4-.1-2.7-.4-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.8 1.1 8 3l6-6C34.5 5.1 29.5 3 24 3c-7.6 0-14.1 4.3-17.4 10.7z"/><path fill="#4CAF50" d="M24 45c5.3 0 10.2-2 13.8-5.3l-6.4-5.4C29.3 36 26.8 37 24 37c-5.2 0-9.6-3.1-11.3-7.6l-6.6 5.1C9.8 40.6 16.3 45 24 45z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.3 5.7l6.4 5.4C40.9 36.6 45 30.9 45 24c0-1.4-.1-2.7-.4-3.5z"/></svg>
-      Continue with Google
-    </button>
+    <div style="color:var(--brown);font-size:0.85rem;margin-bottom:1.1rem">Sign in to continue — it's how we keep track of your bookings and reviews.</div>
+    <div id="login-gate-providers" style="display:flex;flex-direction:column;gap:0.5rem"></div>
   </div>
 </div>
 
@@ -1025,20 +1022,43 @@ document.getElementById('nav-google-signout-btn').addEventListener('click', asyn
 });
 
 // Check for an existing Google session as soon as the page loads, not just
+// ============ SIGN-IN PROVIDERS ============
+// All free on Supabase's free tier. Add/remove entries here to change what
+// shows on the login gate — each one just needs to be turned on in
+// Supabase Dashboard -> Authentication -> Providers with a client ID/secret
+// from that platform's own developer console.
+const AUTH_PROVIDERS = [
+  { id: 'google',   label: 'Continue with Google',   bg: '#fff',    fg: '#3c4043', border: true },
+  { id: 'github',   label: 'Continue with GitHub',    bg: '#24292f', fg: '#fff' },
+  { id: 'discord',  label: 'Continue with Discord',   bg: '#5865F2', fg: '#fff' },
+  { id: 'facebook', label: 'Continue with Facebook',  bg: '#1877F2', fg: '#fff' }
+];
+
+function renderLoginGateProviders() {
+  const wrap = document.getElementById('login-gate-providers');
+  if (!wrap) return;
+  wrap.innerHTML = AUTH_PROVIDERS.map(p => `
+    <button type="button" class="login-gate-provider-btn" data-provider="${p.id}"
+      style="width:100%;padding:0.6rem;border-radius:8px;border:${p.border ? '1px solid var(--peach-line)' : 'none'};background:${p.bg};color:${p.fg};font-weight:600;font-size:0.85rem;cursor:pointer">
+      ${escHtml(p.label)}
+    </button>`).join('');
+  wrap.querySelectorAll('.login-gate-provider-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      await sb.auth.signInWithOAuth({
+        provider: btn.dataset.provider,
+        options: {
+          redirectTo: window.location.origin + window.location.pathname,
+          queryParams: { prompt: 'select_account' }
+        }
+      });
+    });
+  });
+}
+renderLoginGateProviders();
+
 // when the booking modal opens — so the nav avatar shows up immediately
 // for a returning signed-in visitor.
 checkGoogleSession();
-
-document.getElementById('login-gate-google-btn').addEventListener('click', async () => {
-  await sb.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: window.location.origin + window.location.pathname,
-      scopes: 'email profile',
-      queryParams: { prompt: 'select_account' }
-    }
-  });
-});
 
 // Nav bar "Sign in with Google" — new customers, goes straight to booking.
 document.getElementById('nav-signin-google-btn').addEventListener('click', async () => {
