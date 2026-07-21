@@ -138,14 +138,41 @@
     <button class="btn-sm" id="nav-login-google-btn" title="Already booked? Log in with Google to check status">Login</button>
     <div id="nav-google-avatar-wrap" style="display:none;position:relative">
       <div id="nav-google-avatar" title="Choose your avatar" style="width:34px;height:34px;border-radius:50%;cursor:pointer;border:1px solid var(--peach-line);display:flex;align-items:center;justify-content:center;font-size:1.05rem;flex-shrink:0"></div>
-      <div id="nav-google-avatar-menu" style="display:none;position:absolute;top:calc(100% + 0.6rem);right:0;width:260px;max-height:70vh;overflow-y:auto;background:var(--white);border:1px solid var(--peach-line);border-radius:12px;padding:0.7rem;box-shadow:0 12px 30px var(--shadow);z-index:60;text-align:left">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:0.4rem;margin-bottom:0.15rem">
-          <div id="nav-google-username" style="font-size:0.88rem;font-weight:700;color:var(--espresso)"></div>
+      <div id="nav-google-avatar-menu" style="display:none;position:absolute;top:calc(100% + 0.6rem);right:0;width:280px;max-height:75vh;overflow-y:auto;background:var(--white);border:1px solid var(--peach-line);border-radius:12px;padding:0;box-shadow:0 12px 30px var(--shadow);z-index:60;text-align:left">
+        <div style="padding:0.7rem 0.7rem 0.5rem">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:0.4rem;margin-bottom:0.15rem">
+            <div id="nav-google-username" style="font-size:0.88rem;font-weight:700;color:var(--espresso)"></div>
+          </div>
+          <div id="nav-google-avatar-email" style="font-size:0.72rem;color:var(--brown-soft);word-break:break-all"></div>
         </div>
-        <div id="nav-google-avatar-email" style="font-size:0.72rem;color:var(--brown-soft);margin-bottom:0.5rem;word-break:break-all"></div>
-        <div style="font-size:0.7rem;font-weight:600;color:var(--brown-soft);text-transform:uppercase;letter-spacing:0.03em;margin-bottom:0.4rem">Choose your avatar</div>
-        <div id="nav-avatar-picker"></div>
-        <button id="nav-google-signout-btn" style="width:100%;background:none;border:1px solid var(--peach-line);border-radius:8px;padding:0.4rem 0;font-size:0.78rem;color:var(--brown-soft);cursor:pointer">Sign out</button>
+
+        <div style="display:flex;border-bottom:1px solid var(--peach-line);padding:0 0.4rem">
+          <button type="button" class="account-tab-btn" data-tab="avatar" data-active="true"
+            style="flex:1;background:none;border:none;border-bottom:2px solid var(--brown);padding:0.5rem 0.2rem;font-size:0.72rem;font-weight:700;color:var(--espresso);cursor:pointer">Avatar</button>
+          <button type="button" class="account-tab-btn" data-tab="password" data-active="false"
+            style="flex:1;background:none;border:none;border-bottom:2px solid transparent;padding:0.5rem 0.2rem;font-size:0.72rem;font-weight:700;color:var(--brown-soft);cursor:pointer">Reset password</button>
+          <button type="button" class="account-tab-btn" data-tab="logout" data-active="false"
+            style="flex:1;background:none;border:none;border-bottom:2px solid transparent;padding:0.5rem 0.2rem;font-size:0.72rem;font-weight:700;color:var(--brown-soft);cursor:pointer">Log out</button>
+        </div>
+
+        <div id="account-tab-avatar" class="account-tab-panel" style="padding:0.7rem">
+          <div style="font-size:0.7rem;font-weight:600;color:var(--brown-soft);text-transform:uppercase;letter-spacing:0.03em;margin-bottom:0.4rem">Choose your avatar</div>
+          <div id="nav-avatar-picker"></div>
+        </div>
+
+        <div id="account-tab-password" class="account-tab-panel" style="display:none;padding:0.7rem">
+          <div id="account-password-provider-note" style="font-size:0.76rem;color:var(--brown);margin-bottom:0.6rem"></div>
+          <div id="account-password-email-flow">
+            <div style="font-size:0.76rem;color:var(--brown);margin-bottom:0.6rem">We'll email a password reset link to <strong id="account-password-email-target"></strong>.</div>
+            <button type="button" id="account-password-send-btn" style="width:100%;background:var(--espresso,#4A3428);color:#fff;border:none;border-radius:8px;padding:0.5rem 0;font-size:0.8rem;font-weight:600;cursor:pointer">Send reset link</button>
+            <div id="account-password-status" style="font-size:0.74rem;margin-top:0.5rem;min-height:1rem"></div>
+          </div>
+        </div>
+
+        <div id="account-tab-logout" class="account-tab-panel" style="display:none;padding:0.7rem">
+          <div style="font-size:0.76rem;color:var(--brown);margin-bottom:0.6rem">This signs you out on this device and revokes your session everywhere else too.</div>
+          <button id="nav-google-signout-btn" style="width:100%;background:none;border:1px solid var(--peach-line);border-radius:8px;padding:0.5rem 0;font-size:0.8rem;color:var(--brown-soft);cursor:pointer">Log out</button>
+        </div>
       </div>
     </div>
     <button class="btn-sm" id="nav-cart-btn">🛒 Bookings (0)</button>
@@ -818,22 +845,54 @@ function avatarStorageKey(email) {
 }
 
 // ============ USERNAME ============
-// A per-account display name, separate from the Google name/email, shown
+// A per-account display name, separate from the provider's name/email, shown
 // on the nav menu and used automatically as the review author name.
-// Can only be set ONCE per account — there's no edit option after that,
-// so nobody can keep relabeling themselves with something offensive.
-function usernameStorageKey(email) {
-  return `novelshift-username:${(email || '').toLowerCase()}`;
-}
+// Stored server-side in Supabase (public.profiles), one row per auth user,
+// so it's shared across devices/browsers and tied to the real account
+// instead of just an email string in localStorage.
+// Can only be set ONCE per account — enforced both here and by a DB trigger
+// (trg_enforce_username_immutable) so it can't be bypassed by calling the
+// API directly, so nobody can keep relabeling themselves with something
+// offensive.
+let profileCache = null; // { username, avatar_id } for the current session, or null
 
 function getUsername() {
-  if (!googleUser) return null;
-  return localStorage.getItem(usernameStorageKey(googleUser.email));
+  return profileCache ? profileCache.username : null;
 }
 
-function setUsername(name) {
-  if (!googleUser) return;
-  localStorage.setItem(usernameStorageKey(googleUser.email), name);
+async function loadProfile() {
+  if (!googleUser) { profileCache = null; return; }
+  const { data, error } = await sb
+    .from('profiles')
+    .select('username, avatar_id')
+    .eq('id', googleUser.id)
+    .maybeSingle();
+  if (error) { console.error('loadProfile failed', error); profileCache = null; return; }
+  if (!data) {
+    // First time we've seen this account — create its profile row.
+    const { data: created, error: insErr } = await sb
+      .from('profiles')
+      .insert({ id: googleUser.id, email: googleUser.email })
+      .select('username, avatar_id')
+      .single();
+    if (insErr) { console.error('profile create failed', insErr); profileCache = { username: null, avatar_id: null }; return; }
+    profileCache = created;
+  } else {
+    profileCache = data;
+  }
+}
+
+async function setUsername(name) {
+  if (!googleUser || getUsername()) return false; // already locked in — no re-saving
+  const { data, error } = await sb
+    .from('profiles')
+    .update({ username: name })
+    .eq('id', googleUser.id)
+    .select('username, avatar_id')
+    .single();
+  if (error) { console.error('setUsername failed', error); return false; }
+  profileCache = data;
+  return true;
 }
 
 // A basic blocklist to catch common profanity/slurs and obvious dodges
@@ -869,29 +928,37 @@ function closeUsernameModal() {
   document.getElementById('username-modal').style.display = 'none';
 }
 
-document.getElementById('username-modal-save-btn').addEventListener('click', () => {
+document.getElementById('username-modal-save-btn').addEventListener('click', async () => {
   if (getUsername()) return; // already locked in — no re-saving
   const input = document.getElementById('username-modal-input');
   const err = document.getElementById('username-modal-error');
+  const btn = document.getElementById('username-modal-save-btn');
   const val = input.value.trim();
   if (val.length < 2) { err.textContent = 'Username needs to be at least 2 characters.'; return; }
   if (val.length > 24) { err.textContent = 'Keep it under 24 characters.'; return; }
   if (!/^[a-zA-Z0-9_. ]+$/.test(val)) { err.textContent = 'Letters, numbers, spaces, "_" and "." only.'; return; }
   if (usernameContainsBlockedWord(val)) { err.textContent = 'That username isn\'t allowed — please pick something else.'; return; }
-  setUsername(val);
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+  const ok = await setUsername(val);
+  btn.disabled = false;
+  btn.textContent = 'Save username';
+  if (!ok) { err.textContent = 'Could not save — please try again.'; return; }
   closeUsernameModal();
   updateNavGoogleUI();
 });
 
 function getUserAvatar() {
   if (!googleUser) return null;
-  const savedId = localStorage.getItem(avatarStorageKey(googleUser.email));
+  const savedId = profileCache ? profileCache.avatar_id : null;
   return getAvatarById(savedId) || hashKeyToAvatar(googleUser.email);
 }
 
-function setUserAvatar(id) {
+async function setUserAvatar(id) {
   if (!googleUser) return;
-  localStorage.setItem(avatarStorageKey(googleUser.email), id);
+  if (profileCache) profileCache.avatar_id = id; // optimistic
+  const { error } = await sb.from('profiles').update({ avatar_id: id }).eq('id', googleUser.id);
+  if (error) console.error('setUserAvatar failed', error);
 }
 
 function avatarCircleHTML(avatar, sizePx) {
@@ -914,9 +981,9 @@ function renderAvatarPicker() {
       </div>
     </div>`).join('');
   wrap.querySelectorAll('.nav-avatar-choice').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', async (e) => {
       e.stopPropagation();
-      setUserAvatar(btn.dataset.id);
+      await setUserAvatar(btn.dataset.id);
       updateNavGoogleUI();
     });
   });
@@ -953,6 +1020,7 @@ async function checkGoogleSession() {
   const session = data?.session;
   if (session?.user?.email) {
     googleUser = {
+      id: session.user.id,
       email: session.user.email,
       name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
       avatar_url: session.user.user_metadata?.avatar_url
@@ -961,8 +1029,10 @@ async function checkGoogleSession() {
         || session.user.identities?.find(i => i.provider === 'google')?.identity_data?.picture
         || ''
     };
+    await loadProfile();
   } else {
     googleUser = null;
+    profileCache = null;
   }
   document.getElementById('login-gate').style.display = googleUser ? 'none' : 'flex';
   updateGoogleSignInUI();
@@ -1003,7 +1073,65 @@ function updateNavGoogleUI() {
 document.getElementById('nav-google-avatar').addEventListener('click', (e) => {
   e.stopPropagation();
   const menu = document.getElementById('nav-google-avatar-menu');
-  menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+  const willOpen = menu.style.display !== 'block';
+  menu.style.display = willOpen ? 'block' : 'none';
+  if (willOpen) setAccountTab('avatar'); // always reopen on the Avatar tab
+});
+
+// ============ ACCOUNT MENU TABS ============
+function setAccountTab(tab) {
+  document.querySelectorAll('.account-tab-btn').forEach(btn => {
+    const active = btn.dataset.tab === tab;
+    btn.dataset.active = active ? 'true' : 'false';
+    btn.style.borderBottomColor = active ? 'var(--brown)' : 'transparent';
+    btn.style.color = active ? 'var(--espresso)' : 'var(--brown-soft)';
+  });
+  ['avatar', 'password', 'logout'].forEach(t => {
+    const panel = document.getElementById('account-tab-' + t);
+    if (panel) panel.style.display = t === tab ? 'block' : 'none';
+  });
+  if (tab === 'password') prepareResetPasswordTab();
+}
+
+document.querySelectorAll('.account-tab-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    setAccountTab(btn.dataset.tab);
+  });
+});
+
+// A user who only ever signed in via GitHub/Discord/Facebook/Google has no
+// password on the account, so "reset password" really means "set a password"
+// via the same emailed-link flow — Supabase's resetPasswordForEmail handles
+// both cases identically from the user's side.
+function prepareResetPasswordTab() {
+  if (!googleUser) return;
+  document.getElementById('account-password-email-target').textContent = googleUser.email;
+  document.getElementById('account-password-status').textContent = '';
+  const note = document.getElementById('account-password-provider-note');
+  note.textContent = 'This sets/updates the password for signing in with email + password directly, separate from your social login.';
+}
+
+document.getElementById('account-password-send-btn').addEventListener('click', async () => {
+  if (!googleUser) return;
+  const btn = document.getElementById('account-password-send-btn');
+  const status = document.getElementById('account-password-status');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  status.style.color = 'var(--brown-soft)';
+  status.textContent = '';
+  const { error } = await sb.auth.resetPasswordForEmail(googleUser.email, {
+    redirectTo: window.location.origin + window.location.pathname
+  });
+  btn.disabled = false;
+  btn.textContent = 'Send reset link';
+  if (error) {
+    status.style.color = '#b3543f';
+    status.textContent = 'Could not send reset link — please try again.';
+  } else {
+    status.style.color = 'var(--brown)';
+    status.textContent = 'Check your inbox for the reset link.';
+  }
 });
 
 document.addEventListener('click', (e) => {
@@ -1014,11 +1142,30 @@ document.addEventListener('click', (e) => {
 });
 
 document.getElementById('nav-google-signout-btn').addEventListener('click', async () => {
-  await sb.auth.signOut();
+  const btn = document.getElementById('nav-google-signout-btn');
+  btn.disabled = true;
+  btn.textContent = 'Logging out…';
+
+  // scope: 'global' revokes the refresh token everywhere, not just this tab,
+  // so the session can't be silently restored on next load.
+  const { error } = await sb.auth.signOut({ scope: 'global' });
+  if (error) console.error('signOut failed', error);
+
   googleUser = null;
-  updateNavGoogleUI();
-  updateGoogleSignInUI();
+  profileCache = null;
+
+  // Clear any leftover local state so nothing from the old account lingers
+  // (old accounts' cached avatar keys, intent flags, etc).
+  Object.keys(localStorage)
+    .filter(k => k.startsWith('novelshift-'))
+    .forEach(k => localStorage.removeItem(k));
+  sessionStorage.removeItem('novelshift-google-intent');
+
   document.getElementById('nav-google-avatar-menu').style.display = 'none';
+
+  // Hard reload so every part of the page (cart UI, review identity, any
+  // in-memory state we didn't think of) resets from a truly logged-out state.
+  window.location.href = window.location.origin + window.location.pathname;
 });
 
 // Check for an existing Google session as soon as the page loads, not just
@@ -1044,13 +1191,22 @@ function renderLoginGateProviders() {
     </button>`).join('');
   wrap.querySelectorAll('.login-gate-provider-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
-      await sb.auth.signInWithOAuth({
+      const { error } = await sb.auth.signInWithOAuth({
         provider: btn.dataset.provider,
         options: {
           redirectTo: window.location.origin + window.location.pathname,
           queryParams: { prompt: 'select_account' }
         }
       });
+      // If a provider hasn't actually been turned on in the Supabase
+      // dashboard yet, signInWithOAuth fails locally (no redirect happens)
+      // instead of silently doing nothing or falling back to another
+      // provider — surface that clearly instead of leaving the user
+      // wondering why nothing happened.
+      if (error) {
+        showToast(`${btn.textContent.trim()} isn't set up yet — try a different sign-in option.`);
+        console.error('OAuth sign-in failed', btn.dataset.provider, error);
+      }
     });
   });
 }
