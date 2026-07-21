@@ -24,6 +24,11 @@
 
 <div class="toast" id="toast"></div>
 
+<style>
+.login-gate-provider-btn { transition: transform 0.15s ease, filter 0.15s ease; }
+.login-gate-provider-btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+.login-gate-provider-btn:active { transform: translateY(0); filter: brightness(0.97); }
+</style>
 <div id="login-gate" class="modal-overlay" style="z-index:10010;display:flex">
   <div class="modal-box">
     <div style="font-size:1.8rem;margin-bottom:0.6rem">📚</div>
@@ -1174,21 +1179,46 @@ document.getElementById('nav-google-signout-btn').addEventListener('click', asyn
 // shows on the login gate — each one just needs to be turned on in
 // Supabase Dashboard -> Authentication -> Providers with a client ID/secret
 // from that platform's own developer console.
+// Each provider gets a subtle gradient in its own brand colors instead of a
+// flat fill — keeps the "vibe" of each platform (Discord purple, GitHub
+// near-black, Facebook blue) while feeling a bit more alive on the login
+// gate. Google keeps its official white/bordered look (that's Google's own
+// branding guideline, not a bug) but gets a soft gradient ring instead of a
+// plain border so it doesn't look flat next to the others.
 const AUTH_PROVIDERS = [
-  { id: 'google',   label: 'Continue with Google',   bg: '#fff',    fg: '#3c4043', border: true },
-  { id: 'github',   label: 'Continue with GitHub',    bg: '#24292f', fg: '#fff' },
-  { id: 'discord',  label: 'Continue with Discord',   bg: '#5865F2', fg: '#fff' },
-  { id: 'facebook', label: 'Continue with Facebook',  bg: '#1877F2', fg: '#fff' }
+  { id: 'google',   label: 'Continue with Google',
+    bg: 'linear-gradient(#fff,#fff)', fg: '#3c4043', border: true,
+    ring: 'linear-gradient(135deg,#4285F4,#34A853,#FBBC05,#EA4335)' },
+  { id: 'github',   label: 'Continue with GitHub',
+    bg: 'linear-gradient(135deg,#3a3f46,#0d1117)', fg: '#fff' },
+  { id: 'discord',  label: 'Continue with Discord',
+    bg: 'linear-gradient(135deg,#7289DA,#5865F2)', fg: '#fff' },
+  { id: 'facebook', label: 'Continue with Facebook',
+    bg: 'linear-gradient(135deg,#42a5f5,#1877F2)', fg: '#fff' }
 ];
 
 function renderLoginGateProviders() {
   const wrap = document.getElementById('login-gate-providers');
   if (!wrap) return;
-  wrap.innerHTML = AUTH_PROVIDERS.map(p => `
+  wrap.innerHTML = AUTH_PROVIDERS.map(p => {
+    if (p.ring) {
+      // Gradient-ring treatment for Google: a 1px gradient border via a
+      // padded wrapper, white button on top, so the fill stays official
+      // white/gray while the surrounding ring picks up the brand colors.
+      return `
+      <div style="padding:1.5px;border-radius:9px;background:${p.ring}">
+        <button type="button" class="login-gate-provider-btn" data-provider="${p.id}"
+          style="width:100%;padding:0.6rem;border-radius:7.5px;border:none;background:${p.bg};color:${p.fg};font-weight:600;font-size:0.85rem;cursor:pointer;display:block">
+          ${escHtml(p.label)}
+        </button>
+      </div>`;
+    }
+    return `
     <button type="button" class="login-gate-provider-btn" data-provider="${p.id}"
-      style="width:100%;padding:0.6rem;border-radius:8px;border:${p.border ? '1px solid var(--peach-line)' : 'none'};background:${p.bg};color:${p.fg};font-weight:600;font-size:0.85rem;cursor:pointer">
+      style="width:100%;padding:0.6rem;border-radius:8px;border:none;background:${p.bg};color:${p.fg};font-weight:600;font-size:0.85rem;cursor:pointer">
       ${escHtml(p.label)}
-    </button>`).join('');
+    </button>`;
+  }).join('');
   wrap.querySelectorAll('.login-gate-provider-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
       const { error } = await sb.auth.signInWithOAuth({
