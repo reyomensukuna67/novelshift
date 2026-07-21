@@ -154,8 +154,8 @@
         <div style="display:flex;border-bottom:1px solid var(--peach-line);padding:0 0.4rem">
           <button type="button" class="account-tab-btn" data-tab="avatar" data-active="true"
             style="flex:1;background:none;border:none;border-bottom:2px solid var(--brown);padding:0.5rem 0.2rem;font-size:0.72rem;font-weight:700;color:var(--espresso);cursor:pointer">Avatar</button>
-          <button type="button" class="account-tab-btn" data-tab="password" data-active="false"
-            style="flex:1;background:none;border:none;border-bottom:2px solid transparent;padding:0.5rem 0.2rem;font-size:0.72rem;font-weight:700;color:var(--brown-soft);cursor:pointer">Reset password</button>
+          <button type="button" class="account-tab-btn" data-tab="username" data-active="false"
+            style="flex:1;background:none;border:none;border-bottom:2px solid transparent;padding:0.5rem 0.2rem;font-size:0.72rem;font-weight:700;color:var(--brown-soft);cursor:pointer">Reset username</button>
           <button type="button" class="account-tab-btn" data-tab="logout" data-active="false"
             style="flex:1;background:none;border:none;border-bottom:2px solid transparent;padding:0.5rem 0.2rem;font-size:0.72rem;font-weight:700;color:var(--brown-soft);cursor:pointer">Log out</button>
         </div>
@@ -165,13 +165,15 @@
           <div id="nav-avatar-picker"></div>
         </div>
 
-        <div id="account-tab-password" class="account-tab-panel" style="display:none;padding:0.7rem">
-          <div id="account-password-provider-note" style="font-size:0.76rem;color:var(--brown);margin-bottom:0.6rem"></div>
-          <div id="account-password-email-flow">
-            <div style="font-size:0.76rem;color:var(--brown);margin-bottom:0.6rem">We'll email a password reset link to <strong id="account-password-email-target"></strong>.</div>
-            <button type="button" id="account-password-send-btn" style="width:100%;background:var(--espresso,#4A3428);color:#fff;border:none;border-radius:8px;padding:0.5rem 0;font-size:0.8rem;font-weight:600;cursor:pointer">Send reset link</button>
-            <div id="account-password-status" style="font-size:0.74rem;margin-top:0.5rem;min-height:1rem"></div>
+        <div id="account-tab-username" class="account-tab-panel" style="display:none;padding:0.7rem">
+          <div id="account-username-current" style="font-size:0.76rem;color:var(--brown);margin-bottom:0.6rem"></div>
+          <div id="account-username-editor" style="display:none">
+            <input type="text" id="account-username-input" maxlength="24" placeholder="New username"
+              style="width:100%;padding:0.45rem 0.6rem;border:1px solid var(--peach-line);border-radius:8px;font-size:0.82rem;margin-bottom:0.5rem;box-sizing:border-box">
+            <button type="button" id="account-username-save-btn" style="width:100%;background:var(--espresso,#4A3428);color:#fff;border:none;border-radius:8px;padding:0.5rem 0;font-size:0.8rem;font-weight:600;cursor:pointer">Save new username</button>
+            <div id="account-username-error" style="color:var(--red,#b3543f);font-size:0.74rem;margin-top:0.4rem;min-height:1rem"></div>
           </div>
+          <div id="account-username-locked-note" style="display:none;font-size:0.76rem;color:var(--brown-soft)">You've already used your one username reset — this can't be changed again.</div>
         </div>
 
         <div id="account-tab-logout" class="account-tab-panel" style="display:none;padding:0.7rem">
@@ -855,21 +857,25 @@ function avatarStorageKey(email) {
 // Stored server-side in Supabase (public.profiles), one row per auth user,
 // so it's shared across devices/browsers and tied to the real account
 // instead of just an email string in localStorage.
-// Can only be set ONCE per account — enforced both here and by a DB trigger
-// (trg_enforce_username_immutable) so it can't be bypassed by calling the
-// API directly, so nobody can keep relabeling themselves with something
-// offensive.
-let profileCache = null; // { username, avatar_id } for the current session, or null
+// Set once for free, then exactly ONE reset is allowed after that — both
+// enforced here and by a DB trigger (trg_enforce_username_immutable) so it
+// can't be bypassed by calling the API directly. After the one reset is
+// used, it's locked forever.
+let profileCache = null; // { username, avatar_id, username_changes } for the current session, or null
 
 function getUsername() {
   return profileCache ? profileCache.username : null;
+}
+
+function canResetUsername() {
+  return !!profileCache && profileCache.username != null && profileCache.username_changes < 1;
 }
 
 async function loadProfile() {
   if (!googleUser) { profileCache = null; return; }
   const { data, error } = await sb
     .from('profiles')
-    .select('username, avatar_id')
+    .select('username, avatar_id, username_changes')
     .eq('id', googleUser.id)
     .maybeSingle();
   if (error) { console.error('loadProfile failed', error); profileCache = null; return; }
@@ -878,9 +884,9 @@ async function loadProfile() {
     const { data: created, error: insErr } = await sb
       .from('profiles')
       .insert({ id: googleUser.id, email: googleUser.email })
-      .select('username, avatar_id')
+      .select('username, avatar_id, username_changes')
       .single();
-    if (insErr) { console.error('profile create failed', insErr); profileCache = { username: null, avatar_id: null }; return; }
+    if (insErr) { console.error('profile create failed', insErr); profileCache = { username: null, avatar_id: null, username_changes: 0 }; return; }
     profileCache = created;
   } else {
     profileCache = data;
@@ -888,12 +894,14 @@ async function loadProfile() {
 }
 
 async function setUsername(name) {
-  if (!googleUser || getUsername()) return false; // already locked in — no re-saving
+  if (!googleUser) return false;
+  // Free on first set; requires a remaining reset after that.
+  if (getUsername() && !canResetUsername()) return false;
   const { data, error } = await sb
     .from('profiles')
     .update({ username: name })
     .eq('id', googleUser.id)
-    .select('username, avatar_id')
+    .select('username, avatar_id, username_changes')
     .single();
   if (error) { console.error('setUsername failed', error); return false; }
   profileCache = data;
@@ -1091,11 +1099,11 @@ function setAccountTab(tab) {
     btn.style.borderBottomColor = active ? 'var(--brown)' : 'transparent';
     btn.style.color = active ? 'var(--espresso)' : 'var(--brown-soft)';
   });
-  ['avatar', 'password', 'logout'].forEach(t => {
+  ['avatar', 'username', 'logout'].forEach(t => {
     const panel = document.getElementById('account-tab-' + t);
     if (panel) panel.style.display = t === tab ? 'block' : 'none';
   });
-  if (tab === 'password') prepareResetPasswordTab();
+  if (tab === 'username') prepareResetUsernameTab();
 }
 
 document.querySelectorAll('.account-tab-btn').forEach(btn => {
@@ -1105,38 +1113,46 @@ document.querySelectorAll('.account-tab-btn').forEach(btn => {
   });
 });
 
-// A user who only ever signed in via GitHub/Discord/Facebook/Google has no
-// password on the account, so "reset password" really means "set a password"
-// via the same emailed-link flow — Supabase's resetPasswordForEmail handles
-// both cases identically from the user's side.
-function prepareResetPasswordTab() {
+// Username can be reset exactly once after the initial set (enforced
+// server-side by the profiles trigger too, so this UI gate can't be bypassed
+// by calling the API directly).
+function prepareResetUsernameTab() {
   if (!googleUser) return;
-  document.getElementById('account-password-email-target').textContent = googleUser.email;
-  document.getElementById('account-password-status').textContent = '';
-  const note = document.getElementById('account-password-provider-note');
-  note.textContent = 'This sets/updates the password for signing in with email + password directly, separate from your social login.';
+  document.getElementById('account-username-error').textContent = '';
+  document.getElementById('account-username-input').value = '';
+  const currentEl = document.getElementById('account-username-current');
+  const editor = document.getElementById('account-username-editor');
+  const lockedNote = document.getElementById('account-username-locked-note');
+  currentEl.textContent = `Current username: ${getUsername() || '(not set)'}`;
+  if (canResetUsername()) {
+    editor.style.display = 'block';
+    lockedNote.style.display = 'none';
+  } else {
+    editor.style.display = 'none';
+    lockedNote.style.display = 'block';
+  }
 }
 
-document.getElementById('account-password-send-btn').addEventListener('click', async () => {
-  if (!googleUser) return;
-  const btn = document.getElementById('account-password-send-btn');
-  const status = document.getElementById('account-password-status');
+document.getElementById('account-username-save-btn').addEventListener('click', async () => {
+  if (!googleUser || !canResetUsername()) return;
+  const input = document.getElementById('account-username-input');
+  const err = document.getElementById('account-username-error');
+  const btn = document.getElementById('account-username-save-btn');
+  const val = input.value.trim();
+  err.textContent = '';
+  if (val.length < 2) { err.textContent = 'Username needs to be at least 2 characters.'; return; }
+  if (val.length > 24) { err.textContent = 'Keep it under 24 characters.'; return; }
+  if (!/^[a-zA-Z0-9_. ]+$/.test(val)) { err.textContent = 'Letters, numbers, spaces, "_" and "." only.'; return; }
+  if (usernameContainsBlockedWord(val)) { err.textContent = 'That username isn\'t allowed — please pick something else.'; return; }
+  if (val === getUsername()) { err.textContent = 'That\'s already your username.'; return; }
   btn.disabled = true;
-  btn.textContent = 'Sending…';
-  status.style.color = 'var(--brown-soft)';
-  status.textContent = '';
-  const { error } = await sb.auth.resetPasswordForEmail(googleUser.email, {
-    redirectTo: window.location.origin + window.location.pathname
-  });
+  btn.textContent = 'Saving…';
+  const ok = await setUsername(val);
   btn.disabled = false;
-  btn.textContent = 'Send reset link';
-  if (error) {
-    status.style.color = '#b3543f';
-    status.textContent = 'Could not send reset link — please try again.';
-  } else {
-    status.style.color = 'var(--brown)';
-    status.textContent = 'Check your inbox for the reset link.';
-  }
+  btn.textContent = 'Save new username';
+  if (!ok) { err.textContent = 'Could not save — please try again.'; return; }
+  prepareResetUsernameTab();
+  updateNavGoogleUI();
 });
 
 document.addEventListener('click', (e) => {
