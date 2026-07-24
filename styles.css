@@ -73,7 +73,7 @@ nav{
 .section-title{font-size:2rem;color:var(--espresso);margin-bottom:2.4rem;font-weight:600}
 
 /* feature cards on home */
-.feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+.feature-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1.5rem}
 .feature-card{background:var(--white);border:1px solid var(--peach-line);border-radius:16px;padding:2rem 1.7rem;transition:all 0.25s}
 .feature-card:hover{transform:translateY(-3px);box-shadow:0 10px 30px var(--shadow);border-color:var(--peach-deep)}
 .feature-icon{font-size:1.8rem;margin-bottom:1rem;display:block}

@@ -136,7 +136,11 @@
 
 <!-- NAV -->
 <nav>
-  <a class="logo" href="#">Novel<span>shift</span></a>
+  <div style="display:flex;align-items:center;gap:0.5rem">
+    <a class="logo" href="#">Novel<span>shift</span></a>
+    <button type="button" id="nav-share-btn" title="Share Novelshift" aria-label="Share Novelshift"
+      style="background:none;border:1px solid var(--peach-line);border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--brown-soft);font-size:0.9rem;flex-shrink:0">🔗</button>
+  </div>
   <ul class="nav-links">
     <li><a href="#" class="active">Home</a></li>
     <li><a href="#book">Shop</a></li>
@@ -225,8 +229,13 @@
     </div>
     <div class="feature-card">
       <span class="feature-icon">📦</span>
-      <div class="feature-title">Cash on delivery</div>
-      <div class="feature-desc">No online payment hassle. Book your copy, pay in cash the moment it lands in your hands.</div>
+      <div class="feature-title">Cash or online, your call</div>
+      <div class="feature-desc">Pay cash the moment your book arrives, or pay online via UPI ahead of time. Whatever's easiest for you.</div>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">📱</span>
+      <div class="feature-title">Soft copies, coming soon</div>
+      <div class="feature-desc">Soft copy will be available for all of the books shortly.</div>
     </div>
   </div>
 </div>
@@ -271,7 +280,7 @@
         <button class="btn-buy" id="add-to-cart-btn">Make it yours</button>
         <a class="btn-wish" href="#wishlist" id="goto-wishlist-btn" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none">Suggest a book →</a>
       </div>
-      <div style="font-size:0.78rem;color:var(--brown-soft);margin-top:0.6rem">No online payment. Pay cash when the book is delivered. Bookings can't be cancelled once placed.</div>
+      <div style="font-size:0.78rem;color:var(--brown-soft);margin-top:0.6rem">Online payment and cash on delivery both available. Bookings can't be cancelled once placed.</div>
     </div>
   </div>
 </div>
@@ -394,7 +403,7 @@
   <div class="flogo">Novel<span>shift</span></div>
   <div>© 2026 Novelshift. All rights reserved.</div>
   <div class="payment-tags">
-    <span class="ptag">Cash on Delivery only — no online payment</span>
+    <span class="ptag">Cash on Delivery & Online Payment (UPI) available</span>
   </div>
 </footer>
 
@@ -1608,6 +1617,31 @@ loadBookData();
     star.classList.remove('selected');
     void star.offsetWidth;
     star.classList.add('selected');
+  });
+})();
+
+// Share button beside the logo
+(function(){
+  const btn = document.getElementById('nav-share-btn');
+  if (!btn) return;
+  btn.addEventListener('click', async () => {
+    const shareData = {
+      title: 'Novelshift',
+      text: 'Check out Novelshift — one carefully chosen book at a time.',
+      url: window.location.href
+    };
+    if (navigator.share) {
+      try { await navigator.share(shareData); } catch (e) { /* user cancelled */ }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(shareData.url);
+      const original = btn.textContent;
+      btn.textContent = '✅';
+      setTimeout(() => { btn.textContent = original; }, 1500);
+    } catch (e) {
+      window.prompt('Copy this link:', shareData.url);
+    }
   });
 })();
 
