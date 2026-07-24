@@ -1687,29 +1687,68 @@ document.body.classList.add('page-ready');
 
 // Active-section highlighting while scrolling
 (function(){
-  const sections = ['home', 'book', 'reviews', 'wishlist', 'check-status']
-    .map(id => document.getElementById(id))
-    .filter(Boolean);
+  const sectionIds = ['home', 'book', 'reviews', 'wishlist', 'check-status'];
+  const sections = sectionIds.map(id => document.getElementById(id)).filter(Boolean);
+  const navLinks = document.querySelector('.nav-links');
   const navA = document.querySelectorAll('.nav-links a');
-  if (!sections.length || !navA.length) return;
+  if (!sections.length || !navA.length || !navLinks) return;
 
-  const map = { home: 0, book: 1, reviews: 2, wishlist: 3, 'check-status': 4 };
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        navA.forEach(a => a.classList.remove('active'));
-        const idx = map[entry.target.id];
-        if (navA[idx]) navA[idx].classList.add('active');
-        const underline = document.querySelector('.nav-underline');
-        const navLinks = document.querySelector('.nav-links');
-        if (underline && navLinks && navA[idx] && !navLinks.matches(':hover')) {
-          underline.style.left = navA[idx].offsetLeft + 'px';
-          underline.style.width = navA[idx].offsetWidth + 'px';
-        }
+  function setActive(idx) {
+    navA.forEach(a => a.classList.remove('active'));
+    const link = navA[idx];
+    if (!link) return;
+    link.classList.add('active');
+    const underline = document.querySelector('.nav-underline');
+    if (underline && !navLinks.matches(':hover')) {
+      underline.style.left = link.offsetLeft + 'px';
+      underline.style.width = link.offsetWidth + 'px';
+    }
+  }
+
+  // Figure out which section is currently under a fixed "reading line"
+  // near the top of the viewport, and keep the nav in sync as the user
+  // scrolls — same idea as scrollspy, just less brittle than a strict
+  // IntersectionObserver threshold.
+  const NAV_OFFSET = 90; // matches the fixed nav height + a little breathing room
+  let ticking = false;
+
+  function updateActiveOnScroll() {
+    ticking = false;
+    const scrollLine = NAV_OFFSET + 10;
+
+    // Special-case the very bottom of the page so the last section
+    // always wins even if it's shorter than the viewport.
+    const atBottom = (window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 2);
+    if (atBottom) {
+      setActive(sectionIds.length - 1);
+      return;
+    }
+
+    let currentIdx = 0;
+    for (let i = 0; i < sections.length; i++) {
+      const rect = sections[i].getBoundingClientRect();
+      if (rect.top <= scrollLine) {
+        currentIdx = i;
       }
-    });
-  }, { threshold: 0.4, rootMargin: '-70px 0px -50% 0px' });
-  sections.forEach(s => io.observe(s));
+    }
+    setActive(currentIdx);
+  }
+
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(updateActiveOnScroll);
+      ticking = true;
+    }
+  }, { passive: true });
+  window.addEventListener('resize', updateActiveOnScroll);
+
+  // Clicking a tab should highlight it immediately rather than waiting
+  // for the scroll handler to catch up with the (possibly smooth) scroll.
+  navA.forEach((a, idx) => {
+    a.addEventListener('click', () => setActive(idx));
+  });
+
+  updateActiveOnScroll();
 })();
 </script>
 </body>
