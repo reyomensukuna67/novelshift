@@ -10,31 +10,230 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Novelshift — Fiction that shifts you</title>
-<link rel="icon" type="image/x-icon" href="/favicon.ico">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-<link rel="manifest" href="/site.webmanifest">
 
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6442890970772980"
      crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+  /* ===== Intro trailer (plays once before the login gate) ===== */
+  #site-trailer{
+    position:fixed; inset:0; z-index:10020; background:#07070b; overflow:hidden;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    font-family:'Space Mono', monospace;
+  }
+  #site-trailer.hidden{ display:none; }
+  #site-trailer::before{
+    content:""; position:absolute; inset:0; pointer-events:none; z-index:50;
+    background:repeating-linear-gradient(to bottom, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px, transparent 2px, transparent 3px);
+    mix-blend-mode:overlay;
+  }
+  #site-trailer::after{
+    content:""; position:absolute; inset:0; pointer-events:none; z-index:51;
+    box-shadow: inset 0 0 160px 40px rgba(0,0,0,0.85);
+  }
+  #st-grain{
+    position:absolute; inset:0; z-index:49; pointer-events:none; opacity:0.05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  #st-clock{ position:absolute; top:22px; left:28px; z-index:60; font-size:13px; letter-spacing:2px; color:#4ce0d8; opacity:0.85; text-transform:uppercase; }
+  #st-clock .lbl{ color:#6b6b78; margin-right:8px; }
+  #st-loopcount{ position:absolute; top:22px; right:28px; z-index:60; font-size:13px; letter-spacing:2px; color:#ff2b6b; opacity:0.85; text-transform:uppercase; }
+  .st-scene{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:0 8%; opacity:0; z-index:1; }
+  .st-scene.active{ z-index:10; }
+  .st-eyebrow{ font-size:12px; letter-spacing:6px; color:#6b6b78; text-transform:uppercase; margin-bottom:18px; }
+  .st-line{ font-family:'Bebas Neue', sans-serif; font-size:clamp(28px,6vw,60px); color:#e9e9f2; letter-spacing:2px; line-height:1.15; margin:0; text-shadow:0 0 30px rgba(0,0,0,0.6); }
+  .st-line.st-small{ font-size:clamp(18px,3.2vw,30px); letter-spacing:1px; }
+  .st-accent-c{ color:#4ce0d8; } .st-accent-m{ color:#ff2b6b; } .st-accent-v{ color:#7d6bff; }
+  .st-sub{ font-size:clamp(12px,1.6vw,15px); color:#6b6b78; margin-top:16px; max-width:640px; line-height:1.7; }
+  .st-title-main{ font-family:'Bebas Neue', sans-serif; font-size:clamp(42px,8vw,96px); color:#e9e9f2; letter-spacing:4px; margin:0; }
+  .st-title-tag{ font-size:clamp(11px,1.4vw,14px); color:#4ce0d8; letter-spacing:6px; margin-top:22px; text-transform:uppercase; }
+  .st-title-meta{ font-size:clamp(10px,1.2vw,12px); color:#6b6b78; letter-spacing:3px; margin-top:10px; text-transform:uppercase; }
+  .st-actions{ display:flex; gap:14px; margin-top:36px; opacity:0; }
+  .st-actions.show{ animation: st-fadeIn 0.6s ease-out 0.2s forwards; }
+  .st-ctrl{ font-size:12px; letter-spacing:2px; text-transform:uppercase; background:transparent; color:#e9e9f2; border:1px solid rgba(233,233,242,0.3); padding:11px 22px; cursor:pointer; font-family:'Space Mono', monospace; transition:border-color .2s, color .2s, background .2s; }
+  .st-ctrl:hover{ border-color:#4ce0d8; color:#4ce0d8; }
+  .st-ctrl.st-buy{ background:#4ce0d8; color:#07070b; border-color:#4ce0d8; font-weight:700; }
+  .st-ctrl.st-buy:hover{ background:#e9e9f2; color:#07070b; }
+  #st-skip{ position:absolute; bottom:24px; right:28px; z-index:60; font-size:11px; letter-spacing:2px; color:#6b6b78; background:transparent; border:none; cursor:pointer; text-transform:uppercase; opacity:0.6; font-family:'Space Mono', monospace; }
+  #st-skip:hover{ opacity:1; color:#4ce0d8; }
+  @keyframes st-fadeIn{ 0%{opacity:0; filter:blur(6px);} 100%{opacity:1; filter:blur(0);} }
+  .st-scene.enter{ animation: st-fadeIn 0.7s ease-out forwards; }
+  .st-glitching{ animation: st-glitchShake 0.35s steps(2) both !important; }
+  @keyframes st-glitchShake{ 0%{transform:translate(0,0);} 20%{transform:translate(-6px,2px); filter:hue-rotate(30deg);} 40%{transform:translate(5px,-2px); filter:hue-rotate(-20deg);} 60%{transform:translate(-3px,1px) skewX(2deg);} 80%{transform:translate(4px,-1px) skewX(-2deg);} 100%{transform:translate(0,0); filter:none;} }
+  .st-rgb-split{ position:relative; }
+  .st-rgb-split.st-glitching::before, .st-rgb-split.st-glitching::after{ content:attr(data-text); position:absolute; left:0; top:0; width:100%; opacity:0.7; }
+  .st-rgb-split.st-glitching::before{ color:#4ce0d8; transform:translate(3px,0); mix-blend-mode:screen; }
+  .st-rgb-split.st-glitching::after{ color:#ff2b6b; transform:translate(-3px,0); mix-blend-mode:screen; }
+  #st-flash{ position:absolute; inset:0; background:#e9e9f2; z-index:80; opacity:0; pointer-events:none; }
+  #st-flash.go{ animation: st-flashPop 0.15s ease-out; }
+  @keyframes st-flashPop{ 0%{opacity:0.85;} 100%{opacity:0;} }
+  #st-burst{ position:absolute; inset:0; z-index:70; opacity:0; pointer-events:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); mix-blend-mode:overlay; }
+  #st-burst.go{ animation: st-staticFlicker 0.3s steps(3); }
+  @keyframes st-staticFlicker{ 0%{opacity:0;} 30%{opacity:0.5;} 60%{opacity:0.15;} 100%{opacity:0;} }
+  @media (prefers-reduced-motion: reduce){ .st-scene, .st-glitching, #st-flash, #st-burst{ animation:none !important; } .st-scene.active{ opacity:1; } }
+</style>
 </head>
 <body>
 
 <div class="toast" id="toast"></div>
 
-<style>
-.login-gate-provider-btn { transition: transform 0.15s ease, filter 0.15s ease; }
-.login-gate-provider-btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
-.login-gate-provider-btn:active { transform: translateY(0); filter: brightness(0.97); }
-</style>
+<div id="site-trailer">
+  <div id="st-grain"></div>
+  <div id="st-flash"></div>
+  <div id="st-burst"></div>
+  <div id="st-clock"><span class="lbl">shelf</span><span id="st-daynum">0001</span> — <span id="st-timenum">00:00:00</span></div>
+  <div id="st-loopcount">life <span id="st-loopnum">0001</span></div>
+
+  <div class="st-scene" data-scene="0">
+    <div class="st-eyebrow">somewhere between living and dying</div>
+    <p class="st-line">There is a library.<br>It has always been there.</p>
+  </div>
+  <div class="st-scene" data-scene="1">
+    <p class="st-line st-rgb-split" data-text="And within it, the shelves go on forever.">And within it,<br>the shelves go on forever.</p>
+  </div>
+  <div class="st-scene" data-scene="2">
+    <p class="st-line st-small">Every book on every shelf</p>
+    <p class="st-line st-accent-c">is a life you could have lived.</p>
+  </div>
+  <div class="st-scene" data-scene="3">
+    <p class="st-line st-rgb-split" data-text="Every regret, a doorway.">Every regret,<br><span class="st-accent-m">a doorway.</span></p>
+  </div>
+  <div class="st-scene" data-scene="4">
+    <div class="st-eyebrow">book #0047</div>
+    <p class="st-line st-small">"Would you have done anything different,<br>if you had the chance to undo your regrets?"</p>
+  </div>
+  <div class="st-scene" data-scene="5">
+    <p class="st-line">She opened a life<br>she almost had.</p>
+    <p class="st-sub">But almost isn't the same as forever.</p>
+  </div>
+  <div class="st-scene" data-scene="6">
+    <div class="st-eyebrow st-accent-v">the truth</div>
+    <p class="st-line st-rgb-split" data-text="Not every different choice is a better one.">Not every different choice<br><span class="st-accent-v">is a better one.</span></p>
+  </div>
+  <div class="st-scene" data-scene="7">
+    <div class="st-eyebrow st-accent-m">and the library is dying</div>
+    <p class="st-line">Every book she doesn't choose<br><span class="st-accent-m">disappears forever.</span></p>
+  </div>
+  <div class="st-scene" data-scene="8">
+    <p class="st-line st-small">This isn't a story about<br>escaping her life.</p>
+    <p class="st-sub">It's about learning how to live it.</p>
+  </div>
+  <div class="st-scene" data-scene="9">
+    <p class="st-line st-rgb-split" data-text="Explore the regrets. Undo the choices. Find the one life worth staying for.">Explore the regrets.<br>Undo the choices.<br><span class="st-accent-c">Find the one life worth staying for.</span></p>
+  </div>
+  <div class="st-scene" data-scene="10">
+    <p class="st-line st-small">Before the shelves<br><span class="st-accent-m">go silent</span></p>
+    <p class="st-line st-small">forever.</p>
+  </div>
+  <div class="st-scene" data-scene="11">
+    <p class="st-title-main">LOST IN<br>THE LOOP</p>
+    <p class="st-title-tag">a novel by Srihan Kayshap</p>
+    <p class="st-title-meta">288 pages · paperback · ₹399</p>
+    <div class="st-actions" id="st-final-actions">
+      <button type="button" class="st-ctrl st-buy" id="st-enter-btn">Enter Novelshift</button>
+    </div>
+  </div>
+
+  <button id="st-skip">Skip ▸</button>
+</div>
+<script>
+  // If they've already watched the trailer this browser session, skip
+  // straight to the login gate instead of replaying it every page load.
+  if (sessionStorage.getItem('novelshift-trailer-seen')) {
+    document.getElementById('site-trailer').classList.add('hidden');
+  } else {
+    (function(){
+      var scenes = Array.prototype.slice.call(document.querySelectorAll('.st-scene'));
+      var stage = document.getElementById('site-trailer');
+      var flash = document.getElementById('st-flash');
+      var burst = document.getElementById('st-burst');
+      var daynum = document.getElementById('st-daynum');
+      var loopnum = document.getElementById('st-loopnum');
+      var timenum = document.getElementById('st-timenum');
+      var finalActions = document.getElementById('st-final-actions');
+      var enterBtn = document.getElementById('st-enter-btn');
+      var skipBtn = document.getElementById('st-skip');
+
+      var durations = [2600,2600,2400,2600,3000,2600,2600,2600,2800,2900,2600,999999];
+      var idx = -1, timer = null, loopN = 1, shelfN = 1, clockTimer = null;
+
+      function pad(n,len){ n=String(n); while(n.length<len) n='0'+n; return n; }
+
+      function tickClock(){
+        var t = 0;
+        clockTimer && clearInterval(clockTimer);
+        clockTimer = setInterval(function(){
+          t += 1;
+          var h = Math.floor(t/3600), m = Math.floor((t%3600)/60), s = t%60;
+          timenum.textContent = pad(h,2)+':'+pad(m,2)+':'+pad(s,2);
+        }, 60);
+      }
+
+      function glitchClock(){
+        var el = document.getElementById('st-clock');
+        el.classList.add('st-glitching');
+        setTimeout(function(){ el.classList.remove('st-glitching'); }, 350);
+        loopN += 1; shelfN += 7;
+        daynum.textContent = pad(shelfN,4);
+        loopnum.textContent = pad(loopN,4);
+      }
+
+      function burstEffect(){
+        flash.classList.remove('go'); void flash.offsetWidth; flash.classList.add('go');
+        burst.classList.remove('go'); void burst.offsetWidth; burst.classList.add('go');
+      }
+
+      function showScene(i){
+        scenes.forEach(function(s,j){
+          s.classList.remove('active','enter');
+          if (j===i) s.classList.add('active','enter');
+        });
+        var textEl = scenes[i].querySelector('.st-rgb-split');
+        if (textEl){
+          textEl.classList.add('st-glitching');
+          setTimeout(function(){ textEl.classList.remove('st-glitching'); }, 350);
+        }
+        if (i>0 && i % 3 === 0) glitchClock();
+        if (i === scenes.length-1){
+          finalActions.classList.add('show');
+          clockTimer && clearInterval(clockTimer);
+        }
+      }
+
+      function next(){
+        idx += 1;
+        if (idx >= scenes.length) return;
+        burstEffect();
+        showScene(idx);
+        if (idx < scenes.length-1) timer = setTimeout(next, durations[idx]);
+      }
+
+      function dismissTrailer(){
+        clearTimeout(timer);
+        clockTimer && clearInterval(clockTimer);
+        sessionStorage.setItem('novelshift-trailer-seen', '1');
+        stage.classList.add('hidden');
+      }
+
+      enterBtn.addEventListener('click', function(e){ e.stopPropagation(); dismissTrailer(); });
+      skipBtn.addEventListener('click', function(e){ e.stopPropagation(); dismissTrailer(); });
+      stage.addEventListener('click', function(){
+        if (idx >= scenes.length-1) return;
+        clearTimeout(timer);
+        next();
+      });
+
+      tickClock();
+      next();
+    })();
+  }
+</script>
+
 <div id="login-gate" class="modal-overlay" style="z-index:10010;display:flex">
   <div class="modal-box">
     <div style="font-size:1.8rem;margin-bottom:0.6rem">📚</div>
@@ -136,11 +335,7 @@
 
 <!-- NAV -->
 <nav>
-  <div style="display:flex;align-items:center;gap:0.5rem">
-    <a class="logo" href="#">Novel<span>shift</span></a>
-    <button type="button" id="nav-share-btn" title="Share Novelshift" aria-label="Share Novelshift"
-      style="background:none;border:1px solid var(--peach-line);border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--brown-soft);font-size:0.9rem;flex-shrink:0">🔗</button>
-  </div>
+  <a class="logo" href="#">Novel<span>shift</span></a>
   <ul class="nav-links">
     <li><a href="#" class="active">Home</a></li>
     <li><a href="#book">Shop</a></li>
@@ -153,43 +348,14 @@
     <button class="btn-sm" id="nav-login-google-btn" title="Already booked? Log in with Google to check status">Login</button>
     <div id="nav-google-avatar-wrap" style="display:none;position:relative">
       <div id="nav-google-avatar" title="Choose your avatar" style="width:34px;height:34px;border-radius:50%;cursor:pointer;border:1px solid var(--peach-line);display:flex;align-items:center;justify-content:center;font-size:1.05rem;flex-shrink:0"></div>
-      <div id="nav-google-avatar-menu" style="display:none;position:absolute;top:calc(100% + 0.6rem);right:0;width:280px;max-height:75vh;overflow-y:auto;background:var(--white);border:1px solid var(--peach-line);border-radius:12px;padding:0;box-shadow:0 12px 30px var(--shadow);z-index:60;text-align:left">
-        <div style="padding:0.7rem 0.7rem 0.5rem">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:0.4rem;margin-bottom:0.15rem">
-            <div id="nav-google-username" style="font-size:0.88rem;font-weight:700;color:var(--espresso)"></div>
-          </div>
-          <div id="nav-google-avatar-email" style="font-size:0.72rem;color:var(--brown-soft);word-break:break-all"></div>
+      <div id="nav-google-avatar-menu" style="display:none;position:absolute;top:calc(100% + 0.6rem);right:0;width:260px;max-height:70vh;overflow-y:auto;background:var(--white);border:1px solid var(--peach-line);border-radius:12px;padding:0.7rem;box-shadow:0 12px 30px var(--shadow);z-index:60;text-align:left">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:0.4rem;margin-bottom:0.15rem">
+          <div id="nav-google-username" style="font-size:0.88rem;font-weight:700;color:var(--espresso)"></div>
         </div>
-
-        <div style="display:flex;border-bottom:1px solid var(--peach-line);padding:0 0.4rem">
-          <button type="button" class="account-tab-btn" data-tab="avatar" data-active="true"
-            style="flex:1;background:none;border:none;border-bottom:2px solid var(--brown);padding:0.5rem 0.2rem;font-size:0.72rem;font-weight:700;color:var(--espresso);cursor:pointer">Avatar</button>
-          <button type="button" class="account-tab-btn" data-tab="username" data-active="false"
-            style="flex:1;background:none;border:none;border-bottom:2px solid transparent;padding:0.5rem 0.2rem;font-size:0.72rem;font-weight:700;color:var(--brown-soft);cursor:pointer">Reset username</button>
-          <button type="button" class="account-tab-btn" data-tab="logout" data-active="false"
-            style="flex:1;background:none;border:none;border-bottom:2px solid transparent;padding:0.5rem 0.2rem;font-size:0.72rem;font-weight:700;color:var(--brown-soft);cursor:pointer">Log out</button>
-        </div>
-
-        <div id="account-tab-avatar" class="account-tab-panel" style="padding:0.7rem">
-          <div style="font-size:0.7rem;font-weight:600;color:var(--brown-soft);text-transform:uppercase;letter-spacing:0.03em;margin-bottom:0.4rem">Choose your avatar</div>
-          <div id="nav-avatar-picker"></div>
-        </div>
-
-        <div id="account-tab-username" class="account-tab-panel" style="display:none;padding:0.7rem">
-          <div id="account-username-current" style="font-size:0.76rem;color:var(--brown);margin-bottom:0.6rem"></div>
-          <div id="account-username-editor" style="display:none">
-            <input type="text" id="account-username-input" maxlength="24" placeholder="New username"
-              style="width:100%;padding:0.45rem 0.6rem;border:1px solid var(--peach-line);border-radius:8px;font-size:0.82rem;margin-bottom:0.5rem;box-sizing:border-box">
-            <button type="button" id="account-username-save-btn" style="width:100%;background:var(--espresso,#4A3428);color:#fff;border:none;border-radius:8px;padding:0.5rem 0;font-size:0.8rem;font-weight:600;cursor:pointer">Save new username</button>
-            <div id="account-username-error" style="color:var(--red,#b3543f);font-size:0.74rem;margin-top:0.4rem;min-height:1rem"></div>
-          </div>
-          <div id="account-username-locked-note" style="display:none;font-size:0.76rem;color:var(--brown-soft)">You've already used your one username reset — this can't be changed again.</div>
-        </div>
-
-        <div id="account-tab-logout" class="account-tab-panel" style="display:none;padding:0.7rem">
-          <div style="font-size:0.76rem;color:var(--brown);margin-bottom:0.6rem">This signs you out on this device and revokes your session everywhere else too.</div>
-          <button id="nav-google-signout-btn" style="width:100%;background:none;border:1px solid var(--peach-line);border-radius:8px;padding:0.5rem 0;font-size:0.8rem;color:var(--brown-soft);cursor:pointer">Log out</button>
-        </div>
+        <div id="nav-google-avatar-email" style="font-size:0.72rem;color:var(--brown-soft);margin-bottom:0.5rem;word-break:break-all"></div>
+        <div style="font-size:0.7rem;font-weight:600;color:var(--brown-soft);text-transform:uppercase;letter-spacing:0.03em;margin-bottom:0.4rem">Choose your avatar</div>
+        <div id="nav-avatar-picker"></div>
+        <button id="nav-google-signout-btn" style="width:100%;background:none;border:1px solid var(--peach-line);border-radius:8px;padding:0.4rem 0;font-size:0.78rem;color:var(--brown-soft);cursor:pointer">Sign out</button>
       </div>
     </div>
     <button class="btn-sm" id="nav-cart-btn">🛒 Bookings (0)</button>
@@ -229,13 +395,8 @@
     </div>
     <div class="feature-card">
       <span class="feature-icon">📦</span>
-      <div class="feature-title">Cash or online, your call</div>
-      <div class="feature-desc">Pay cash the moment your book arrives, or pay online via UPI ahead of time. Whatever's easiest for you.</div>
-    </div>
-    <div class="feature-card">
-      <span class="feature-icon">📱</span>
-      <div class="feature-title">Soft copies, coming soon</div>
-      <div class="feature-desc">Soft copy will be available for all of the books shortly.</div>
+      <div class="feature-title">Cash on delivery</div>
+      <div class="feature-desc">No online payment hassle. Book your copy, pay in cash the moment it lands in your hands.</div>
     </div>
   </div>
 </div>
@@ -280,7 +441,7 @@
         <button class="btn-buy" id="add-to-cart-btn">Make it yours</button>
         <a class="btn-wish" href="#wishlist" id="goto-wishlist-btn" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none">Suggest a book →</a>
       </div>
-      <div style="font-size:0.78rem;color:var(--brown-soft);margin-top:0.6rem">Online payment and cash on delivery both available. Bookings can't be cancelled once placed.</div>
+      <div style="font-size:0.78rem;color:var(--brown-soft);margin-top:0.6rem">No online payment. Pay cash when the book is delivered. Bookings can't be cancelled once placed.</div>
     </div>
   </div>
 </div>
@@ -403,7 +564,7 @@
   <div class="flogo">Novel<span>shift</span></div>
   <div>© 2026 Novelshift. All rights reserved.</div>
   <div class="payment-tags">
-    <span class="ptag">Cash on Delivery & Online Payment (UPI) available</span>
+    <span class="ptag">Cash on Delivery only — no online payment</span>
   </div>
 </footer>
 
@@ -867,60 +1028,22 @@ function avatarStorageKey(email) {
 }
 
 // ============ USERNAME ============
-// A per-account display name, separate from the provider's name/email, shown
+// A per-account display name, separate from the Google name/email, shown
 // on the nav menu and used automatically as the review author name.
-// Stored server-side in Supabase (public.profiles), one row per auth user,
-// so it's shared across devices/browsers and tied to the real account
-// instead of just an email string in localStorage.
-// Set once for free, then exactly ONE reset is allowed after that — both
-// enforced here and by a DB trigger (trg_enforce_username_immutable) so it
-// can't be bypassed by calling the API directly. After the one reset is
-// used, it's locked forever.
-let profileCache = null; // { username, avatar_id, username_changes } for the current session, or null
+// Can only be set ONCE per account — there's no edit option after that,
+// so nobody can keep relabeling themselves with something offensive.
+function usernameStorageKey(email) {
+  return `novelshift-username:${(email || '').toLowerCase()}`;
+}
 
 function getUsername() {
-  return profileCache ? profileCache.username : null;
+  if (!googleUser) return null;
+  return localStorage.getItem(usernameStorageKey(googleUser.email));
 }
 
-function canResetUsername() {
-  return !!profileCache && profileCache.username != null && profileCache.username_changes < 1;
-}
-
-async function loadProfile() {
-  if (!googleUser) { profileCache = null; return; }
-  const { data, error } = await sb
-    .from('profiles')
-    .select('username, avatar_id, username_changes')
-    .eq('id', googleUser.id)
-    .maybeSingle();
-  if (error) { console.error('loadProfile failed', error); profileCache = null; return; }
-  if (!data) {
-    // First time we've seen this account — create its profile row.
-    const { data: created, error: insErr } = await sb
-      .from('profiles')
-      .insert({ id: googleUser.id, email: googleUser.email })
-      .select('username, avatar_id, username_changes')
-      .single();
-    if (insErr) { console.error('profile create failed', insErr); profileCache = { username: null, avatar_id: null, username_changes: 0 }; return; }
-    profileCache = created;
-  } else {
-    profileCache = data;
-  }
-}
-
-async function setUsername(name) {
-  if (!googleUser) return false;
-  // Free on first set; requires a remaining reset after that.
-  if (getUsername() && !canResetUsername()) return false;
-  const { data, error } = await sb
-    .from('profiles')
-    .update({ username: name })
-    .eq('id', googleUser.id)
-    .select('username, avatar_id, username_changes')
-    .single();
-  if (error) { console.error('setUsername failed', error); return false; }
-  profileCache = data;
-  return true;
+function setUsername(name) {
+  if (!googleUser) return;
+  localStorage.setItem(usernameStorageKey(googleUser.email), name);
 }
 
 // A basic blocklist to catch common profanity/slurs and obvious dodges
@@ -956,37 +1079,29 @@ function closeUsernameModal() {
   document.getElementById('username-modal').style.display = 'none';
 }
 
-document.getElementById('username-modal-save-btn').addEventListener('click', async () => {
+document.getElementById('username-modal-save-btn').addEventListener('click', () => {
   if (getUsername()) return; // already locked in — no re-saving
   const input = document.getElementById('username-modal-input');
   const err = document.getElementById('username-modal-error');
-  const btn = document.getElementById('username-modal-save-btn');
   const val = input.value.trim();
   if (val.length < 2) { err.textContent = 'Username needs to be at least 2 characters.'; return; }
   if (val.length > 24) { err.textContent = 'Keep it under 24 characters.'; return; }
   if (!/^[a-zA-Z0-9_. ]+$/.test(val)) { err.textContent = 'Letters, numbers, spaces, "_" and "." only.'; return; }
   if (usernameContainsBlockedWord(val)) { err.textContent = 'That username isn\'t allowed — please pick something else.'; return; }
-  btn.disabled = true;
-  btn.textContent = 'Saving…';
-  const ok = await setUsername(val);
-  btn.disabled = false;
-  btn.textContent = 'Save username';
-  if (!ok) { err.textContent = 'Could not save — please try again.'; return; }
+  setUsername(val);
   closeUsernameModal();
   updateNavGoogleUI();
 });
 
 function getUserAvatar() {
   if (!googleUser) return null;
-  const savedId = profileCache ? profileCache.avatar_id : null;
+  const savedId = localStorage.getItem(avatarStorageKey(googleUser.email));
   return getAvatarById(savedId) || hashKeyToAvatar(googleUser.email);
 }
 
-async function setUserAvatar(id) {
+function setUserAvatar(id) {
   if (!googleUser) return;
-  if (profileCache) profileCache.avatar_id = id; // optimistic
-  const { error } = await sb.from('profiles').update({ avatar_id: id }).eq('id', googleUser.id);
-  if (error) console.error('setUserAvatar failed', error);
+  localStorage.setItem(avatarStorageKey(googleUser.email), id);
 }
 
 function avatarCircleHTML(avatar, sizePx) {
@@ -1009,9 +1124,9 @@ function renderAvatarPicker() {
       </div>
     </div>`).join('');
   wrap.querySelectorAll('.nav-avatar-choice').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
+    btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      await setUserAvatar(btn.dataset.id);
+      setUserAvatar(btn.dataset.id);
       updateNavGoogleUI();
     });
   });
@@ -1048,7 +1163,6 @@ async function checkGoogleSession() {
   const session = data?.session;
   if (session?.user?.email) {
     googleUser = {
-      id: session.user.id,
       email: session.user.email,
       name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
       avatar_url: session.user.user_metadata?.avatar_url
@@ -1057,10 +1171,8 @@ async function checkGoogleSession() {
         || session.user.identities?.find(i => i.provider === 'google')?.identity_data?.picture
         || ''
     };
-    await loadProfile();
   } else {
     googleUser = null;
-    profileCache = null;
   }
   document.getElementById('login-gate').style.display = googleUser ? 'none' : 'flex';
   updateGoogleSignInUI();
@@ -1101,73 +1213,7 @@ function updateNavGoogleUI() {
 document.getElementById('nav-google-avatar').addEventListener('click', (e) => {
   e.stopPropagation();
   const menu = document.getElementById('nav-google-avatar-menu');
-  const willOpen = menu.style.display !== 'block';
-  menu.style.display = willOpen ? 'block' : 'none';
-  if (willOpen) setAccountTab('avatar'); // always reopen on the Avatar tab
-});
-
-// ============ ACCOUNT MENU TABS ============
-function setAccountTab(tab) {
-  document.querySelectorAll('.account-tab-btn').forEach(btn => {
-    const active = btn.dataset.tab === tab;
-    btn.dataset.active = active ? 'true' : 'false';
-    btn.style.borderBottomColor = active ? 'var(--brown)' : 'transparent';
-    btn.style.color = active ? 'var(--espresso)' : 'var(--brown-soft)';
-  });
-  ['avatar', 'username', 'logout'].forEach(t => {
-    const panel = document.getElementById('account-tab-' + t);
-    if (panel) panel.style.display = t === tab ? 'block' : 'none';
-  });
-  if (tab === 'username') prepareResetUsernameTab();
-}
-
-document.querySelectorAll('.account-tab-btn').forEach(btn => {
-  btn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    setAccountTab(btn.dataset.tab);
-  });
-});
-
-// Username can be reset exactly once after the initial set (enforced
-// server-side by the profiles trigger too, so this UI gate can't be bypassed
-// by calling the API directly).
-function prepareResetUsernameTab() {
-  if (!googleUser) return;
-  document.getElementById('account-username-error').textContent = '';
-  document.getElementById('account-username-input').value = '';
-  const currentEl = document.getElementById('account-username-current');
-  const editor = document.getElementById('account-username-editor');
-  const lockedNote = document.getElementById('account-username-locked-note');
-  currentEl.textContent = `Current username: ${getUsername() || '(not set)'}`;
-  if (canResetUsername()) {
-    editor.style.display = 'block';
-    lockedNote.style.display = 'none';
-  } else {
-    editor.style.display = 'none';
-    lockedNote.style.display = 'block';
-  }
-}
-
-document.getElementById('account-username-save-btn').addEventListener('click', async () => {
-  if (!googleUser || !canResetUsername()) return;
-  const input = document.getElementById('account-username-input');
-  const err = document.getElementById('account-username-error');
-  const btn = document.getElementById('account-username-save-btn');
-  const val = input.value.trim();
-  err.textContent = '';
-  if (val.length < 2) { err.textContent = 'Username needs to be at least 2 characters.'; return; }
-  if (val.length > 24) { err.textContent = 'Keep it under 24 characters.'; return; }
-  if (!/^[a-zA-Z0-9_. ]+$/.test(val)) { err.textContent = 'Letters, numbers, spaces, "_" and "." only.'; return; }
-  if (usernameContainsBlockedWord(val)) { err.textContent = 'That username isn\'t allowed — please pick something else.'; return; }
-  if (val === getUsername()) { err.textContent = 'That\'s already your username.'; return; }
-  btn.disabled = true;
-  btn.textContent = 'Saving…';
-  const ok = await setUsername(val);
-  btn.disabled = false;
-  btn.textContent = 'Save new username';
-  if (!ok) { err.textContent = 'Could not save — please try again.'; return; }
-  prepareResetUsernameTab();
-  updateNavGoogleUI();
+  menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
 });
 
 document.addEventListener('click', (e) => {
@@ -1178,30 +1224,11 @@ document.addEventListener('click', (e) => {
 });
 
 document.getElementById('nav-google-signout-btn').addEventListener('click', async () => {
-  const btn = document.getElementById('nav-google-signout-btn');
-  btn.disabled = true;
-  btn.textContent = 'Logging out…';
-
-  // scope: 'global' revokes the refresh token everywhere, not just this tab,
-  // so the session can't be silently restored on next load.
-  const { error } = await sb.auth.signOut({ scope: 'global' });
-  if (error) console.error('signOut failed', error);
-
+  await sb.auth.signOut();
   googleUser = null;
-  profileCache = null;
-
-  // Clear any leftover local state so nothing from the old account lingers
-  // (old accounts' cached avatar keys, intent flags, etc).
-  Object.keys(localStorage)
-    .filter(k => k.startsWith('novelshift-'))
-    .forEach(k => localStorage.removeItem(k));
-  sessionStorage.removeItem('novelshift-google-intent');
-
+  updateNavGoogleUI();
+  updateGoogleSignInUI();
   document.getElementById('nav-google-avatar-menu').style.display = 'none';
-
-  // Hard reload so every part of the page (cart UI, review identity, any
-  // in-memory state we didn't think of) resets from a truly logged-out state.
-  window.location.href = window.location.origin + window.location.pathname;
 });
 
 // Check for an existing Google session as soon as the page loads, not just
@@ -1210,64 +1237,30 @@ document.getElementById('nav-google-signout-btn').addEventListener('click', asyn
 // shows on the login gate — each one just needs to be turned on in
 // Supabase Dashboard -> Authentication -> Providers with a client ID/secret
 // from that platform's own developer console.
-// Each provider gets a subtle gradient in its own brand colors instead of a
-// flat fill — keeps the "vibe" of each platform (Discord purple, GitHub
-// near-black, Facebook blue) while feeling a bit more alive on the login
-// gate. Google keeps its official white/bordered look (that's Google's own
-// branding guideline, not a bug) but gets a soft gradient ring instead of a
-// plain border so it doesn't look flat next to the others.
 const AUTH_PROVIDERS = [
-  { id: 'google',   label: 'Continue with Google',
-    bg: 'linear-gradient(#fff,#fff)', fg: '#3c4043', border: true,
-    ring: 'linear-gradient(135deg,#4285F4,#34A853,#FBBC05,#EA4335)' },
-  { id: 'github',   label: 'Continue with GitHub',
-    bg: 'linear-gradient(135deg,#3a3f46,#0d1117)', fg: '#fff' },
-  { id: 'discord',  label: 'Continue with Discord',
-    bg: 'linear-gradient(135deg,#7289DA,#5865F2)', fg: '#fff' },
-  { id: 'facebook', label: 'Continue with Facebook',
-    bg: 'linear-gradient(135deg,#42a5f5,#1877F2)', fg: '#fff' }
+  { id: 'google',   label: 'Continue with Google',   bg: '#fff',    fg: '#3c4043', border: true },
+  { id: 'github',   label: 'Continue with GitHub',    bg: '#24292f', fg: '#fff' },
+  { id: 'discord',  label: 'Continue with Discord',   bg: '#5865F2', fg: '#fff' },
+  { id: 'facebook', label: 'Continue with Facebook',  bg: '#1877F2', fg: '#fff' }
 ];
 
 function renderLoginGateProviders() {
   const wrap = document.getElementById('login-gate-providers');
   if (!wrap) return;
-  wrap.innerHTML = AUTH_PROVIDERS.map(p => {
-    if (p.ring) {
-      // Gradient-ring treatment for Google: a 1px gradient border via a
-      // padded wrapper, white button on top, so the fill stays official
-      // white/gray while the surrounding ring picks up the brand colors.
-      return `
-      <div style="padding:1.5px;border-radius:9px;background:${p.ring}">
-        <button type="button" class="login-gate-provider-btn" data-provider="${p.id}"
-          style="width:100%;padding:0.6rem;border-radius:7.5px;border:none;background:${p.bg};color:${p.fg};font-weight:600;font-size:0.85rem;cursor:pointer;display:block">
-          ${escHtml(p.label)}
-        </button>
-      </div>`;
-    }
-    return `
+  wrap.innerHTML = AUTH_PROVIDERS.map(p => `
     <button type="button" class="login-gate-provider-btn" data-provider="${p.id}"
-      style="width:100%;padding:0.6rem;border-radius:8px;border:none;background:${p.bg};color:${p.fg};font-weight:600;font-size:0.85rem;cursor:pointer">
+      style="width:100%;padding:0.6rem;border-radius:8px;border:${p.border ? '1px solid var(--peach-line)' : 'none'};background:${p.bg};color:${p.fg};font-weight:600;font-size:0.85rem;cursor:pointer">
       ${escHtml(p.label)}
-    </button>`;
-  }).join('');
+    </button>`).join('');
   wrap.querySelectorAll('.login-gate-provider-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
-      const { error } = await sb.auth.signInWithOAuth({
+      await sb.auth.signInWithOAuth({
         provider: btn.dataset.provider,
         options: {
           redirectTo: window.location.origin + window.location.pathname,
           queryParams: { prompt: 'select_account' }
         }
       });
-      // If a provider hasn't actually been turned on in the Supabase
-      // dashboard yet, signInWithOAuth fails locally (no redirect happens)
-      // instead of silently doing nothing or falling back to another
-      // provider — surface that clearly instead of leaving the user
-      // wondering why nothing happened.
-      if (error) {
-        showToast(`${btn.textContent.trim()} isn't set up yet — try a different sign-in option.`);
-        console.error('OAuth sign-in failed', btn.dataset.provider, error);
-      }
     });
   });
 }
@@ -1620,31 +1613,6 @@ loadBookData();
   });
 })();
 
-// Share button beside the logo
-(function(){
-  const btn = document.getElementById('nav-share-btn');
-  if (!btn) return;
-  btn.addEventListener('click', async () => {
-    const shareData = {
-      title: 'Novelshift',
-      text: 'Check out Novelshift — one carefully chosen book at a time.',
-      url: window.location.href
-    };
-    if (navigator.share) {
-      try { await navigator.share(shareData); } catch (e) { /* user cancelled */ }
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(shareData.url);
-      const original = btn.textContent;
-      btn.textContent = '✅';
-      setTimeout(() => { btn.textContent = original; }, 1500);
-    } catch (e) {
-      window.prompt('Copy this link:', shareData.url);
-    }
-  });
-})();
-
 // Animated nav underline that follows active/hovered link
 (function(){
   const navLinks = document.querySelector('.nav-links');
@@ -1721,68 +1689,29 @@ document.body.classList.add('page-ready');
 
 // Active-section highlighting while scrolling
 (function(){
-  const sectionIds = ['home', 'book', 'reviews', 'wishlist', 'check-status'];
-  const sections = sectionIds.map(id => document.getElementById(id)).filter(Boolean);
-  const navLinks = document.querySelector('.nav-links');
+  const sections = ['home', 'book', 'reviews', 'wishlist', 'check-status']
+    .map(id => document.getElementById(id))
+    .filter(Boolean);
   const navA = document.querySelectorAll('.nav-links a');
-  if (!sections.length || !navA.length || !navLinks) return;
+  if (!sections.length || !navA.length) return;
 
-  function setActive(idx) {
-    navA.forEach(a => a.classList.remove('active'));
-    const link = navA[idx];
-    if (!link) return;
-    link.classList.add('active');
-    const underline = document.querySelector('.nav-underline');
-    if (underline && !navLinks.matches(':hover')) {
-      underline.style.left = link.offsetLeft + 'px';
-      underline.style.width = link.offsetWidth + 'px';
-    }
-  }
-
-  // Figure out which section is currently under a fixed "reading line"
-  // near the top of the viewport, and keep the nav in sync as the user
-  // scrolls — same idea as scrollspy, just less brittle than a strict
-  // IntersectionObserver threshold.
-  const NAV_OFFSET = 90; // matches the fixed nav height + a little breathing room
-  let ticking = false;
-
-  function updateActiveOnScroll() {
-    ticking = false;
-    const scrollLine = NAV_OFFSET + 10;
-
-    // Special-case the very bottom of the page so the last section
-    // always wins even if it's shorter than the viewport.
-    const atBottom = (window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 2);
-    if (atBottom) {
-      setActive(sectionIds.length - 1);
-      return;
-    }
-
-    let currentIdx = 0;
-    for (let i = 0; i < sections.length; i++) {
-      const rect = sections[i].getBoundingClientRect();
-      if (rect.top <= scrollLine) {
-        currentIdx = i;
+  const map = { home: 0, book: 1, reviews: 2, wishlist: 3, 'check-status': 4 };
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navA.forEach(a => a.classList.remove('active'));
+        const idx = map[entry.target.id];
+        if (navA[idx]) navA[idx].classList.add('active');
+        const underline = document.querySelector('.nav-underline');
+        const navLinks = document.querySelector('.nav-links');
+        if (underline && navLinks && navA[idx] && !navLinks.matches(':hover')) {
+          underline.style.left = navA[idx].offsetLeft + 'px';
+          underline.style.width = navA[idx].offsetWidth + 'px';
+        }
       }
-    }
-    setActive(currentIdx);
-  }
-
-  window.addEventListener('scroll', () => {
-    if (!ticking) {
-      requestAnimationFrame(updateActiveOnScroll);
-      ticking = true;
-    }
-  }, { passive: true });
-  window.addEventListener('resize', updateActiveOnScroll);
-
-  // Clicking a tab should highlight it immediately rather than waiting
-  // for the scroll handler to catch up with the (possibly smooth) scroll.
-  navA.forEach((a, idx) => {
-    a.addEventListener('click', () => setActive(idx));
-  });
-
-  updateActiveOnScroll();
+    });
+  }, { threshold: 0.4, rootMargin: '-70px 0px -50% 0px' });
+  sections.forEach(s => io.observe(s));
 })();
 </script>
 </body>
