@@ -37,10 +37,11 @@
   <div class="modal-box">
     <div style="font-size:1.6rem;margin-bottom:0.6rem">✍️</div>
     <div style="color:var(--espresso);font-weight:700;margin-bottom:0.4rem">Pick a username</div>
-    <div style="color:var(--brown);font-size:0.8rem;margin-bottom:1rem">This is what shows on your reviews instead of your email. Choose carefully — <strong>you can only set this once and can't change it later.</strong> Keep it appropriate.</div>
+    <div id="username-modal-hint" style="color:var(--brown);font-size:0.8rem;margin-bottom:1rem">Choose carefully — you get to set this once, plus one reset later if you change your mind. Keep it appropriate.</div>
     <input type="text" id="username-modal-input" placeholder="e.g. bookish_priya" maxlength="24">
     <div style="color:#b3543f;font-size:0.75rem;min-height:1.1rem;margin:-0.2rem 0 0.6rem" id="username-modal-error"></div>
     <button type="button" class="btn" id="username-modal-save-btn" style="width:100%">Save username</button>
+    <button type="button" id="username-modal-cancel-btn" style="display:none;width:100%;background:none;border:none;color:var(--brown-soft);font-size:0.75rem;text-decoration:underline;cursor:pointer;margin-top:0.5rem;padding:0.2rem">Cancel</button>
   </div>
 </div>
 
@@ -141,6 +142,7 @@
       <div id="nav-google-avatar-menu" style="display:none;position:absolute;top:calc(100% + 0.6rem);right:0;width:260px;max-height:70vh;overflow-y:auto;background:var(--white);border:1px solid var(--peach-line);border-radius:12px;padding:0.7rem;box-shadow:0 12px 30px var(--shadow);z-index:60;text-align:left">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:0.4rem;margin-bottom:0.15rem">
           <div id="nav-google-username" style="font-size:0.88rem;font-weight:700;color:var(--espresso)"></div>
+          <button id="nav-edit-username-btn" type="button" style="display:none;background:none;border:none;color:var(--brown-soft);font-size:0.7rem;text-decoration:underline;cursor:pointer;padding:0">Edit</button>
         </div>
         <div id="nav-google-avatar-email" style="font-size:0.72rem;color:var(--brown-soft);margin-bottom:0.5rem;word-break:break-all"></div>
         <div style="font-size:0.7rem;font-weight:600;color:var(--brown-soft);text-transform:uppercase;letter-spacing:0.03em;margin-bottom:0.4rem">Choose your avatar</div>
@@ -813,27 +815,36 @@ function avatarBackground(avatar) {
   return `linear-gradient(135deg, ${avatar.grad[0]}, ${avatar.grad[1]})`;
 }
 
-function avatarStorageKey(email) {
-  return `novelshift-avatar:${(email || '').toLowerCase()}`;
-}
+// ============ PROFILE (username + avatar) — stored in Supabase ============
+// Lives in the `profiles` table, one row per account (id = auth.uid()), so
+// it follows you across devices/browsers instead of being stuck in one
+// browser's localStorage. `userProfile` is a client-side cache of your own
+// row, refreshed on sign-in.
+let userProfile = null; // { username, avatar_id, username_changes } or null
 
-// ============ USERNAME ============
-// A per-account display name, separate from the Google name/email, shown
-// on the nav menu and used automatically as the review author name.
-// Can only be set ONCE per account — there's no edit option after that,
-// so nobody can keep relabeling themselves with something offensive.
-function usernameStorageKey(email) {
-  return `novelshift-username:${(email || '').toLowerCase()}`;
+async function loadUserProfile() {
+  if (!googleUser) { userProfile = null; return; }
+  const { data: session } = await sb.auth.getSession();
+  const uid = session?.session?.user?.id;
+  if (!uid) { userProfile = null; return; }
+
+  let { data, error } = await sb.from('profiles').select('username, avatar_id, username_changes').eq('id', uid).single();
+  if (error && error.code === 'PGRST116') {
+    // No row yet for this account — create one.
+    const insertRes = await sb.from('profiles').insert([{ id: uid, email: googleUser.email }]).select('username, avatar_id, username_changes').single();
+    data = insertRes.data;
+    error = insertRes.error;
+  }
+  if (error) {
+    console.error('loadUserProfile error:', error);
+    userProfile = { username: null, avatar_id: null, username_changes: 0 };
+    return;
+  }
+  userProfile = data;
 }
 
 function getUsername() {
-  if (!googleUser) return null;
-  return localStorage.getItem(usernameStorageKey(googleUser.email));
-}
-
-function setUsername(name) {
-  if (!googleUser) return;
-  localStorage.setItem(usernameStorageKey(googleUser.email), name);
+  return userProfile ? userProfile.username : null;
 }
 
 // A basic blocklist to catch common profanity/slurs and obvious dodges
@@ -859,8 +870,17 @@ function openUsernameModal(prefill) {
   const modal = document.getElementById('username-modal');
   const input = document.getElementById('username-modal-input');
   const err = document.getElementById('username-modal-error');
+  const hint = document.getElementById('username-modal-hint');
+  const cancelBtn = document.getElementById('username-modal-cancel-btn');
   input.value = prefill || '';
   err.textContent = '';
+  const isEdit = !!(userProfile && userProfile.username);
+  if (hint) {
+    hint.innerHTML = isEdit
+      ? "This is your one allowed username reset — <strong>after this, it's locked for good.</strong>"
+      : "Choose carefully — you get to set this once, plus one reset later if you change your mind. Keep it appropriate.";
+  }
+  cancelBtn.style.display = isEdit ? 'block' : 'none';
   modal.style.display = 'flex';
   setTimeout(() => input.focus(), 50);
 }
@@ -869,29 +889,58 @@ function closeUsernameModal() {
   document.getElementById('username-modal').style.display = 'none';
 }
 
-document.getElementById('username-modal-save-btn').addEventListener('click', () => {
-  if (getUsername()) return; // already locked in — no re-saving
+document.getElementById('username-modal-save-btn').addEventListener('click', async () => {
   const input = document.getElementById('username-modal-input');
   const err = document.getElementById('username-modal-error');
+  const btn = document.getElementById('username-modal-save-btn');
   const val = input.value.trim();
   if (val.length < 2) { err.textContent = 'Username needs to be at least 2 characters.'; return; }
   if (val.length > 24) { err.textContent = 'Keep it under 24 characters.'; return; }
   if (!/^[a-zA-Z0-9_. ]+$/.test(val)) { err.textContent = 'Letters, numbers, spaces, "_" and "." only.'; return; }
   if (usernameContainsBlockedWord(val)) { err.textContent = 'That username isn\'t allowed — please pick something else.'; return; }
-  setUsername(val);
+
+  const { data: session } = await sb.auth.getSession();
+  const uid = session?.session?.user?.id;
+  if (!uid) { err.textContent = 'You need to be signed in.'; return; }
+
+  btn.disabled = true; btn.textContent = 'Saving...';
+  const { data, error } = await sb.from('profiles').update({ username: val }).eq('id', uid).select('username, avatar_id, username_changes').single();
+  btn.disabled = false; btn.textContent = 'Save username';
+
+  if (error) {
+    err.textContent = error.message.includes('reset once')
+      ? "You've already used your one username reset — it's locked now."
+      : 'Could not save — please try again.';
+    return;
+  }
+  userProfile = data;
   closeUsernameModal();
   updateNavGoogleUI();
 });
 
+document.getElementById('nav-edit-username-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  openUsernameModal(getUsername() || '');
+});
+
+document.getElementById('username-modal-cancel-btn').addEventListener('click', () => {
+  closeUsernameModal();
+});
+
 function getUserAvatar() {
   if (!googleUser) return null;
-  const savedId = localStorage.getItem(avatarStorageKey(googleUser.email));
+  const savedId = userProfile ? userProfile.avatar_id : null;
   return getAvatarById(savedId) || hashKeyToAvatar(googleUser.email);
 }
 
-function setUserAvatar(id) {
+async function setUserAvatar(id) {
   if (!googleUser) return;
-  localStorage.setItem(avatarStorageKey(googleUser.email), id);
+  if (userProfile) userProfile.avatar_id = id; // update the local cache immediately for a snappy UI
+  const { data: session } = await sb.auth.getSession();
+  const uid = session?.session?.user?.id;
+  if (!uid) return;
+  const { error } = await sb.from('profiles').update({ avatar_id: id }).eq('id', uid);
+  if (error) console.error('setUserAvatar error:', error);
 }
 
 function avatarCircleHTML(avatar, sizePx) {
@@ -914,9 +963,9 @@ function renderAvatarPicker() {
       </div>
     </div>`).join('');
   wrap.querySelectorAll('.nav-avatar-choice').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', async (e) => {
       e.stopPropagation();
-      setUserAvatar(btn.dataset.id);
+      await setUserAvatar(btn.dataset.id);
       updateNavGoogleUI();
     });
   });
@@ -965,6 +1014,7 @@ async function checkGoogleSession() {
     googleUser = null;
   }
   document.getElementById('login-gate').style.display = googleUser ? 'none' : 'flex';
+  await loadUserProfile();
   updateGoogleSignInUI();
   updateNavGoogleUI();
 }
@@ -977,6 +1027,7 @@ function updateNavGoogleUI() {
   const avatarEl = document.getElementById('nav-google-avatar');
   const avatarEmail = document.getElementById('nav-google-avatar-email');
   const usernameEl = document.getElementById('nav-google-username');
+  const editBtn = document.getElementById('nav-edit-username-btn');
 
   if (googleUser) {
     signinBtn.style.display = 'none';
@@ -988,6 +1039,7 @@ function updateNavGoogleUI() {
     avatarEmail.textContent = googleUser.email;
     const username = getUsername();
     usernameEl.textContent = username || 'Set a username';
+    if (editBtn) editBtn.style.display = (username && userProfile && userProfile.username_changes < 1) ? 'inline' : 'none';
     renderAvatarPicker();
     updateReviewIdentityUI();
     if (!username) openUsernameModal('');
