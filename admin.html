@@ -151,47 +151,15 @@
           </select>
         </div>
       </div>
+      <div class="admin-row">
+        <label>E-book file</label>
+        <div id="bk-ebook-current" style="font-size:0.8rem;color:var(--brown-soft);margin-bottom:0.4rem"></div>
+        <input type="file" id="bk-ebook-input" accept=".pdf,.epub,.mobi">
+        <div style="font-size:0.72rem;color:var(--brown-soft);margin-top:0.3rem">PDF, EPUB, or MOBI · up to 200MB.</div>
+      </div>
       <button class="admin-save-btn" id="bk-save-btn">Save book</button>
       <button class="admin-save-btn" id="bk-cancel-edit-btn" style="display:none;background:transparent;color:var(--brown);border:1px solid var(--peach-line);margin-left:0.5rem">Cancel edit</button>
       <div class="admin-status" id="bk-form-status"></div>
-    </div>
-  </div>
-
-  <div class="admin-panel">
-    <h3>📗 Sarthak's Book</h3>
-    <div style="font-size:0.8rem;color:var(--brown-soft);margin-bottom:1rem">A separate, one-time listing for Sarthak's own book — kept completely apart from "Lost in the Loop" and the main catalog above. He can add exactly one book here, ever.</div>
-
-    <div id="sarthak-book-status-note" class="empty-note">Loading...</div>
-
-    <div id="sarthak-book-form-wrap" style="display:none">
-      <input type="hidden" id="sb-id" value="">
-      <div class="admin-row"><label>Title</label><input type="text" id="sb-title"></div>
-      <div class="admin-row"><label>Author</label><input type="text" id="sb-author"></div>
-      <div class="admin-row"><label>Description</label><textarea id="sb-desc" rows="4"></textarea></div>
-      <div class="admin-row"><label>Cover image URL</label><input type="url" id="sb-cover" placeholder="https://..."></div>
-      <div class="admin-grid2">
-        <div class="admin-row"><label>Price (₹)</label><input type="number" id="sb-price" min="0"></div>
-        <div class="admin-row"><label>Original price (₹)</label><input type="number" id="sb-price-old" min="0"></div>
-      </div>
-      <div class="admin-grid2">
-        <div class="admin-row"><label>Genre</label><input type="text" id="sb-genre"></div>
-        <div class="admin-row"><label>Pages</label><input type="number" id="sb-pages" min="1"></div>
-      </div>
-      <div class="admin-grid2">
-        <div class="admin-row"><label>Format</label><input type="text" id="sb-format" placeholder="Paperback"></div>
-        <div class="admin-row"><label>Language</label><input type="text" id="sb-language" placeholder="English"></div>
-      </div>
-      <div class="admin-row"><label>ISBN</label><input type="text" id="sb-isbn"></div>
-
-      <div class="admin-row">
-        <label>E-book file</label>
-        <div id="sb-ebook-current" style="font-size:0.8rem;color:var(--brown-soft);margin-bottom:0.4rem"></div>
-        <input type="file" id="sb-ebook-input" accept=".pdf,.epub,.mobi">
-        <div style="font-size:0.72rem;color:var(--brown-soft);margin-top:0.3rem">PDF, EPUB, or MOBI · up to 200MB.</div>
-      </div>
-
-      <button class="admin-save-btn" id="sb-save-btn">Add book</button>
-      <div class="admin-status" id="sb-form-status"></div>
     </div>
   </div>
 </div>
@@ -269,7 +237,6 @@ function showAdmin() {
   loadWishlistForAdmin();
   loadCreatorApplicationsForAdmin();
   loadBooksForAdmin();
-  loadSarthakBook();
 }
 // Note: orders now load via a password-gated edge function, and that
 // password is kept in memory only (never persisted) — so unlike before,
@@ -613,6 +580,11 @@ function fillBookForm(book) {
   document.getElementById('bk-language').value = book.language || '';
   document.getElementById('bk-isbn').value = book.isbn || '';
   document.getElementById('bk-status').value = book.status || 'draft';
+  const ebookCurrent = document.getElementById('bk-ebook-current');
+  ebookCurrent.innerHTML = book.ebook_file_url
+    ? `Current file: <a href="${book.ebook_file_url}" target="_blank" rel="noopener" style="color:var(--peach-deep)">${escHtml(book.ebook_file_name || 'view file')}</a> — choose a new file below to replace it.`
+    : 'No e-book file uploaded yet.';
+  document.getElementById('bk-ebook-input').value = '';
   document.getElementById('book-form-heading').textContent = '✏️ Edit book';
   document.getElementById('bk-cancel-edit-btn').style.display = 'inline-block';
 }
@@ -623,6 +595,8 @@ function resetBookForm() {
     document.getElementById(id).value = '';
   });
   document.getElementById('bk-status').value = 'draft';
+  document.getElementById('bk-ebook-current').textContent = 'No e-book file uploaded yet.';
+  document.getElementById('bk-ebook-input').value = '';
   document.getElementById('book-form-heading').textContent = '➕ Add a new book';
   document.getElementById('bk-cancel-edit-btn').style.display = 'none';
   document.getElementById('bk-form-status').textContent = '';
@@ -630,119 +604,17 @@ function resetBookForm() {
 
 document.getElementById('bk-cancel-edit-btn').addEventListener('click', resetBookForm);
 
-document.getElementById('bk-save-btn').addEventListener('click', async () => {
-  const idVal = document.getElementById('book-form-id').value;
-  const statusEl = document.getElementById('bk-form-status');
-  const title = document.getElementById('bk-title').value.trim();
-  if (!title) { statusEl.textContent = 'Title is required.'; statusEl.style.color = 'var(--red)'; return; }
-
-  const payload = {
-    title,
-    author: document.getElementById('bk-author').value.trim() || null,
-    description: document.getElementById('bk-desc').value.trim() || null,
-    cover_image_url: document.getElementById('bk-cover').value.trim() || null,
-    price: document.getElementById('bk-price').value ? parseInt(document.getElementById('bk-price').value) : null,
-    price_old: document.getElementById('bk-price-old').value ? parseInt(document.getElementById('bk-price-old').value) : null,
-    genre: document.getElementById('bk-genre').value.trim() || null,
-    pages: document.getElementById('bk-pages').value ? parseInt(document.getElementById('bk-pages').value) : null,
-    format: document.getElementById('bk-format').value.trim() || null,
-    language: document.getElementById('bk-language').value.trim() || null,
-    isbn: document.getElementById('bk-isbn').value.trim() || null,
-    status: document.getElementById('bk-status').value,
-    updated_at: new Date().toISOString()
-  };
-
-  const btn = document.getElementById('bk-save-btn');
-  btn.disabled = true; btn.textContent = 'Saving...';
-
-  let error;
-  if (idVal) {
-    ({ error } = await sb.from('books').update(payload).eq('id', idVal));
-  } else {
-    ({ error } = await sb.from('books').insert([payload]));
-  }
-
-  btn.disabled = false; btn.textContent = 'Save book';
-
-  if (error) {
-    statusEl.textContent = 'Could not save — ' + (error.message || 'please try again.');
-    statusEl.style.color = 'var(--red)';
-    return;
-  }
-  statusEl.textContent = idVal ? 'Book updated.' : 'Book added.';
-  statusEl.style.color = 'var(--brown-soft)';
-  resetBookForm();
-  loadBooksForAdmin();
-});
-
-// ============ SARTHAK'S BOOK — separate, one-time only ============
-// Reads/writes the dedicated `sarthak_book` table only — never touches
-// `books` or `book_settings`, so this can never affect the main catalog
-// or Lost in the Loop. The database itself also enforces the one-row
-// limit (a trigger rejects a second insert), this is just the UI layer.
-let sarthakBookRow = null;
-
-async function loadSarthakBook() {
-  const note = document.getElementById('sarthak-book-status-note');
-  const formWrap = document.getElementById('sarthak-book-form-wrap');
-  const { data, error } = await sb.from('sarthak_book').select('*').order('created_at', { ascending: false }).limit(1);
-  if (error) { note.textContent = 'Could not load — please refresh.'; return; }
-
-  sarthakBookRow = (data && data.length) ? data[0] : null;
-  note.style.display = 'none';
-  formWrap.style.display = 'block';
-
-  if (sarthakBookRow) {
-    fillSarthakForm(sarthakBookRow);
-    document.getElementById('sb-save-btn').textContent = 'Update book';
-    note.style.display = 'block';
-    note.textContent = 'His one book has already been added — you can still edit its details or replace the e-book file below, but a second book can\'t be added.';
-  } else {
-    resetSarthakForm();
-    document.getElementById('sb-save-btn').textContent = 'Add book';
-  }
-}
-
-function fillSarthakForm(book) {
-  document.getElementById('sb-id').value = book.id;
-  document.getElementById('sb-title').value = book.title || '';
-  document.getElementById('sb-author').value = book.author || '';
-  document.getElementById('sb-desc').value = book.description || '';
-  document.getElementById('sb-cover').value = book.cover_image_url || '';
-  document.getElementById('sb-price').value = book.price ?? '';
-  document.getElementById('sb-price-old').value = book.price_old ?? '';
-  document.getElementById('sb-genre').value = book.genre || '';
-  document.getElementById('sb-pages').value = book.pages ?? '';
-  document.getElementById('sb-format').value = book.format || '';
-  document.getElementById('sb-language').value = book.language || '';
-  document.getElementById('sb-isbn').value = book.isbn || '';
-  const currentEl = document.getElementById('sb-ebook-current');
-  currentEl.innerHTML = book.ebook_file_url
-    ? `Current file: <a href="${book.ebook_file_url}" target="_blank" rel="noopener" style="color:var(--peach-deep)">${escHtml(book.ebook_file_name || 'view file')}</a> — choose a new file below to replace it.`
-    : 'No e-book file uploaded yet.';
-}
-
-function resetSarthakForm() {
-  document.getElementById('sb-id').value = '';
-  ['sb-title','sb-author','sb-desc','sb-cover','sb-price','sb-price-old','sb-genre','sb-pages','sb-format','sb-language','sb-isbn'].forEach(id => {
-    document.getElementById(id).value = '';
-  });
-  document.getElementById('sb-ebook-current').textContent = 'No e-book file uploaded yet.';
-  document.getElementById('sb-ebook-input').value = '';
-  document.getElementById('sb-form-status').textContent = '';
-}
-
-async function uploadSarthakEbookIfChosen() {
-  const fileInput = document.getElementById('sb-ebook-input');
+async function uploadBookEbookIfChosen() {
+  const fileInput = document.getElementById('bk-ebook-input');
   const file = fileInput.files && fileInput.files[0];
   if (!file) return null; // nothing chosen — keep existing file, if any
 
-  const statusEl = document.getElementById('sb-form-status');
+  const statusEl = document.getElementById('bk-form-status');
   statusEl.textContent = 'Uploading e-book file...';
   statusEl.style.color = 'var(--brown-soft)';
 
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-  const path = `sarthak/${Date.now()}_${safeName}`;
+  const path = `books/${Date.now()}_${safeName}`;
 
   const res = await fetch(`${SUPABASE_URL}/storage/v1/object/ebooks/${path}`, {
     method: 'POST',
@@ -765,22 +637,20 @@ async function uploadSarthakEbookIfChosen() {
   return { url: publicUrl, name: file.name };
 }
 
-document.getElementById('sb-save-btn').addEventListener('click', async () => {
-  const statusEl = document.getElementById('sb-form-status');
-  const title = document.getElementById('sb-title').value.trim();
+document.getElementById('bk-save-btn').addEventListener('click', async () => {
+  const idVal = document.getElementById('book-form-id').value;
+  const statusEl = document.getElementById('bk-form-status');
+  const title = document.getElementById('bk-title').value.trim();
   if (!title) { statusEl.textContent = 'Title is required.'; statusEl.style.color = 'var(--red)'; return; }
 
-  const btn = document.getElementById('sb-save-btn');
-  btn.disabled = true;
-  const wasEditing = !!sarthakBookRow;
-  btn.textContent = wasEditing ? 'Updating...' : 'Adding...';
-  statusEl.textContent = '';
+  const btn = document.getElementById('bk-save-btn');
+  btn.disabled = true; btn.textContent = 'Saving...';
 
   let ebook;
   try {
-    ebook = await uploadSarthakEbookIfChosen();
+    ebook = await uploadBookEbookIfChosen();
   } catch (e) {
-    btn.disabled = false; btn.textContent = wasEditing ? 'Update book' : 'Add book';
+    btn.disabled = false; btn.textContent = 'Save book';
     statusEl.textContent = e.message || 'E-book upload failed.';
     statusEl.style.color = 'var(--red)';
     return;
@@ -788,42 +658,41 @@ document.getElementById('sb-save-btn').addEventListener('click', async () => {
 
   const payload = {
     title,
-    author: document.getElementById('sb-author').value.trim() || null,
-    description: document.getElementById('sb-desc').value.trim() || null,
-    cover_image_url: document.getElementById('sb-cover').value.trim() || null,
-    price: document.getElementById('sb-price').value ? parseInt(document.getElementById('sb-price').value) : null,
-    price_old: document.getElementById('sb-price-old').value ? parseInt(document.getElementById('sb-price-old').value) : null,
-    genre: document.getElementById('sb-genre').value.trim() || null,
-    pages: document.getElementById('sb-pages').value ? parseInt(document.getElementById('sb-pages').value) : null,
-    format: document.getElementById('sb-format').value.trim() || null,
-    language: document.getElementById('sb-language').value.trim() || null,
-    isbn: document.getElementById('sb-isbn').value.trim() || null,
+    author: document.getElementById('bk-author').value.trim() || null,
+    description: document.getElementById('bk-desc').value.trim() || null,
+    cover_image_url: document.getElementById('bk-cover').value.trim() || null,
+    price: document.getElementById('bk-price').value ? parseInt(document.getElementById('bk-price').value) : null,
+    price_old: document.getElementById('bk-price-old').value ? parseInt(document.getElementById('bk-price-old').value) : null,
+    genre: document.getElementById('bk-genre').value.trim() || null,
+    pages: document.getElementById('bk-pages').value ? parseInt(document.getElementById('bk-pages').value) : null,
+    format: document.getElementById('bk-format').value.trim() || null,
+    language: document.getElementById('bk-language').value.trim() || null,
+    isbn: document.getElementById('bk-isbn').value.trim() || null,
+    status: document.getElementById('bk-status').value,
     updated_at: new Date().toISOString()
   };
   if (ebook) { payload.ebook_file_url = ebook.url; payload.ebook_file_name = ebook.name; }
 
   let error;
-  if (wasEditing) {
-    ({ error } = await sb.from('sarthak_book').update(payload).eq('id', sarthakBookRow.id));
+  if (idVal) {
+    ({ error } = await sb.from('books').update(payload).eq('id', idVal));
   } else {
-    ({ error } = await sb.from('sarthak_book').insert([payload]));
+    ({ error } = await sb.from('books').insert([payload]));
   }
 
-  btn.disabled = false;
+  btn.disabled = false; btn.textContent = 'Save book';
 
   if (error) {
-    statusEl.textContent = error.message.includes('Only one book')
-      ? 'A book has already been added — only one is allowed.'
-      : ('Could not save — ' + (error.message || 'please try again.'));
+    statusEl.textContent = 'Could not save — ' + (error.message || 'please try again.');
     statusEl.style.color = 'var(--red)';
-    btn.textContent = wasEditing ? 'Update book' : 'Add book';
     return;
   }
-
-  statusEl.textContent = wasEditing ? 'Book updated.' : 'Book added!';
+  statusEl.textContent = idVal ? 'Book updated.' : 'Book added.';
   statusEl.style.color = 'var(--brown-soft)';
-  await loadSarthakBook();
+  resetBookForm();
+  loadBooksForAdmin();
 });
+
 </script>
 </body>
 </html>
