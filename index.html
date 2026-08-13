@@ -18,6 +18,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="specular-fx.css">
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
@@ -1566,6 +1567,42 @@ document.body.classList.add('page-ready');
   }, { threshold: 0.4, rootMargin: '-70px 0px -50% 0px' });
   sections.forEach(s => io.observe(s));
 })();
+</script>
+
+<script type="module">
+  import { attachSpecularFX } from './specular-fx.js';
+
+  // Primary hero CTA — warm cream shine on the peach-deep gradient button,
+  // the very first action a visitor sees.
+  const heroBtn = document.querySelector('.hero-cta .btn-hero');
+  if (heroBtn) {
+    attachSpecularFX(heroBtn, {
+      lineColor: '#FDF6EE',
+      baseColor: '#C97B5C',
+      intensity: 1,
+      shineSize: 12,
+      shineFade: 45,
+      thickness: 1.2,
+      speed: 0.3,
+      proximity: 260
+    });
+  }
+
+  // Main "buy" CTA on the featured book — the actual conversion moment,
+  // so it gets the same treatment as the hero button.
+  const buyBtn = document.getElementById('add-to-cart-btn');
+  if (buyBtn) {
+    attachSpecularFX(buyBtn, {
+      lineColor: '#FDF6EE',
+      baseColor: '#C97B5C',
+      intensity: 1,
+      shineSize: 12,
+      shineFade: 45,
+      thickness: 1.2,
+      speed: 0.3,
+      proximity: 260
+    });
+  }
 </script>
 </body>
 </html>

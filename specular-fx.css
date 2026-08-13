@@ -1,0 +1,30 @@
+/* Specular shine overlay — layers on top of a button's existing styling.
+   The host element keeps its own classes (.btn-hero, .btn-buy, etc.);
+   this only adds the positioning context + glow canvas + label wrapper. */
+
+.specular-host {
+  position: relative;
+}
+
+/* .btn-buy/.btn-accent/.btn-sm/.nav-links a already set overflow:hidden
+   (for their click-ripple effect) — leave that as-is so the ripple stays
+   clipped to the button; the shine canvas simply gets clipped along with
+   it, which only trims a couple of px of outer glow bleed. */
+
+.specular-label {
+  position: relative;
+  z-index: 2;
+}
+
+.specular-fx {
+  position: absolute;
+  inset: -20px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.specular-fx canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
