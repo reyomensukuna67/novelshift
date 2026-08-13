@@ -536,3 +536,17 @@ body.page-ready{animation:pageFadeIn 0.5s ease}
     transform: translate3d(0,0,0);
   }
 }
+
+/* ============ PASSKEY UI ============ */
+.passkey-modal-box{text-align:center;max-width:420px}
+.passkey-icon{font-size:2.3rem;margin-bottom:.55rem}
+.passkey-title{color:var(--espresso);font-weight:800;font-size:1.15rem;margin-bottom:.45rem}
+.passkey-copy{color:var(--brown);font-size:.84rem;line-height:1.55;margin-bottom:1rem}
+.passkey-error{min-height:1.1rem;color:var(--red);font-size:.78rem;margin-bottom:.5rem}
+.passkey-actions{display:flex;flex-direction:column;gap:.55rem}
+.passkey-primary{width:100%}
+.passkey-secondary{width:100%;background:transparent;border:0;color:var(--brown-soft);font-size:.78rem;text-decoration:underline;cursor:pointer;padding:.35rem}
+.login-passkey-btn{width:100%;padding:.68rem;border-radius:8px;border:1px solid var(--peach-line);background:var(--espresso);color:#fff;font-weight:700;font-size:.85rem;cursor:pointer;margin-bottom:.45rem;transition:transform .15s ease,opacity .2s ease}
+.login-passkey-btn:hover{transform:translateY(-1px);opacity:.92}
+.login-passkey-btn:disabled{opacity:.6;cursor:wait;transform:none}
+.login-passkey-status{font-size:.7rem;color:var(--brown-soft);margin-bottom:.7rem;line-height:1.35}

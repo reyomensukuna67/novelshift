@@ -62,7 +62,23 @@
       </div>
     </div>
 
+    <button type="button" id="login-passkey-btn" class="login-passkey-btn" style="display:none">🔐 Sign in with passkey</button>
+    <div id="login-passkey-status" class="login-passkey-status" style="display:none"></div>
     <div id="login-gate-providers" style="display:flex;flex-direction:column;gap:0.5rem"></div>
+  </div>
+</div>
+
+<!-- Passkey setup prompt: shown after a successful social login when the account has no passkey. -->
+<div id="passkey-setup-modal" class="modal-overlay" style="z-index:10030;display:none">
+  <div class="modal-box passkey-modal-box">
+    <div class="passkey-icon">🔐</div>
+    <div class="passkey-title">Set up a passkey</div>
+    <div class="passkey-copy">Sign in faster next time with your fingerprint, Face ID, Windows Hello, device PIN, or password manager.</div>
+    <div id="passkey-setup-error" class="passkey-error"></div>
+    <div class="passkey-actions">
+      <button type="button" id="passkey-setup-btn" class="btn passkey-primary">Set up passkey</button>
+      <button type="button" id="passkey-later-btn" class="passkey-secondary">Maybe later</button>
+    </div>
   </div>
 </div>
 
@@ -397,7 +413,11 @@
 // ============ SUPABASE ============
 const SUPABASE_URL = 'https://yreawkggymjmcuukknup.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlyZWF3a2dneW1qbWN1dWtrbnVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MTgwMDYsImV4cCI6MjA5ODI5NDAwNn0.kAlUW4XJ_8ERgruKyx5G_NKVSKtsyUJGptte1rHt73E';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: {
+    experimental: { passkey: true }
+  }
+});
 const FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
 
 // If the user just came back from a Google OAuth redirect, Supabase leaves
@@ -1115,6 +1135,105 @@ document.getElementById('nav-google-signout-btn').addEventListener('click', asyn
 });
 
 // Check for an existing Google session as soon as the page loads, not just
+// ============ PASSKEYS ============
+const passkeySetupModal = document.getElementById('passkey-setup-modal');
+const passkeySetupBtn = document.getElementById('passkey-setup-btn');
+const passkeyLaterBtn = document.getElementById('passkey-later-btn');
+const passkeySetupError = document.getElementById('passkey-setup-error');
+const loginPasskeyBtn = document.getElementById('login-passkey-btn');
+const loginPasskeyStatus = document.getElementById('login-passkey-status');
+
+function passkeySupported() {
+  return !!window.PublicKeyCredential && typeof sb.auth.signInWithPasskey === 'function' && typeof sb.auth.registerPasskey === 'function';
+}
+
+async function getPasskeys() {
+  if (!passkeySupported() || typeof sb.auth.passkey?.list !== 'function') return [];
+  const { data, error } = await sb.auth.passkey.list();
+  if (error) {
+    console.warn('Could not list passkeys:', error);
+    return [];
+  }
+  return Array.isArray(data) ? data : [];
+}
+
+async function refreshPasskeyLoginUI() {
+  if (!loginPasskeyBtn || !loginPasskeyStatus) return;
+  if (!passkeySupported()) {
+    loginPasskeyBtn.style.display = 'none';
+    loginPasskeyStatus.style.display = 'none';
+    return;
+  }
+  loginPasskeyBtn.style.display = 'block';
+  loginPasskeyStatus.textContent = 'Use a saved passkey on this device or password manager.';
+  loginPasskeyStatus.style.display = 'block';
+}
+
+function closePasskeySetup() {
+  if (passkeySetupModal) passkeySetupModal.style.display = 'none';
+  if (passkeySetupError) passkeySetupError.textContent = '';
+}
+
+async function promptForPasskeyAfterSignIn() {
+  if (!passkeySupported()) return;
+  const { data: sessionData } = await sb.auth.getSession();
+  if (!sessionData?.session?.user) return;
+
+  const passkeys = await getPasskeys();
+  if (passkeys.length > 0) return;
+
+  if (passkeySetupModal) passkeySetupModal.style.display = 'flex';
+}
+
+passkeyLaterBtn?.addEventListener('click', closePasskeySetup);
+passkeySetupBtn?.addEventListener('click', async () => {
+  if (!passkeySupported()) {
+    if (passkeySetupError) passkeySetupError.textContent = 'Passkeys are not supported by this browser or device.';
+    return;
+  }
+  passkeySetupBtn.disabled = true;
+  passkeySetupBtn.textContent = 'Setting up…';
+  if (passkeySetupError) passkeySetupError.textContent = '';
+  try {
+    const { error } = await sb.auth.registerPasskey();
+    if (error) throw error;
+    closePasskeySetup();
+    if (typeof showToast === 'function') showToast('Passkey added! You can use it next time you sign in.');
+  } catch (err) {
+    console.error('Passkey registration failed:', err);
+    if (passkeySetupError) passkeySetupError.textContent = err?.message || 'Passkey setup was cancelled or failed. You can try again later.';
+  } finally {
+    passkeySetupBtn.disabled = false;
+    passkeySetupBtn.textContent = 'Set up passkey';
+  }
+});
+
+loginPasskeyBtn?.addEventListener('click', async () => {
+  if (!passkeySupported()) return;
+  loginPasskeyBtn.disabled = true;
+  const original = loginPasskeyBtn.textContent;
+  loginPasskeyBtn.textContent = '🔐 Waiting for passkey…';
+  try {
+    const { error } = await sb.auth.signInWithPasskey();
+    if (error) throw error;
+  } catch (err) {
+    console.error('Passkey sign-in failed:', err);
+    if (typeof showToast === 'function') showToast(err?.message || 'Passkey sign-in failed. Try another sign-in method.');
+  } finally {
+    loginPasskeyBtn.disabled = false;
+    loginPasskeyBtn.textContent = original;
+  }
+});
+
+if (passkeySupported()) refreshPasskeyLoginUI();
+
+// Prompt after a real sign-in event, not merely when an existing session is restored.
+sb.auth.onAuthStateChange((event) => {
+  if (event === 'SIGNED_IN') {
+    setTimeout(() => promptForPasskeyAfterSignIn(), 250);
+  }
+});
+
 // ============ SIGN-IN PROVIDERS ============
 // All free on Supabase's free tier. Add/remove entries here to change what
 // shows on the login gate — each one just needs to be turned on in
