@@ -63,8 +63,7 @@
     </div>
 
     <button type="button" id="login-passkey-btn" class="login-passkey-btn" style="display:none">🔐 Sign in with passkey</button>
-    <div id="login-passkey-status" class="login-passkey-status" style="display:none"></div>
-    <div id="login-gate-providers" style="display:flex;flex-direction:column;gap:0.5rem"></div>
+        <div id="login-gate-providers" style="display:flex;flex-direction:column;gap:0.5rem"></div>
   </div>
 </div>
 
@@ -1141,7 +1140,6 @@ const passkeySetupBtn = document.getElementById('passkey-setup-btn');
 const passkeyLaterBtn = document.getElementById('passkey-later-btn');
 const passkeySetupError = document.getElementById('passkey-setup-error');
 const loginPasskeyBtn = document.getElementById('login-passkey-btn');
-const loginPasskeyStatus = document.getElementById('login-passkey-status');
 
 function passkeySupported() {
   return !!window.PublicKeyCredential && typeof sb.auth.signInWithPasskey === 'function' && typeof sb.auth.registerPasskey === 'function';
@@ -1158,15 +1156,12 @@ async function getPasskeys() {
 }
 
 async function refreshPasskeyLoginUI() {
-  if (!loginPasskeyBtn || !loginPasskeyStatus) return;
+  if (!loginPasskeyBtn) return;
   if (!passkeySupported()) {
     loginPasskeyBtn.style.display = 'none';
-    loginPasskeyStatus.style.display = 'none';
     return;
   }
   loginPasskeyBtn.style.display = 'block';
-  loginPasskeyStatus.textContent = 'Use a saved passkey on this device or password manager.';
-  loginPasskeyStatus.style.display = 'block';
 }
 
 function closePasskeySetup() {
@@ -1214,11 +1209,20 @@ loginPasskeyBtn?.addEventListener('click', async () => {
   const original = loginPasskeyBtn.textContent;
   loginPasskeyBtn.textContent = '🔐 Waiting for passkey…';
   try {
-    const { error } = await sb.auth.signInWithPasskey();
+    const { data, error } = await sb.auth.signInWithPasskey();
     if (error) throw error;
+    if (!data?.session || !data?.user) {
+      throw new Error('Passkey sign-in did not create a session. Make sure a passkey is registered for this Novelshift account.');
+    }
   } catch (err) {
     console.error('Passkey sign-in failed:', err);
-    if (typeof showToast === 'function') showToast(err?.message || 'Passkey sign-in failed. Try another sign-in method.');
+    const code = err?.code || '';
+    let message = err?.message || 'Passkey sign-in failed. Try another sign-in method.';
+    if (code === 'passkey_disabled') message = 'Passkeys are not enabled in your Supabase project. Enable Authentication → Passkeys first.';
+    else if (code === 'webauthn_credential_not_found') message = 'No passkey for this Novelshift account was found on this device or password manager. Sign in with Google, GitHub, Discord, or Facebook and set one up first.';
+    else if (code === 'webauthn_challenge_expired') message = 'The passkey request expired. Please try again.';
+    else if (code === 'webauthn_verification_failed') message = 'Supabase could not verify this passkey. Check that your Relying Party ID and Origin match your website domain.';
+    if (typeof showToast === 'function') showToast(message);
   } finally {
     loginPasskeyBtn.disabled = false;
     loginPasskeyBtn.textContent = original;
