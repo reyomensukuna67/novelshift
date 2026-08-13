@@ -1214,6 +1214,13 @@ loginPasskeyBtn?.addEventListener('click', async () => {
     if (!data?.session || !data?.user) {
       throw new Error('Passkey sign-in did not create a session. Make sure a passkey is registered for this Novelshift account.');
     }
+
+    // Supabase has created the authenticated session. Give the session
+    // state a moment to settle, then reload so the app initializes exactly
+    // like a normal page load with the new authenticated session.
+    loginPasskeyBtn.textContent = '✓ Signed in';
+    setTimeout(() => window.location.reload(), 500);
+    return;
   } catch (err) {
     console.error('Passkey sign-in failed:', err);
     const code = err?.code || '';
