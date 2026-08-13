@@ -423,12 +423,15 @@ body.page-ready{animation:pageFadeIn 0.5s ease}
 /* Login provider icon layout */
 .login-gate-provider-btn {
   min-height: 46px;
-  transition: transform 0.15s ease, box-shadow 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform 0.18s ease, box-shadow 0.22s ease, border-color 0.22s ease;
 }
 
 .login-gate-provider-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(70, 45, 30, 0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(70, 45, 30, 0.14);
 }
 
 .login-gate-provider-btn:active {
@@ -450,4 +453,40 @@ body.page-ready{animation:pageFadeIn 0.5s ease}
   height: 20px;
   flex: 0 0 20px;
   display: block;
+}
+
+/* Google gets a distinctly Google-like treatment while keeping the Novelshift look. */
+.login-gate-provider-btn.provider-google {
+  background: #fff !important;
+  color: #3c4043 !important;
+  border: 1px solid #dadce0 !important;
+  box-shadow: 0 2px 6px rgba(60, 64, 67, 0.10);
+}
+
+.login-gate-provider-btn.provider-google::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #4285f4 0 25%, #34a853 25% 50%, #fbbc05 50% 75%, #ea4335 75% 100%);
+  opacity: 0.95;
+  z-index: 0;
+}
+
+.login-gate-provider-btn.provider-google:hover {
+  border-color: #c6c8ca !important;
+  box-shadow: 0 10px 24px rgba(66, 133, 244, 0.16), 0 2px 7px rgba(60, 64, 67, 0.10);
+}
+
+.login-gate-provider-btn.provider-google .login-provider-icon {
+  width: 22px;
+  height: 22px;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.08));
+}
+
+.login-gate-provider-btn.provider-google .login-provider-content > span:last-child {
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }

@@ -1112,7 +1112,7 @@ function renderLoginGateProviders() {
   const wrap = document.getElementById('login-gate-providers');
   if (!wrap) return;
   wrap.innerHTML = AUTH_PROVIDERS.map(p => `
-    <button type="button" class="login-gate-provider-btn" data-provider="${p.id}"
+    <button type="button" class="login-gate-provider-btn provider-${p.id}" data-provider="${p.id}"
       style="width:100%;padding:0.6rem;border-radius:8px;border:${p.border ? '1px solid var(--peach-line)' : 'none'};background:${p.bg};color:${p.fg};font-weight:600;font-size:0.85rem;cursor:pointer">
       <span class="login-provider-content">${authProviderIcon(p.id)}<span>${escHtml(p.label)}</span></span>
     </button>`).join('');
@@ -1618,13 +1618,13 @@ document.body.classList.add('page-ready');
   document.querySelectorAll('.login-gate-provider-btn').forEach(btn => {
     const provider = btn.dataset.provider;
     const baseColors = {
-      google: '#E9E4DE',
+      google: '#FFFFFF',
       github: '#24292F',
       discord: '#5865F2',
       facebook: '#1877F2'
     };
     attachSpecularFX(btn, {
-      lineColor: provider === 'google' ? '#8B6F5A' : '#FFFFFF',
+      lineColor: provider === 'google' ? '#4285F4' : '#FFFFFF',
       baseColor: baseColors[provider] || '#C97B5C',
       intensity: 1.15,
       shineSize: 14,
