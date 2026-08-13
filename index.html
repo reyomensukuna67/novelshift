@@ -1098,13 +1098,23 @@ const AUTH_PROVIDERS = [
   { id: 'facebook', label: 'Continue with Facebook',  bg: '#1877F2', fg: '#fff' }
 ];
 
+function authProviderIcon(id) {
+  const icons = {
+    google: `<svg class="login-provider-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.35 12.27c0-.71-.06-1.4-.18-2.05H12v3.88h5.24a4.48 4.48 0 0 1-1.94 2.94v2.44h3.14c1.84-1.69 2.91-4.18 2.91-7.21Z"/><path fill="#34A853" d="M12 21.75c2.63 0 4.84-.87 6.45-2.36l-3.14-2.44c-.87.58-1.98.93-3.31.93-2.55 0-4.72-1.72-5.5-4.04H3.26v2.52A9.74 9.74 0 0 0 12 21.75Z"/><path fill="#FBBC05" d="M6.5 13.84A5.86 5.86 0 0 1 6.19 12c0-.64.11-1.26.31-1.84V7.64H3.26A9.75 9.75 0 0 0 2.25 12c0 1.57.38 3.05 1.01 4.36l3.24-2.52Z"/><path fill="#EA4335" d="M12 6.12c1.43 0 2.71.49 3.72 1.45l2.79-2.79C16.84 3.17 14.63 2.25 12 2.25a9.74 9.74 0 0 0-8.74 5.39l3.24 2.52C7.28 7.84 9.45 6.12 12 6.12Z"/></svg>`,
+    github: `<svg class="login-provider-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2.25a9.75 9.75 0 0 0-3.08 19c.49.09.67-.21.67-.47v-1.84c-2.73.59-3.31-1.16-3.31-1.16-.45-1.14-1.09-1.44-1.09-1.44-.89-.61.07-.6.07-.6.98.07 1.5 1 1.5 1 .88 1.5 2.3 1.07 2.86.82.09-.64.35-1.07.63-1.32-2.18-.25-4.47-1.09-4.47-4.85 0-1.07.38-1.95 1-2.64-.1-.25-.43-1.25.1-2.6 0 0 .82-.26 2.68 1.01A9.34 9.34 0 0 1 12 6.82c.83 0 1.66.11 2.44.33 1.86-1.27 2.68-1.01 2.68-1.01.53 1.35.2 2.35.1 2.6.62.69 1 1.57 1 2.64 0 3.77-2.3 4.59-4.49 4.84.35.3.67.89.67 1.8v2.66c0 .26.18.56.68.47A9.75 9.75 0 0 0 12 2.25Z"/></svg>`,
+    discord: `<svg class="login-provider-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.54 5.16A16.2 16.2 0 0 0 15.55 4l-.49 1a14.4 14.4 0 0 0-6.12 0l-.49-1a16.2 16.2 0 0 0-3.99 1.16C1.93 8.12 1.25 11 1.5 13.84c1.67 1.23 3.28 1.97 4.84 2.46l1.17-1.58c-.65-.24-1.27-.55-1.86-.92l.45-.35c3.6 1.66 7.5 1.66 11.06 0l.46.35c-.59.37-1.21.68-1.87.92l1.17 1.58c1.56-.49 3.17-1.23 4.84-2.46.3-3.28-.51-6.13-2.22-8.68ZM8.65 12.88c-1.05 0-1.92-.96-1.92-2.14s.85-2.14 1.92-2.14c1.08 0 1.94.96 1.92 2.14 0 1.18-.85 2.14-1.92 2.14Zm6.7 0c-1.05 0-1.92-.96-1.92-2.14s.85-2.14 1.92-2.14c1.08 0 1.94.96 1.92 2.14 0 1.18-.85 2.14-1.92 2.14Z"/></svg>`,
+    facebook: `<svg class="login-provider-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M13.7 21.5v-8.58h2.88l.43-3.34H13.7V7.45c0-.97.27-1.63 1.67-1.63h1.79V2.84c-.31-.04-1.37-.14-2.6-.14-2.58 0-4.35 1.58-4.35 4.48v2.5H7.29v3.34h2.92v8.48c.58.09 1.18.14 1.79.14.58 0 1.14-.05 1.7-.14Z"/></svg>`
+  };
+  return icons[id] || '';
+}
+
 function renderLoginGateProviders() {
   const wrap = document.getElementById('login-gate-providers');
   if (!wrap) return;
   wrap.innerHTML = AUTH_PROVIDERS.map(p => `
     <button type="button" class="login-gate-provider-btn" data-provider="${p.id}"
       style="width:100%;padding:0.6rem;border-radius:8px;border:${p.border ? '1px solid var(--peach-line)' : 'none'};background:${p.bg};color:${p.fg};font-weight:600;font-size:0.85rem;cursor:pointer">
-      ${escHtml(p.label)}
+      <span class="login-provider-content">${authProviderIcon(p.id)}<span>${escHtml(p.label)}</span></span>
     </button>`).join('');
   wrap.querySelectorAll('.login-gate-provider-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
@@ -1603,6 +1613,27 @@ document.body.classList.add('page-ready');
       proximity: 260
     });
   }
+
+  // Login provider buttons get the same premium specular shine.
+  document.querySelectorAll('.login-gate-provider-btn').forEach(btn => {
+    const provider = btn.dataset.provider;
+    const baseColors = {
+      google: '#E9E4DE',
+      github: '#24292F',
+      discord: '#5865F2',
+      facebook: '#1877F2'
+    };
+    attachSpecularFX(btn, {
+      lineColor: provider === 'google' ? '#8B6F5A' : '#FFFFFF',
+      baseColor: baseColors[provider] || '#C97B5C',
+      intensity: 1.15,
+      shineSize: 14,
+      shineFade: 48,
+      thickness: 1.15,
+      speed: 0.34,
+      proximity: 220
+    });
+  });
 </script>
 </body>
 </html>

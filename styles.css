@@ -419,3 +419,35 @@ body.page-ready{animation:pageFadeIn 0.5s ease}
 /* ============ WISH LIST ============ */
 .wl-form{background:var(--white);border:1px solid var(--peach-line);border-radius:16px;padding:2rem;margin-bottom:2.2rem}
 
+
+/* Login provider icon layout */
+.login-gate-provider-btn {
+  min-height: 46px;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.login-gate-provider-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(70, 45, 30, 0.12);
+}
+
+.login-gate-provider-btn:active {
+  transform: translateY(0) scale(0.985);
+}
+
+.login-provider-content {
+  position: relative;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  width: 100%;
+}
+
+.login-provider-icon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  display: block;
+}
