@@ -483,17 +483,37 @@ body.page-ready{animation:pageFadeIn 0.5s ease}
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  border: 1px solid rgba(74,52,40,.08);
   border-radius: 12px;
-  background: rgba(255,255,255,.82);
+  background: rgba(255,255,255,.94);
   box-shadow: 0 4px 12px rgba(74,52,40,.10);
-  transition: transform .3s cubic-bezier(.4,0,.2,1), box-shadow .3s ease;
-  cursor: default;
+  padding: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: transform .3s cubic-bezier(.4,0,.2,1), box-shadow .3s ease, background .2s ease;
+  cursor: pointer;
 }
 
 .login-provider-logo svg {
   width: 31px;
   height: 31px;
   display: block;
+  pointer-events: none;
+}
+
+.login-provider-logo--discord svg,
+.login-provider-logo--github svg {
+  width: 30px;
+  height: 30px;
+}
+
+.login-provider-logo:focus-visible {
+  outline: 2px solid var(--espresso);
+  outline-offset: 3px;
+}
+
+.login-provider-logo:active {
+  transform: scale(.94);
 }
 
 .login-provider-logoloop:hover .login-provider-logoloop__track {
