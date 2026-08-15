@@ -28,6 +28,10 @@
 
 <div class="toast" id="toast"></div>
 
+<div class="mod-banner mod-banner-top" id="mod-banner-top" style="display:none">
+  ⚠️ This site is currently under moderation and may be glitchy. Please don't purchase the book right now — try again in a little while.
+</div>
+
 <div id="login-gate" class="modal-overlay" style="z-index:10010;display:flex">
   <div class="modal-box">
     <div style="font-size:1.8rem;margin-bottom:0.6rem">📚</div>
@@ -478,6 +482,15 @@ async function loadBookData() {
 }
 
 function applyBookData(data) {
+  const topBanner = document.getElementById('mod-banner-top');
+  const bottomBanner = document.getElementById('mod-banner-bottom');
+  if (data.moderation_mode) {
+    topBanner.style.display = 'block';
+    bottomBanner.style.display = 'block';
+  } else {
+    topBanner.style.display = 'none';
+    bottomBanner.style.display = 'none';
+  }
   if (data.title) {
     document.getElementById('book-title-main').textContent = data.title;
     document.getElementById('cover-title').textContent = data.title;
@@ -1812,5 +1825,10 @@ document.body.classList.add('page-ready');
     });
   }
 </script>
+
+<div class="mod-banner mod-banner-bottom" id="mod-banner-bottom" style="display:none">
+  ⚠️ This site is currently under moderation and may be glitchy. Please don't purchase the book right now — try again in a little while.
+</div>
+
 </body>
 </html>

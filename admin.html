@@ -76,6 +76,16 @@
     <button class="signout-btn" id="signout-btn">Sign out</button>
   </div>
 
+  <div class="admin-panel" id="mod-mode-panel" style="border:1px solid var(--peach-line)">
+    <h3>🛠️ Moderator mode</h3>
+    <p style="font-size:0.85rem;color:var(--brown-soft);margin:0.2rem 0 1rem">When on, every visitor sees a site-wide banner warning that the site is under moderation, may be glitchy, and that they should hold off buying right now.</p>
+    <label style="display:flex;align-items:center;gap:0.7rem;cursor:pointer;user-select:none">
+      <input type="checkbox" id="mod-mode-toggle" style="width:20px;height:20px;cursor:pointer">
+      <span id="mod-mode-label" style="font-weight:600">Moderator mode is off</span>
+    </label>
+    <div id="mod-mode-status" style="font-size:0.8rem;margin-top:0.6rem;min-height:1.1rem"></div>
+  </div>
+
   <div class="admin-panel">
     <h3>📖 Edit book listing</h3>
     <div class="admin-row"><label>Title</label><input type="text" id="edit-title"></div>
@@ -232,6 +242,7 @@ function showAdmin() {
   document.getElementById('admin-gate').style.display = 'none';
   document.getElementById('admin-wrap').style.display = 'block';
   loadBookIntoForm();
+  loadModMode();
   loadOrders();
   loadReviewsForAdmin();
   loadWishlistForAdmin();
@@ -242,6 +253,36 @@ function showAdmin() {
 // password is kept in memory only (never persisted) — so unlike before,
 // a page refresh requires re-entering the password. This is intentional:
 // it means the moderator password is never sitting in sessionStorage.
+
+// ============ MODERATOR MODE (site-wide banner) ============
+async function loadModMode() {
+  const { data, error } = await sb.from('book_settings').select('moderation_mode').eq('id', 1).single();
+  const toggle = document.getElementById('mod-mode-toggle');
+  const label = document.getElementById('mod-mode-label');
+  if (error || !data) return;
+  toggle.checked = !!data.moderation_mode;
+  label.textContent = toggle.checked ? 'Moderator mode is on' : 'Moderator mode is off';
+}
+
+document.getElementById('mod-mode-toggle').addEventListener('change', async (e) => {
+  const on = e.target.checked;
+  const label = document.getElementById('mod-mode-label');
+  const statusEl = document.getElementById('mod-mode-status');
+  label.textContent = on ? 'Moderator mode is on' : 'Moderator mode is off';
+  statusEl.textContent = 'Saving...';
+  statusEl.style.color = 'var(--brown-soft)';
+  const { error } = await sb.from('book_settings').update({ moderation_mode: on }).eq('id', 1);
+  if (error) {
+    statusEl.textContent = '⚠ Save failed: ' + error.message;
+    statusEl.style.color = 'var(--red)';
+    e.target.checked = !on;
+    label.textContent = !on ? 'Moderator mode is on' : 'Moderator mode is off';
+  } else {
+    statusEl.textContent = on ? '✓ Banner is now live on the site.' : '✓ Banner removed from the site.';
+    statusEl.style.color = 'var(--green)';
+    showToast(on ? 'Moderator mode enabled.' : 'Moderator mode disabled.', 'success');
+  }
+});
 
 // ============ BOOK EDIT ============
 async function loadBookIntoForm() {
