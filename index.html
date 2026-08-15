@@ -32,6 +32,10 @@
   ⚠️ This site is currently under moderation and may be glitchy. Please don't purchase the book right now — try again in a little while.
 </div>
 
+<div class="ind-sale-banner" id="ind-sale-banner" style="display:none">
+  🇮🇳 Independence Day sale is live — ₹250 only (was ₹500)! 🇮🇳
+</div>
+
 <div id="login-gate" class="modal-overlay" style="z-index:10010;display:flex">
   <div class="modal-box">
     <div style="font-size:1.8rem;margin-bottom:0.6rem">📚</div>
@@ -490,6 +494,14 @@ function applyBookData(data) {
   } else {
     topBanner.style.display = 'none';
     bottomBanner.style.display = 'none';
+  }
+  const indBanner = document.getElementById('ind-sale-banner');
+  if (data.independence_sale) {
+    indBanner.style.display = 'block';
+    document.body.classList.add('theme-independence');
+  } else {
+    indBanner.style.display = 'none';
+    document.body.classList.remove('theme-independence');
   }
   if (data.title) {
     document.getElementById('book-title-main').textContent = data.title;

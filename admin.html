@@ -76,6 +76,16 @@
     <button class="signout-btn" id="signout-btn">Sign out</button>
   </div>
 
+  <div class="admin-panel" id="ind-sale-panel" style="border:1px solid var(--peach-line)">
+    <h3>🇮🇳 Independence Day sale</h3>
+    <p style="font-size:0.85rem;color:var(--brown-soft);margin:0.2rem 0 1rem">When on, the site shows an India-themed sale banner and sets the price to ₹250 (was ₹500). Turning it off reverts to your normal listed price.</p>
+    <label style="display:flex;align-items:center;gap:0.7rem;cursor:pointer;user-select:none">
+      <input type="checkbox" id="ind-sale-toggle" style="width:20px;height:20px;cursor:pointer">
+      <span id="ind-sale-label" style="font-weight:600">Independence Day sale is off</span>
+    </label>
+    <div id="ind-sale-status" style="font-size:0.8rem;margin-top:0.6rem;min-height:1.1rem"></div>
+  </div>
+
   <div class="admin-panel" id="mod-mode-panel" style="border:1px solid var(--peach-line)">
     <h3>🛠️ Moderator mode</h3>
     <p style="font-size:0.85rem;color:var(--brown-soft);margin:0.2rem 0 1rem">When on, every visitor sees a site-wide banner warning that the site is under moderation, may be glitchy, and that they should hold off buying right now.</p>
@@ -84,6 +94,16 @@
       <span id="mod-mode-label" style="font-weight:600">Moderator mode is off</span>
     </label>
     <div id="mod-mode-status" style="font-size:0.8rem;margin-top:0.6rem;min-height:1.1rem"></div>
+  </div>
+
+  <div class="admin-panel" id="indep-sale-panel" style="border:1px solid var(--peach-line)">
+    <h3>🇮🇳 Independence Day sale</h3>
+    <p style="font-size:0.85rem;color:var(--brown-soft);margin:0.2rem 0 1rem">When on, the site shows an "Independence Day sale is live" banner and the price switches to ₹500 → ₹250. Turning it off restores the price you last set in "Edit book listing" below.</p>
+    <label style="display:flex;align-items:center;gap:0.7rem;cursor:pointer;user-select:none">
+      <input type="checkbox" id="indep-sale-toggle" style="width:20px;height:20px;cursor:pointer">
+      <span id="indep-sale-label" style="font-weight:600">Independence Day sale is off</span>
+    </label>
+    <div id="indep-sale-status" style="font-size:0.8rem;margin-top:0.6rem;min-height:1.1rem"></div>
   </div>
 
   <div class="admin-panel">
@@ -242,6 +262,7 @@ function showAdmin() {
   document.getElementById('admin-gate').style.display = 'none';
   document.getElementById('admin-wrap').style.display = 'block';
   loadBookIntoForm();
+  loadIndSale();
   loadModMode();
   loadOrders();
   loadReviewsForAdmin();
@@ -253,6 +274,58 @@ function showAdmin() {
 // password is kept in memory only (never persisted) — so unlike before,
 // a page refresh requires re-entering the password. This is intentional:
 // it means the moderator password is never sitting in sessionStorage.
+
+// ============ INDEPENDENCE DAY SALE ============
+async function loadIndSale() {
+  const { data, error } = await sb.from('book_settings').select('*').eq('id', 1).single();
+  const toggle = document.getElementById('ind-sale-toggle');
+  const label = document.getElementById('ind-sale-label');
+  if (error || !data) return;
+  toggle.checked = !!data.independence_sale;
+  label.textContent = toggle.checked ? 'Independence Day sale is on' : 'Independence Day sale is off';
+}
+
+document.getElementById('ind-sale-toggle').addEventListener('change', async (e) => {
+  const on = e.target.checked;
+  const label = document.getElementById('ind-sale-label');
+  const statusEl = document.getElementById('ind-sale-status');
+  label.textContent = on ? 'Independence Day sale is on' : 'Independence Day sale is off';
+  statusEl.textContent = 'Saving...';
+  statusEl.style.color = 'var(--brown-soft)';
+
+  const { data: current } = await sb.from('book_settings').select('price, price_old, price_before_sale, price_old_before_sale').eq('id', 1).single();
+
+  let payload;
+  if (on) {
+    // Stash whatever price is currently set so we can restore it later.
+    payload = {
+      independence_sale: true,
+      price_before_sale: current?.price ?? null,
+      price_old_before_sale: current?.price_old ?? null,
+      price: 250,
+      price_old: 500
+    };
+  } else {
+    payload = {
+      independence_sale: false,
+      price: current?.price_before_sale ?? current?.price ?? 199,
+      price_old: current?.price_old_before_sale ?? current?.price_old ?? 300
+    };
+  }
+
+  const { error } = await sb.from('book_settings').update(payload).eq('id', 1);
+  if (error) {
+    statusEl.textContent = '⚠ Save failed: ' + error.message;
+    statusEl.style.color = 'var(--red)';
+    e.target.checked = !on;
+    label.textContent = !on ? 'Independence Day sale is on' : 'Independence Day sale is off';
+  } else {
+    statusEl.textContent = on ? '✓ Sale is live — ₹250 (was ₹500).' : '✓ Sale ended — price restored.';
+    statusEl.style.color = 'var(--green)';
+    showToast(on ? 'Independence Day sale enabled.' : 'Independence Day sale disabled.', 'success');
+    loadBookIntoForm();
+  }
+});
 
 // ============ MODERATOR MODE (site-wide banner) ============
 async function loadModMode() {
@@ -281,6 +354,57 @@ document.getElementById('mod-mode-toggle').addEventListener('change', async (e) 
     statusEl.textContent = on ? '✓ Banner is now live on the site.' : '✓ Banner removed from the site.';
     statusEl.style.color = 'var(--green)';
     showToast(on ? 'Moderator mode enabled.' : 'Moderator mode disabled.', 'success');
+  }
+});
+
+// ============ INDEPENDENCE DAY SALE ============
+async function loadIndepSale() {
+  const { data, error } = await sb.from('book_settings').select('independence_sale').eq('id', 1).single();
+  const toggle = document.getElementById('indep-sale-toggle');
+  const label = document.getElementById('indep-sale-label');
+  if (error || !data) return;
+  toggle.checked = !!data.independence_sale;
+  label.textContent = toggle.checked ? 'Independence Day sale is on' : 'Independence Day sale is off';
+}
+
+document.getElementById('indep-sale-toggle').addEventListener('change', async (e) => {
+  const on = e.target.checked;
+  const label = document.getElementById('indep-sale-label');
+  const statusEl = document.getElementById('indep-sale-status');
+  label.textContent = on ? 'Independence Day sale is on' : 'Independence Day sale is off';
+  statusEl.textContent = 'Saving...';
+  statusEl.style.color = 'var(--brown-soft)';
+
+  let payload;
+  if (on) {
+    // Stash whatever price is currently live, then set the sale price.
+    const { data: current } = await sb.from('book_settings').select('price, price_old').eq('id', 1).single();
+    payload = {
+      independence_sale: true,
+      pre_sale_price: current?.price ?? null,
+      pre_sale_price_old: current?.price_old ?? null,
+      price: 250,
+      price_old: 500
+    };
+  } else {
+    // Restore whatever was saved before the sale started, if anything.
+    const { data: current } = await sb.from('book_settings').select('pre_sale_price, pre_sale_price_old').eq('id', 1).single();
+    payload = { independence_sale: false };
+    if (current?.pre_sale_price != null) payload.price = current.pre_sale_price;
+    if (current?.pre_sale_price_old != null) payload.price_old = current.pre_sale_price_old;
+  }
+
+  const { error } = await sb.from('book_settings').update(payload).eq('id', 1);
+  if (error) {
+    statusEl.textContent = '⚠ Save failed: ' + error.message;
+    statusEl.style.color = 'var(--red)';
+    e.target.checked = !on;
+    label.textContent = !on ? 'Independence Day sale is on' : 'Independence Day sale is off';
+  } else {
+    statusEl.textContent = on ? '✓ Sale is now live — ₹500 → ₹250.' : '✓ Sale ended — price restored.';
+    statusEl.style.color = 'var(--green)';
+    showToast(on ? 'Independence Day sale enabled.' : 'Independence Day sale disabled.', 'success');
+    loadBookIntoForm(); // refresh the price fields below to reflect the change
   }
 });
 

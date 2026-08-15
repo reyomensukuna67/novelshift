@@ -193,6 +193,23 @@ footer{background:var(--cream);border-top:1px solid var(--peach-line);color:var(
 .mod-banner-bottom{bottom:0}
 @media(max-width:640px){.mod-banner{font-size:0.78rem;padding:0.6rem 1rem}}
 
+.ind-sale-banner{position:sticky;top:0;z-index:9999;background:linear-gradient(90deg,#FF9933 0%,#FF9933 33%,#FFFFFF 33%,#FFFFFF 67%,#138808 67%,#138808 100%);color:#0B2447;font-weight:800;text-align:center;padding:0.65rem 1.2rem;font-size:0.9rem;letter-spacing:0.02em;text-shadow:0 1px 2px rgba(255,255,255,0.6);border-bottom:1px solid rgba(0,0,0,0.08)}
+@media(max-width:640px){.ind-sale-banner{font-size:0.78rem;padding:0.55rem 1rem}}
+
+/* Independence Day theme override — remaps the site's peach accent
+   palette to a saffron/white/green tricolor scheme while the sale is on. */
+body.theme-independence{
+  --peach:#FF9933;--peach-deep:#138808;--peach-line:#F4C77B;
+  --panel:#FFF3E0;--panel2:#E8F5E9;
+}
+body.theme-independence .hero-tag,
+body.theme-independence .gifts-strip-label{border-color:#FF9933}
+body.theme-independence .btn-hero,
+body.theme-independence .btn-buy,
+body.theme-independence .btn-accent{background:linear-gradient(90deg,#FF9933,#138808)}
+body.theme-independence .price{color:#138808}
+body.theme-independence .logo span{color:#FF9933}
+
 .toast{position:fixed;bottom:2rem;right:2rem;background:var(--espresso);border:1px solid var(--peach-deep);color:var(--cream);font-size:0.87rem;padding:0.9rem 1.6rem;border-radius:12px;z-index:9998;opacity:0;transform:translateY(10px);transition:all 0.3s;pointer-events:none;max-width:300px}
 .toast.show{opacity:1;transform:translateY(0)}
 .toast.success{border-color:var(--green)}
